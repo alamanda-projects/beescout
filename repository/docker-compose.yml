@@ -24,13 +24,17 @@ services:
     #   MONGO_INITDB_ROOT_USERNAME: admin   ## dapat disesuaikan
     #   MONGO_INITDB_ROOT_PASSWORD: yellow  ## dapat disesuaikan
     volumes:
-      - ./data/db:/data/db
+      - beescout-data:/data/db
     ports:
       - 27017:27017
     networks:
       exa-net:
         aliases:
           - mongodb
+
+volumes:
+  beescout-data:
+    external: true
 
 networks:
   exa-net:
