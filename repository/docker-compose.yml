@@ -1,0 +1,37 @@
+services:
+
+  app:
+    image: alamandaprojects/beescout:0.0
+    env_file: .env
+    environment:
+      MONGODB_HOST: mongodb
+      # MONGODB_USER: admin     ## dapat disesuaikan
+      # MONGODB_PASS: yellow    ## dapat disesuaikan
+      # MONGODB_PORT: "27017"   ## dapat disesuaikan
+    ports:
+      - 8888:8888
+    networks:
+      exa-net:
+        aliases:
+          - repo
+    depends_on:
+      - db
+
+  db:
+    image: alamandaprojects/beescout:0.0-db
+    env_file: .env
+    # environment:                          ## dapat disesuaikan
+    #   MONGO_INITDB_ROOT_USERNAME: admin   ## dapat disesuaikan
+    #   MONGO_INITDB_ROOT_PASSWORD: yellow  ## dapat disesuaikan
+    volumes:
+      - ./data/db:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      exa-net:
+        aliases:
+          - mongodb
+
+networks:
+  exa-net:
+    external: true

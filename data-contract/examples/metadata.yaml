@@ -1,0 +1,75 @@
+metadata:
+  version: 1.0.0
+  type: CSV
+  name: customer list
+  owner: marketing division
+  consumption_mode: Analytical # [Analytical, Transactional]
+  description:
+    purpose: This dataset will be used to combine with others dataset for specific use case. # purpose of this dataset.
+    usage: private # explains the use of datasets for certain purposes [private, public]
+  consumer:
+    - name: data analyst
+      use_case: combine the dataset to transactional data, the results are obtained to find out a person's purchasing history.
+    - name: analytic engineer
+      use_case: enrich the customer datasets.
+  stakeholders:
+    - name: John Doe
+      email: john.doe@mail.me
+      role: owner # [owner, producer, consumer, reviewer]
+      date_in: 2023-08-13T16:07:54+07:00
+      date_out: null
+    - name: Jean Doe
+      email: jean.doe@mail.me
+      role: consumer # [owner, producer, consumer, reviewer]
+      date_in: 2023-08-13T16:07:54+07:00
+      date_out: 2023-09-16T16:07:54+07:00
+    - name: Fulanah
+      email: fulanah@mail.me
+      role: consumer # [owner, producer, consumer, reviewer]
+      date_in: 2023-09-16T16:07:54+07:00
+      date_out: null
+  quality:
+    - code: count_check
+      description: ensure the dataset is in accordance with the agreed volume range
+      dimension: completeness
+      impact: operational
+      custom_properties:
+        - property: field_condition
+          value: is_nullable=false
+        - property: field_condition
+          value: is_audit=true
+    - code: distinct_check
+      description: ensure there is no duplicate data
+      dimension: completeness
+      impact: operational
+      custom_properties:
+        - property: field_name
+          value: uid
+        - property: field_name
+          value: name
+        - property: field_name
+          value: join_date
+    - code: pii_check
+      description: ensure PII was masking
+      dimension: completeness
+      impact: operational
+      custom_properties:
+        - property: field_name
+          value: name
+  sla:
+    availability_start: 6
+    availability_end: 18
+    availability_unit: h
+    frequency: 4
+    frequency_unit: h
+    frequency_cron: 0 0/6 * * *
+    retention: 1
+    retention_unit: y
+    effective_date: 2023-08-13T16:07:54+07:00
+    end_of_contract: 2025-08-13T16:07:54+07:00
+  prev_contract: 4oxinOpVbBefG
+  contract_reference:
+    - number: 240785ED2D134204
+      type: Tiket Permintaan Data
+    - number: TM.03.01/C.ll/3322/2024
+      type: Surat Permohonan Data

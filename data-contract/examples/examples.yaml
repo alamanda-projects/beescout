@@ -1,0 +1,7 @@
+examples:
+  type: csv
+  data: |-
+    uid;name;join_date;updated_at;updated_by;created_at;created_by;deleted_at;deleted_by
+    4d60b9fe-3311-4edb-986a-5f93c79c61ac;Hani Perkasa;2022-01-08;2023-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;
+    386acf0e-5ed2-48d4-99b5-af5683207bd2;H4ni Nurchairil;2020-03-17;2023-08-13T16:07:54+07:00;;2023-08-13T16:07:54+07:00;admin;2023-08-14T16:07:54+07:00;admin
+    ecc4992b-10fc-4621-9378-999a78a00804;Fulanah;;2021-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;

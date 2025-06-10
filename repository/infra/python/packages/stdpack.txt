@@ -1,0 +1,10 @@
+email-validator
+fastapi
+motor
+nanoid
+passlib[bcrypt]
+pydantic
+pyjwt
+python-decouple
+python-multipart
+uvicorn

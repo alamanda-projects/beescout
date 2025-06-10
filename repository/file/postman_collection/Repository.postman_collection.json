@@ -1,0 +1,1126 @@
+{
+	"info": {
+		"_postman_id": "0378804b-21fc-486c-b500-7901734326c7",
+		"name": "DataGuard Repository",
+		"description": "## Version 0.1.0 (Alpha)\n\nFitur :\n\n- Manajemen User\n    \n- Manajemen Data Contract\n    \n\nPengembang : Alamanda Projects\n\nLisensi : [GNU AFFERO GENERAL PUBLIC LICENSE](https://www.gnu.org/licenses/agpl-3.0.txt)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5679853"
+	},
+	"item": [
+		{
+			"name": "datacontract",
+			"item": [
+				{
+					"name": "filtered",
+					"item": [
+						{
+							"name": "filter",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseurl}}/datacontract/filter",
+									"host": [
+										"{{baseurl}}"
+									],
+									"path": [
+										"datacontract",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "contract_number",
+											"value": "H25DR1OPXKJPp",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ssj61IIaYkHKD",
+											"description": "inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ngasal",
+											"description": "Not Found",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "yCmT8BoiLv5Z0",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "3oxinjpVbBefh",
+											"description": "penjualan",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "1xuU2ezUCvR4a",
+											"description": "Not Allowed",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "filter-metadata",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseurl}}/datacontract/metadata/filter",
+									"host": [
+										"{{baseurl}}"
+									],
+									"path": [
+										"datacontract",
+										"metadata",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "contract_number",
+											"value": "H25DR1OPXKJPp",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ssj61IIaYkHKD",
+											"description": "inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ngasal",
+											"description": "Not Found",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "yCmT8BoiLv5Z0",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "3oxinjpVbBefh",
+											"description": "penjualan",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "1xuU2ezUCvR4a",
+											"description": "Not Allowed",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "filter-model",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseurl}}/datacontract/model/filter",
+									"host": [
+										"{{baseurl}}"
+									],
+									"path": [
+										"datacontract",
+										"model",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "contract_number",
+											"value": "H25DR1OPXKJPp",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ssj61IIaYkHKD",
+											"description": "inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ngasal",
+											"description": "Not Found",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "yCmT8BoiLv5Z0",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "3oxinjpVbBefh",
+											"description": "penjualan",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "1xuU2ezUCvR4a",
+											"description": "Not Allowed",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "filter-ports",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseurl}}/datacontract/ports/filter",
+									"host": [
+										"{{baseurl}}"
+									],
+									"path": [
+										"datacontract",
+										"ports",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "contract_number",
+											"value": "H25DR1OPXKJPp",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ssj61IIaYkHKD",
+											"description": "inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ngasal",
+											"description": "Not Found",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "yCmT8BoiLv5Z0",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "3oxinjpVbBefh",
+											"description": "penjualan",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "1xuU2ezUCvR4a",
+											"description": "Not Allowed",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "filter-examples",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseurl}}/datacontract/examples/filter",
+									"host": [
+										"{{baseurl}}"
+									],
+									"path": [
+										"datacontract",
+										"examples",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "contract_number",
+											"value": "H25DR1OPXKJPp",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ssj61IIaYkHKD",
+											"description": "inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ngasal",
+											"description": "Not Found",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "yCmT8BoiLv5Z0",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "3oxinjpVbBefh",
+											"description": "penjualan",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "1xuU2ezUCvR4a",
+											"description": "Not Allowed",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "filter-dbtschema",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseurl}}/datacontract/dbtschema/filter",
+									"host": [
+										"{{baseurl}}"
+									],
+									"path": [
+										"datacontract",
+										"dbtschema",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "contract_number",
+											"value": "H25DR1OPXKJPp",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ssj61IIaYkHKD",
+											"description": "inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "ngasal",
+											"description": "Not Found",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "yCmT8BoiLv5Z0",
+											"description": "penjualan, inventory",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "3oxinjpVbBefh",
+											"description": "penjualan",
+											"disabled": true
+										},
+										{
+											"key": "contract_number",
+											"value": "1xuU2ezUCvR4a",
+											"description": "Not Allowed",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "lists",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/lists",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"lists"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "generate contract_number",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/gencn",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"gencn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"standard_version\": \"0.1.0\",\n  \"contract_number\": \"1xuU2ezUCvR4a\",\n  \"metadata\": {\n    \"version\": \"1.0.0\",\n    \"type\": \"CSV\",\n    \"name\": \"DC baru buat\",\n    \"owner\": \"Data Governance\",\n    \"consumption_mode\": \"Analytical\",\n    \"description\": {\n      \"purpose\": \"This dataset will be used to combine with others dataset for specific use case.\",\n      \"usage\": \"private\"\n    },\n    \"consumer\": [\n      {\n        \"name\": \"data-analyst\",\n        \"use_case\": \"combine the dataset to transactional data, the results are obtained to find out a person's purchasing history.\"\n      },\n      {\n        \"name\": \"analytic-engineer\",\n        \"use_case\": \"enrich the customer datasets.\"\n      }\n    ],\n    \"stakeholders\": [\n      {\n        \"name\": \"John Doe\",\n        \"email\": \"john.doe@mail.me\",\n        \"role\": \"owner\",\n        \"date_in\": \"2023-08-13T09:07:54.000Z\",\n        \"date_out\": null\n      },\n      {\n        \"name\": \"Jean Doe\",\n        \"email\": \"jean.doe@mail.me\",\n        \"role\": \"consumer\",\n        \"date_in\": \"2023-08-13T09:07:54.000Z\",\n        \"date_out\": \"2023-09-16T09:07:54.000Z\"\n      },\n      {\n        \"name\": \"Fulanah\",\n        \"email\": \"fulanah@mail.me\",\n        \"role\": \"consumer\",\n        \"date_in\": \"2023-09-16T09:07:54.000Z\",\n        \"date_out\": null\n      }\n    ],\n    \"quality\": [\n      {\n        \"code\": \"count_check\",\n        \"description\": \"ensure the dataset is in accordance with the agreed volume range\",\n        \"dimension\": \"completeness\",\n        \"impact\": \"operational\",\n        \"custom_properties\": [\n          {\n            \"property\": \"field_condition\",\n            \"value\": \"is_nullable=false\"\n          },\n          {\n            \"property\": \"field_condition\",\n            \"value\": \"is_audit=true\"\n          }\n        ]\n      },\n      {\n        \"code\": \"distinct_check\",\n        \"description\": \"ensure there is no duplicate data\",\n        \"dimension\": \"completeness\",\n        \"impact\": \"operational\",\n        \"custom_properties\": [\n          {\n            \"property\": \"field_name\",\n            \"value\": \"uid\"\n          },\n          {\n            \"property\": \"field_name\",\n            \"value\": \"name\"\n          },\n          {\n            \"property\": \"field_name\",\n            \"value\": \"join_date\"\n          }\n        ]\n      },\n      {\n        \"code\": \"pii_check\",\n        \"description\": \"ensure PII was masking\",\n        \"dimension\": \"completeness\",\n        \"impact\": \"operational\",\n        \"custom_properties\": [\n          {\n            \"property\": \"field_name\",\n            \"value\": \"name\"\n          }\n        ]\n      }\n    ],\n    \"sla\": {\n      \"availability_start\": 6,\n      \"availability_end\": 18,\n      \"availability_unit\": \"h\",\n      \"frequency\": 4,\n      \"frequency_unit\": \"h\",\n      \"frequency_cron\": \"0 0/6 * * *\",\n      \"retention\": 1,\n      \"retention_unit\": \"y\",\n      \"effective_date\": \"2023-08-13T09:07:54.000Z\",\n      \"end_of_contract\": \"2025-08-13T09:07:54.000Z\"\n    }\n  },\n  \"model\": [\n    {\n      \"column\": \"uid\",\n      \"business_name\": \"User ID\",\n      \"logical_type\": \"string\",\n      \"physical_type\": \"varchar(36)\",\n      \"is_primary\": true,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": true,\n      \"is_audit\": false,\n      \"is_mandatory\": true,\n      \"description\": \"User identifier column, this column is required and must be unique value\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"format_check\",\n          \"description\": \"ensure the value does not exceed the agreed nomenclature limits\",\n          \"dimension\": \"validity\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"length\",\n              \"value\": 36\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"4d60b9fe-3311-4edb-986a-5f93c79c61ac\",\n        \"386acf0e-5ed2-48d4-99b5-af5683207bd2\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"name\",\n      \"business_name\": \"Full Name\",\n      \"logical_type\": \"string\",\n      \"physical_type\": \"varchar(100)\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": true,\n      \"is_audit\": false,\n      \"is_mandatory\": true,\n      \"description\": \"Column that represent the user full name\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"string_check\",\n          \"description\": \"ensure column values only contain strings\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"contains only\",\n              \"value\": \"alphabet\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"Fulan Bin Fulan\",\n        \"Agus\",\n        \"Budi Dwihartoyo\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"join_date\",\n      \"business_name\": \"Join Date\",\n      \"logical_type\": \"date\",\n      \"physical_type\": \"date\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": true,\n      \"is_audit\": false,\n      \"is_mandatory\": false,\n      \"description\": \"Column that represent when the user join\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"date_range_check\",\n          \"description\": \"ensure the value does not exceed the agreed limit\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"min_date\",\n              \"value\": \"1940-01-01T00:00:00.000Z\"\n            },\n            {\n              \"property\": \"max_date\",\n              \"value\": \"today\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"1990-03-07T00:00:00.000Z\",\n        \"1995-09-13T00:00:00.000Z\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"updated_at\",\n      \"business_name\": \"Updated At\",\n      \"logical_type\": \"datetime\",\n      \"physical_type\": \"datetime\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": false,\n      \"is_audit\": true,\n      \"is_mandatory\": true,\n      \"description\": \"column that explains the last time the row was updated\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"date_range_check\",\n          \"description\": \"ensure the value does not exceed the agreed limit\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"max_date\",\n              \"value\": \"today\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"2023-08-13T09:07:54.000Z\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"updated_by\",\n      \"business_name\": \"Updated By\",\n      \"logical_type\": \"datetime\",\n      \"physical_type\": \"datetime\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": false,\n      \"is_audit\": true,\n      \"is_mandatory\": true,\n      \"description\": \"column that explains who was updated the row\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"string_check\",\n          \"description\": \"ensure column values only contain strings\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"contains only\",\n              \"value\": \"alphabet\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"Fulan Bin Fulan\",\n        \"Agus\",\n        \"Budi Dwihartoyo\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"created_at\",\n      \"business_name\": \"Created At\",\n      \"logical_type\": \"datetime\",\n      \"physical_type\": \"datetime\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": false,\n      \"is_audit\": true,\n      \"is_mandatory\": true,\n      \"description\": \"column that explains the last time the row was created\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"date_range_check\",\n          \"description\": \"ensure the value does not exceed the agreed limit\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"min_date\",\n              \"value\": \"1969-12-31T17:00:00.000Z\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"2023-08-13T09:07:54.000Z\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"created_by\",\n      \"business_name\": \"Created By\",\n      \"logical_type\": \"datetime\",\n      \"physical_type\": \"datetime\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": false,\n      \"is_audit\": true,\n      \"is_mandatory\": true,\n      \"description\": \"column that explains who was created the row\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"string_check\",\n          \"description\": \"ensure column values only contain strings\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"contains only\",\n              \"value\": \"alphabet\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"Fulan Bin Fulan\",\n        \"Agus\",\n        \"Budi Dwihartoyo\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"deleted_at\",\n      \"business_name\": \"Deleted At\",\n      \"logical_type\": \"datetime\",\n      \"physical_type\": \"datetime\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": false,\n      \"is_audit\": true,\n      \"is_mandatory\": false,\n      \"description\": \"column that explains the last time the row was deleted\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"less than\"\n            }\n          ]\n        },\n        {\n          \"code\": \"date_range_check\",\n          \"description\": \"ensure the value does not exceed the agreed limit\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"min_date\",\n              \"value\": \"1969-12-31T17:00:00.000Z\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"2023-08-13T09:07:54.000Z\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    },\n    {\n      \"column\": \"deleted_by\",\n      \"business_name\": \"Deleted By\",\n      \"logical_type\": \"datetime\",\n      \"physical_type\": \"datetime\",\n      \"is_primary\": false,\n      \"is_nullable\": false,\n      \"is_partition\": true,\n      \"is_clustered\": false,\n      \"is_pii\": false,\n      \"is_audit\": true,\n      \"is_mandatory\": false,\n      \"description\": \"column that explains who was deleted the row\",\n      \"quality\": [\n        {\n          \"code\": \"null_check\",\n          \"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n          \"dimension\": \"completeness\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"compare_to\",\n              \"value\": \"total dataset row\"\n            },\n            {\n              \"property\": \"comparison_type\",\n              \"value\": \"equal to\"\n            }\n          ]\n        },\n        {\n          \"code\": \"string_check\",\n          \"description\": \"ensure column values only contain strings\",\n          \"dimension\": \"accuracy\",\n          \"impact\": \"operational\",\n          \"custom_properties\": [\n            {\n              \"property\": \"contains only\",\n              \"value\": \"alphabet\"\n            }\n          ]\n        }\n      ],\n      \"sample_value\": [\n        \"Fulan Bin Fulan\",\n        \"Agus\",\n        \"Budi Dwihartoyo\"\n      ],\n      \"tags\": [\n        \"tag1\",\n        \"tag2\"\n      ]\n    }\n  ],\n  \"ports\": [\n    {\n      \"object\": \"source\",\n      \"properties\": [\n        {\n          \"property\": \"type\",\n          \"value\": \"s3\"\n        },\n        {\n          \"property\": \"location\",\n          \"value\": \"s3://path/to/object\"\n        }\n      ]\n    },\n    {\n      \"object\": \"destination\",\n      \"properties\": [\n        {\n          \"property\": \"type\",\n          \"value\": \"bigquery\"\n        },\n        {\n          \"property\": \"project\",\n          \"value\": \"project_name\"\n        },\n        {\n          \"property\": \"dataset\",\n          \"value\": \"dataset_name\"\n        }\n      ]\n    }\n  ],\n  \"examples\": {\n    \"type\": \"csv\",\n    \"data\": \"uid;name;join_date;updated_at;updated_by;created_at;created_by;deleted_at;deleted_by\\n4d60b9fe-3311-4edb-986a-5f93c79c61ac;Hani Perkasa;2022-01-08;2023-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;\\n386acf0e-5ed2-48d4-99b5-af5683207bd2;H4ni Nurchairil;2020-03-17;2023-08-13T16:07:54+07:00;;2023-08-13T16:07:54+07:00;admin;2023-08-14T16:07:54+07:00;admin\\necc4992b-10fc-4621-9378-999a78a00804;Fulanah;;2021-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/add",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"add"
+							],
+							"query": [
+								{
+									"key": "body",
+									"value": "{\n\t\"standard_version\": \"0.1.0\",\n\t\"contract_number\": \"s5l86UiyqS99v\",\n\t\"metadata\": {\n\t\t\"version\": \"1.0.1\",\n\t\t\"type\": \"CSV\",\n\t\t\"name\": \"customer list\",\n\t\t\"owner\": \"marketing division\",\n\t\t\"consumption_mode\": \"Analytical\",\n\t\t\"description\": {\n\t\t\t\"purpose\": \"This dataset will be used to combine with others dataset for specific use case.\",\n\t\t\t\"usage\": \"private\"\n\t\t},\n\t\t\"consumer\": [\n\t\t\t{\n\t\t\t\t\"name\": \"data analyst\",\n\t\t\t\t\"use_case\": \"combine the dataset to transactional data, the results are obtained to find out a person's purchasing history.\"\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"name\": \"analytic engineer\",\n\t\t\t\t\"use_case\": \"enrich the customer datasets.\"\n\t\t\t}\n\t\t],\n\t\t\"stakeholders\": [\n\t\t\t{\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john.doe@mail.me\",\n\t\t\t\t\"role\": \"owner\",\n\t\t\t\t\"date_in\": \"2023-08-13T09:07:54.000Z\",\n\t\t\t\t\"date_out\": null\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"name\": \"Jean Doe\",\n\t\t\t\t\"email\": \"jean.doe@mail.me\",\n\t\t\t\t\"role\": \"consumer\",\n\t\t\t\t\"date_in\": \"2023-08-13T09:07:54.000Z\",\n\t\t\t\t\"date_out\": \"2023-09-16T09:07:54.000Z\"\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"name\": \"Fulanah\",\n\t\t\t\t\"email\": \"fulanah@mail.me\",\n\t\t\t\t\"role\": \"consumer\",\n\t\t\t\t\"date_in\": \"2023-09-16T09:07:54.000Z\",\n\t\t\t\t\"date_out\": null\n\t\t\t}\n\t\t],\n\t\t\"quality\": [\n\t\t\t{\n\t\t\t\t\"code\": \"count_check\",\n\t\t\t\t\"description\": \"ensure the dataset is in accordance with the agreed volume range\",\n\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_condition\",\n\t\t\t\t\t\t\"value\": \"is_nullable=false\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_condition\",\n\t\t\t\t\t\t\"value\": \"is_audit=true\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"code\": \"distinct_check\",\n\t\t\t\t\"description\": \"ensure there is no duplicate data\",\n\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"uid\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"name\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"join_date\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"code\": \"pii_check\",\n\t\t\t\t\"description\": \"ensure PII was masking\",\n\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"name\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t}\n\t\t],\n\t\t\"sla\": {\n\t\t\t\"availability_start\": 6,\n\t\t\t\"availability_end\": 18,\n\t\t\t\"availability_unit\": \"h\",\n\t\t\t\"frequency\": 4,\n\t\t\t\"frequency_unit\": \"h\",\n\t\t\t\"frequency_cron\": \"0 0/6 * * *\",\n\t\t\t\"retention\": 1,\n\t\t\t\"retention_unit\": \"y\",\n\t\t\t\"effective_date\": \"2023-08-13T09:07:54.000Z\",\n\t\t\t\"end_of_contract\": \"2025-08-13T09:07:54.000Z\"\n\t\t}\n\t},\n\t\"model\": [\n\t\t{\n\t\t\t\"column\": \"uid\",\n\t\t\t\"business_name\": \"User ID\",\n\t\t\t\"logical_type\": \"string\",\n\t\t\t\"physical_type\": \"varchar(36)\",\n\t\t\t\"is_primary\": true,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": true,\n\t\t\t\"is_audit\": false,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"User identifier column, this column is required and must be unique value\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"format_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed nomenclature limits\",\n\t\t\t\t\t\"dimension\": \"validity\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"length\",\n\t\t\t\t\t\t\t\"value\": 36\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"4d60b9fe-3311-4edb-986a-5f93c79c61ac\",\n\t\t\t\t\"386acf0e-5ed2-48d4-99b5-af5683207bd2\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"name\",\n\t\t\t\"business_name\": \"Full Name\",\n\t\t\t\"logical_type\": \"string\",\n\t\t\t\"physical_type\": \"varchar(100)\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": true,\n\t\t\t\"is_audit\": false,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"Column that represent the user full name\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"join_date\",\n\t\t\t\"business_name\": \"Join Date\",\n\t\t\t\"logical_type\": \"date\",\n\t\t\t\"physical_type\": \"date\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": true,\n\t\t\t\"is_audit\": false,\n\t\t\t\"is_mandatory\": false,\n\t\t\t\"description\": \"Column that represent when the user join\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"min_date\",\n\t\t\t\t\t\t\t\"value\": \"1940-01-01T00:00:00.000Z\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"max_date\",\n\t\t\t\t\t\t\t\"value\": \"today\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"1990-03-07T00:00:00.000Z\",\n\t\t\t\t\"1995-09-13T00:00:00.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"updated_at\",\n\t\t\t\"business_name\": \"Updated At\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains the last time the row was updated\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"max_date\",\n\t\t\t\t\t\t\t\"value\": \"today\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"2023-08-13T09:07:54.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"updated_by\",\n\t\t\t\"business_name\": \"Updated By\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains who was updated the row\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"created_at\",\n\t\t\t\"business_name\": \"Created At\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains the last time the row was created\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"min_date\",\n\t\t\t\t\t\t\t\"value\": \"1969-12-31T17:00:00.000Z\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"2023-08-13T09:07:54.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"created_by\",\n\t\t\t\"business_name\": \"Created By\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains who was created the row\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"deleted_at\",\n\t\t\t\"business_name\": \"Deleted At\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": false,\n\t\t\t\"description\": \"column that explains the last time the row was deleted\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"less than\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"min_date\",\n\t\t\t\t\t\t\t\"value\": \"1969-12-31T17:00:00.000Z\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"2023-08-13T09:07:54.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"deleted_by\",\n\t\t\t\"business_name\": \"Deleted By\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": false,\n\t\t\t\"description\": \"column that explains who was deleted the row\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t}\n\t],\n\t\"ports\": [\n\t\t{\n\t\t\t\"object\": \"source\",\n\t\t\t\"properties\": [\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"type\",\n\t\t\t\t\t\"value\": \"s3\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"location\",\n\t\t\t\t\t\"value\": \"s3://path/to/object\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"object\": \"destination\",\n\t\t\t\"properties\": [\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"type\",\n\t\t\t\t\t\"value\": \"bigquery\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"project\",\n\t\t\t\t\t\"value\": \"project_name\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"dataset\",\n\t\t\t\t\t\"value\": \"dataset_name\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t],\n\t\"examples\": {\n\t\t\"type\": \"csv\",\n\t\t\"data\": \"uid;name;join_date;updated_at;updated_by;created_at;created_by;deleted_at;deleted_by\\n4d60b9fe-3311-4edb-986a-5f93c79c61ac;Hani Perkasa;2022-01-08;2023-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;\\n386acf0e-5ed2-48d4-99b5-af5683207bd2;H4ni Nurchairil;2020-03-17;2023-08-13T16:07:54+07:00;;2023-08-13T16:07:54+07:00;admin;2023-08-14T16:07:54+07:00;admin\\necc4992b-10fc-4621-9378-999a78a00804;Fulanah;;2021-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;\"\n\t}\n}",
+									"description": "success",
+									"disabled": true
+								},
+								{
+									"key": "body",
+									"value": "{\n\t\"standard_version\": \"0.1.0\",\n\t\"contract_number\": \"3oxinjpVbBefh\",\n\t\"metadata\": {\n\t\t\"version\": 1,\n\t\t\"type\": \"CSV\",\n\t\t\"name\": \"customer list\",\n\t\t\"owner\": \"marketing division\",\n\t\t\"consumption_mode\": \"Analytical\",\n\t\t\"description\": {\n\t\t\t\"purpose\": \"This dataset will be used to combine with others dataset for specific use case.\",\n\t\t\t\"usage\": \"private\"\n\t\t},\n\t\t\"consumer\": [\n\t\t\t{\n\t\t\t\t\"name\": \"data analyst\",\n\t\t\t\t\"use_case\": \"combine the dataset to transactional data, the results are obtained to find out a person's purchasing history.\"\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"name\": \"analytic engineer\",\n\t\t\t\t\"use_case\": \"enrich the customer datasets.\"\n\t\t\t}\n\t\t],\n\t\t\"stakeholders\": [\n\t\t\t{\n\t\t\t\t\"name\": \"John Doe\",\n\t\t\t\t\"email\": \"john.doe@mail.me\",\n\t\t\t\t\"role\": \"owner\",\n\t\t\t\t\"date_in\": \"2023-08-13T09:07:54.000Z\",\n\t\t\t\t\"date_out\": null\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"name\": \"Jean Doe\",\n\t\t\t\t\"email\": \"jean.doe@mail.me\",\n\t\t\t\t\"role\": \"consumer\",\n\t\t\t\t\"date_in\": \"2023-08-13T09:07:54.000Z\",\n\t\t\t\t\"date_out\": \"2023-09-16T09:07:54.000Z\"\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"name\": \"Fulanah\",\n\t\t\t\t\"email\": \"fulanah@mail.me\",\n\t\t\t\t\"role\": \"consumer\",\n\t\t\t\t\"date_in\": \"2023-09-16T09:07:54.000Z\",\n\t\t\t\t\"date_out\": null\n\t\t\t}\n\t\t],\n\t\t\"quality\": [\n\t\t\t{\n\t\t\t\t\"code\": \"count_check\",\n\t\t\t\t\"description\": \"ensure the dataset is in accordance with the agreed volume range\",\n\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_condition\",\n\t\t\t\t\t\t\"value\": \"is_nullable=false\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_condition\",\n\t\t\t\t\t\t\"value\": \"is_audit=true\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"code\": \"distinct_check\",\n\t\t\t\t\"description\": \"ensure there is no duplicate data\",\n\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"uid\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"name\"\n\t\t\t\t\t},\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"join_date\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"code\": \"pii_check\",\n\t\t\t\t\"description\": \"ensure PII was masking\",\n\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"property\": \"field_name\",\n\t\t\t\t\t\t\"value\": \"name\"\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t}\n\t\t],\n\t\t\"sla\": {\n\t\t\t\"availability_start\": 6,\n\t\t\t\"availability_end\": 18,\n\t\t\t\"availability_unit\": \"h\",\n\t\t\t\"frequency\": 4,\n\t\t\t\"frequency_unit\": \"h\",\n\t\t\t\"frequency_cron\": \"0 0/6 * * *\",\n\t\t\t\"retention\": 1,\n\t\t\t\"retention_unit\": \"y\",\n\t\t\t\"effective_date\": \"2023-08-13T09:07:54.000Z\",\n\t\t\t\"end_of_contract\": \"2025-08-13T09:07:54.000Z\"\n\t\t}\n\t},\n\t\"model\": [\n\t\t{\n\t\t\t\"column\": \"uid\",\n\t\t\t\"business_name\": \"User ID\",\n\t\t\t\"logical_type\": \"string\",\n\t\t\t\"physical_type\": \"varchar(36)\",\n\t\t\t\"is_primary\": true,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": true,\n\t\t\t\"is_audit\": false,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"User identifier column, this column is required and must be unique value\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"format_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed nomenclature limits\",\n\t\t\t\t\t\"dimension\": \"validity\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"length\",\n\t\t\t\t\t\t\t\"value\": 36\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"4d60b9fe-3311-4edb-986a-5f93c79c61ac\",\n\t\t\t\t\"386acf0e-5ed2-48d4-99b5-af5683207bd2\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"name\",\n\t\t\t\"business_name\": \"Full Name\",\n\t\t\t\"logical_type\": \"string\",\n\t\t\t\"physical_type\": \"varchar(100)\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": true,\n\t\t\t\"is_audit\": false,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"Column that represent the user full name\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"join_date\",\n\t\t\t\"business_name\": \"Join Date\",\n\t\t\t\"logical_type\": \"date\",\n\t\t\t\"physical_type\": \"date\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": true,\n\t\t\t\"is_audit\": false,\n\t\t\t\"is_mandatory\": false,\n\t\t\t\"description\": \"Column that represent when the user join\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"min_date\",\n\t\t\t\t\t\t\t\"value\": \"1940-01-01T00:00:00.000Z\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"max_date\",\n\t\t\t\t\t\t\t\"value\": \"today\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"1990-03-07T00:00:00.000Z\",\n\t\t\t\t\"1995-09-13T00:00:00.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"updated_at\",\n\t\t\t\"business_name\": \"Updated At\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains the last time the row was updated\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"max_date\",\n\t\t\t\t\t\t\t\"value\": \"today\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"2023-08-13T09:07:54.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"updated_by\",\n\t\t\t\"business_name\": \"Updated By\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains who was updated the row\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"created_at\",\n\t\t\t\"business_name\": \"Created At\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains the last time the row was created\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"min_date\",\n\t\t\t\t\t\t\t\"value\": \"1969-12-31T17:00:00.000Z\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"2023-08-13T09:07:54.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"created_by\",\n\t\t\t\"business_name\": \"Created By\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": true,\n\t\t\t\"description\": \"column that explains who was created the row\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"deleted_at\",\n\t\t\t\"business_name\": \"Deleted At\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": false,\n\t\t\t\"description\": \"column that explains the last time the row was deleted\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"less than\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"date_range_check\",\n\t\t\t\t\t\"description\": \"ensure the value does not exceed the agreed limit\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"min_date\",\n\t\t\t\t\t\t\t\"value\": \"1969-12-31T17:00:00.000Z\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"2023-08-13T09:07:54.000Z\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"column\": \"deleted_by\",\n\t\t\t\"business_name\": \"Deleted By\",\n\t\t\t\"logical_type\": \"datetime\",\n\t\t\t\"physical_type\": \"datetime\",\n\t\t\t\"is_primary\": false,\n\t\t\t\"is_nullable\": false,\n\t\t\t\"is_partition\": true,\n\t\t\t\"is_clustered\": false,\n\t\t\t\"is_pii\": false,\n\t\t\t\"is_audit\": true,\n\t\t\t\"is_mandatory\": false,\n\t\t\t\"description\": \"column that explains who was deleted the row\",\n\t\t\t\"quality\": [\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"null_check\",\n\t\t\t\t\t\"description\": \"ensure that the column rows are complete according to the expected number of rows\",\n\t\t\t\t\t\"dimension\": \"completeness\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"compare_to\",\n\t\t\t\t\t\t\t\"value\": \"total dataset row\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"comparison_type\",\n\t\t\t\t\t\t\t\"value\": \"equal to\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"code\": \"string_check\",\n\t\t\t\t\t\"description\": \"ensure column values only contain strings\",\n\t\t\t\t\t\"dimension\": \"accuracy\",\n\t\t\t\t\t\"impact\": \"operational\",\n\t\t\t\t\t\"custom_properties\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"property\": \"contains only\",\n\t\t\t\t\t\t\t\"value\": \"alphabet\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"sample_value\": [\n\t\t\t\t\"Fulan Bin Fulan\",\n\t\t\t\t\"Agus\",\n\t\t\t\t\"Budi Dwihartoyo\"\n\t\t\t],\n\t\t\t\"tags\": [\n\t\t\t\t\"tag1\",\n\t\t\t\t\"tag2\"\n\t\t\t]\n\t\t}\n\t],\n\t\"ports\": [\n\t\t{\n\t\t\t\"object\": \"source\",\n\t\t\t\"properties\": [\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"type\",\n\t\t\t\t\t\"value\": \"s3\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"location\",\n\t\t\t\t\t\"value\": \"s3://path/to/object\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"object\": \"destination\",\n\t\t\t\"properties\": [\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"type\",\n\t\t\t\t\t\"value\": \"bigquery\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"project\",\n\t\t\t\t\t\"value\": \"project_name\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"property\": \"dataset\",\n\t\t\t\t\t\"value\": \"dataset_name\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t],\n\t\"examples\": {\n\t\t\"type\": \"csv\",\n\t\t\"data\": \"uid;name;join_date;updated_at;updated_by;created_at;created_by;deleted_at;deleted_by\\n4d60b9fe-3311-4edb-986a-5f93c79c61ac;Hani Perkasa;2022-01-08;2023-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;\\n386acf0e-5ed2-48d4-99b5-af5683207bd2;H4ni Nurchairil;2020-03-17;2023-08-13T16:07:54+07:00;;2023-08-13T16:07:54+07:00;admin;2023-08-14T16:07:54+07:00;admin\\necc4992b-10fc-4621-9378-999a78a00804;Fulanah;;2021-08-13T16:07:54+07:00;admin;2023-08-13T16:07:54+07:00;admin;;\"\n\t}\n}",
+									"description": "validation error",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "metadata",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/metadata",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "model",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/model",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"model"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ports",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/ports",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"ports"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "examples",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/datacontract/examples",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"datacontract",
+								"examples"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"da\",\n  \"password\": \"useR!234\",\n  \"name\": \"Data Analyst\",\n  \"group_access\": \"user\",\n  \"data_domain\": \"penjualan\",\n  \"is_active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/user/create",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"user",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/user/me",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"user",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sakey create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/sakey/create",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"sakey",
+								"create"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "login",
+			"item": [
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().access_token)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\"username\": \"root\", \"password\": \"@DM1Nyellow\"}\n// {\"username\": \"admin\", \"password\": \"admiN!23\"}\n// {\"username\": \"user\", \"password\": \"useR!234\"}\n{\"username\": \"usersss\", \"password\": \"useR!234\"}\n// {\"username\": \"ae\", \"password\": \"deveL!234\"}\n// {\"username\": \"da\", \"password\": \"useR!234\"}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/login",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login midware",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().access_token)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"client_id\": \"d5DYiirusre6Bi\",\n    \"private_key\": \"{--YOUR_PRIVATE_KEY--}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/login/midware",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"login",
+								"midware"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().access_token)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/logout",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "sakey",
+			"item": [
+				{
+					"name": "sakey me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/sakey/me",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"sakey",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sakey list",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/sakey/lists",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"sakey",
+								"lists"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

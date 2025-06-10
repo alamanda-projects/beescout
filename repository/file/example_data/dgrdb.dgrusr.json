@@ -1,0 +1,90 @@
+[{
+  "_id": {
+    "$oid": "659d010f6fc38875fe81fbc6"
+  },
+  "username": "root",
+  "password": "$2b$12$BRd2gyH3NU2OMiv.1G3peeiardJhieieaneI1mqwP8kB6oH/vnrtS",
+  "name": "Iam Root",
+  "group_access": "root",
+  "created_at": {
+    "$date": "2024-01-09T08:16:30.885Z"
+  },
+  "data_domain": "root",
+  "is_active": true,
+  "type": "user"
+},
+{
+  "_id": {
+    "$oid": "681c986cec85ff8d0a905ae3"
+  },
+  "username": "admin",
+  "password": "$2b$12$DsU9VTiXlOPF6Kh93D0dseat91lCVGK6EA01z9D48L9QcmEGJQ6EG",
+  "name": "Admin",
+  "group_access": "admin",
+  "data_domain": "admin",
+  "is_active": true,
+  "created_at": {
+    "$date": "2024-01-10T11:00:05.451Z"
+  },
+  "type": "user"
+},
+{
+  "_id": {
+    "$oid": "681c990ff3e80ac2725abded"
+  },
+  "username": "user",
+  "password": "$2b$12$R5wVkzTJLIEGStWlNwnJ6ONnstEm5suvIEU.3I8DQQVI1qVaNUZQe",
+  "name": "User AAA",
+  "group_access": "user",
+  "data_domain": "penjualan",
+  "is_active": true,
+  "created_at": {
+    "$date": "2024-01-10T11:00:05.451Z"
+  },
+  "type": "user"
+},
+{
+  "_id": {
+    "$oid": "681c9996b6a80ce39190ee44"
+  },
+  "username": "usersss",
+  "password": "$2b$12$BmUS.5dvt4l39Db4ao8u1.9u6XnoGujzVSU9SseSfCydoNm7Uv2UC",
+  "name": "User SSS",
+  "group_access": "user",
+  "data_domain": "inventory",
+  "is_active": true,
+  "created_at": {
+    "$date": "2024-01-11T11:27:26.733Z"
+  },
+  "type": "user"
+},
+{
+  "_id": {
+    "$oid": "681cbca62b0a66aad6cb1004"
+  },
+  "username": "ae",
+  "password": "$2b$12$MxZ7vIltTbMuGcPO45HOUuRVlovM7Y.EVBtjoEX9EkiLDktEaUN.O",
+  "name": "Analytic Engineer",
+  "group_access": "developer",
+  "data_domain": "penjualan",
+  "is_active": true,
+  "type": "user",
+  "created_at": {
+    "$date": "2025-05-08T11:24:57.248Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "681cbe262b0a66aad6cb1006"
+  },
+  "username": "da",
+  "password": "$2b$12$e4ghRjvExV4hrG27DfeGR.DuNzoLxeA/KKDjYxFNcqFmRfnXl0n6K",
+  "name": "Data Analyst",
+  "group_access": "user",
+  "data_domain": "penjualan",
+  "is_active": true,
+  "type": "user",
+  "created_at": {
+    "$date": "2025-05-08T11:24:57.248Z"
+  }
+}]

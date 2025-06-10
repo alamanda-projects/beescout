@@ -1,0 +1,15 @@
+ports:
+  - object: source
+    properties:
+      - property: type
+        value: s3
+      - property: location
+        value: s3://path/to/object
+  - object: destination
+    properties:
+      - property: type
+        value: bigquery
+      - property: project
+        value: project_name
+      - property: dataset
+        value: dataset_name
