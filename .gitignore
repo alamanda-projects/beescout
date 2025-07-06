@@ -1,6 +1,9 @@
 # disable file
 *.disable
 
+# Makefile
+Makefile
+
 # notebook
 *.ipynb
 
