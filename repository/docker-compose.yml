@@ -1,7 +1,7 @@
 services:
 
   app:
-    image: alamandaprojects/beescout:0.0
+    image: alamandaprojects/beescout:0.1
     env_file: .env
     environment:
       MONGODB_HOST: mongodb
@@ -18,7 +18,7 @@ services:
       - db
 
   db:
-    image: alamandaprojects/beescout:0.0-db
+    image: alamandaprojects/beescout:0.1-db
     env_file: .env
     # environment:                          ## dapat disesuaikan
     #   MONGO_INITDB_ROOT_USERNAME: admin   ## dapat disesuaikan
