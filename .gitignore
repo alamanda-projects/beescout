@@ -4,6 +4,9 @@
 # Makefile
 Makefile
 
+# Local YAML
+*-local.yml
+
 # notebook
 *.ipynb
 
