@@ -49,9 +49,9 @@ class MetadataQuality(BaseModel):
 
 class MetadataStakeholders(BaseModel):
     name: str
-    email: str
+    email: Optional[str]
     role: str
-    date_in: str
+    date_in: Optional[str]
     date_out: Optional[str]
 
 

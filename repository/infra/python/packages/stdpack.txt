@@ -8,3 +8,4 @@ pyjwt
 python-decouple
 python-multipart
 uvicorn
+bcrypt==4.0.1
