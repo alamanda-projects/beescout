@@ -7,6 +7,10 @@
 
 from fastapi import FastAPI, HTTPException, Depends, Request, Body
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from typing import Dict
 from app.model.users import UserCreate
 from app.core.connection import database, col_usr, col_dgr
@@ -31,7 +35,18 @@ from app.core.verificator import (
     grplvlall,
 )
 from app.info.app_info import *
+from decouple import config
 import random
+
+# Origins allowed to make cross-origin requests (comma-separated in env)
+_raw_origins = config("ALLOWED_ORIGINS", default="http://localhost:3000,http://localhost:3001")
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
+# Set to "false" only in local dev without HTTPS
+COOKIE_SECURE = config("COOKIE_SECURE", default="true").lower() == "true"
+
+# Rate limiter — key per client IP
+limiter = Limiter(key_func=get_remote_address)
 
 current_dateTime = datetime.now()
 
@@ -66,6 +81,22 @@ app = FastAPI(
     redoc_url=None,
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
+
+
+@app.get("/health", tags=["system"])
+async def health_check():
+    return {"status": "ok", "version": app_version}
+
 
 @app.get("/", response_class=RedirectResponse, status_code=302)
 async def default_page():
@@ -88,7 +119,8 @@ async def welcome():
 
 # Generate Token
 @app.post("/login")
-async def login_for_access_token(credentials: dict = Body(...)):
+@limiter.limit("10/minute")
+async def login_for_access_token(request: Request, credentials: dict = Body(...)):
     db_user = await usrcollection.find_one({"username": credentials["username"]})
     if not db_user:
         raise HTTPException(status_code=400, detail=random.choice(usrnotallowed))
@@ -119,14 +151,16 @@ async def login_for_access_token(credentials: dict = Body(...)):
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        secure=True,
+        secure=COOKIE_SECURE,
         samesite="Strict",
+        max_age=access_token_expires * 60,
     )
     return response
 
 
 @app.post("/login/midware", tags=["user"])
-async def login_with_sakey(credentials: dict = Body(...)):
+@limiter.limit("10/minute")
+async def login_with_sakey(request: Request, credentials: dict = Body(...)):
     client_id = credentials.get("client_id")
     private_key = credentials.get("private_key")
 
@@ -166,7 +200,7 @@ async def login_with_sakey(credentials: dict = Body(...)):
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        secure=True,
+        secure=COOKIE_SECURE,
         samesite="Strict",
     )
     return response
@@ -419,6 +453,30 @@ async def insert_datacontract(
         return {"error": str(e)}
 
 
+@app.put("/datacontract/update", tags=["datacontract"])
+async def update_datacontract(
+    contract_number: str, data: All, current_user: dict = Depends(token_verification)
+):
+    user_level = current_user["lvl"]
+    user_status = current_user["sts"]
+    await access_verification(user_level, user_status, grplvladmin)
+
+    existing = await dccollection.find_one({"contract_number": contract_number})
+    if not existing:
+        raise HTTPException(status_code=404, detail=dcnotfound)
+
+    try:
+        payload = data.dict()
+        payload.pop("contract_number", None)
+        await dccollection.update_one(
+            {"contract_number": contract_number},
+            {"$set": payload}
+        )
+        return {"message": "Update Success"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/datacontract/lists", tags=["datacontract"])
 async def get_datacontract(current_user: dict = Depends(token_verification)):
     # # checking access level
@@ -490,26 +548,39 @@ async def get_datacontract_examples(current_user: dict = Depends(token_verificat
 async def get_datacontract_filter(
     contract_number: str = None, current_user: dict = Depends(token_verification)
 ):
-    # # checking access level
     user_client = current_user.get("cln")
     user_uname = current_user.get("usr")
     user_level = current_user.get("lvl")
     user_status = current_user.get("sts")
     user_team = current_user.get("tim")
-    await access_verification_filter(
-        user_uname,
-        user_level,
-        user_status,
-        grplvlall,
-        user_team,
-        user_client,
-        contract_number,
-    )
-    # # checking access level
 
-    dcfilter = await display_all(contract_number)
-
-    return dcfilter
+    if contract_number:
+        # Specific contract — full access check including consumer validation
+        await access_verification_filter(
+            user_uname, user_level, user_status, grplvlall,
+            user_team, user_client, contract_number,
+        )
+        dcfilter = await display_all(contract_number)
+        return dcfilter
+    else:
+        # List mode — return all contracts accessible to this user
+        await access_verification(user_level, user_status, grplvlall)
+        if user_level in grplvladmin:
+            dcfilter = await display_all()
+        else:
+            # Filter contracts where user's team is listed as consumer
+            all_contracts = await dccollection.find().to_list(None)
+            accessible = [
+                c for c in all_contracts
+                if user_team in [
+                    m.get("name") for m in (c.get("metadata") or {}).get("consumer") or []
+                ]
+            ]
+            if not accessible:
+                return []
+            from app.model.all import All as AllModel
+            dcfilter = [AllModel(**c) for c in accessible]
+        return dcfilter
 
 
 @app.get("/datacontract/metadata/filter", tags=["datacontract_filtered"])

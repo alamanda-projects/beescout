@@ -1,0 +1,74 @@
+# =======================
+# Project : BeeScout — Development Override
+# File    : docker-compose.dev.yml
+# Function: Dev overrides — exposes all ports, skips nginx, enables hot reload
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# What changes in dev mode:
+#   - nginx is removed (frontends + backend accessed directly)
+#   - backend exposed on :8888
+#   - db exposed on :27017 (for DB client tools)
+#   - frontend-user exposed on :3000
+#   - frontend-admin exposed on :3001
+#   - Next.js runs in dev mode (hot reload)
+#   - MongoDB data is ephemeral (no persistent volume)
+# =======================
+
+name: beescout
+
+services:
+
+  # Remove nginx in dev — each service is directly accessible
+  nginx:
+    profiles:
+      - disabled
+
+  backend:
+    ports:
+      - "8888:8888"
+    environment:
+      # Allow both FE dev servers to call backend
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:3001"
+      # Disable secure cookie so it works without HTTPS in local dev
+      COOKIE_SECURE: "false"
+
+  frontend-user:
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      # In dev, call backend directly (no nginx)
+      NEXT_PUBLIC_API_BASE: http://localhost:8888
+      API_INTERNAL_BASE: http://backend:8888
+      NODE_ENV: development
+    volumes:
+      # Hot reload: mount source, but keep node_modules from image
+      - ./frontend-user/src:/app/src
+      - ./frontend-user/public:/app/public
+
+  frontend-admin:
+    command: npm run dev
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:8888
+      API_INTERNAL_BASE: http://backend:8888
+      NODE_ENV: development
+      # Next.js dev server port for admin
+      PORT: "3001"
+    volumes:
+      - ./frontend-admin/src:/app/src
+      - ./frontend-admin/public:/app/public
+
+  db:
+    ports:
+      # Expose for DB clients (MongoDB Compass, etc.) — dev only
+      - "27017:27017"
+    volumes:
+      # Use ephemeral volume in dev to always start fresh
+      - beescout-dev-data:/data/db
+
+volumes:
+  beescout-dev-data:
