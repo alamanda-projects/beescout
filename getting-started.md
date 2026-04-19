@@ -93,14 +93,19 @@ Kemudian buka di browser:
 
 ## 4. Buat Akun Pertama (Super Admin)
 
-Setelah stack berjalan, buat satu akun `root` via API:
+Gunakan endpoint `/setup` yang hanya aktif saat belum ada akun root:
 
 ```bash
-curl -X POST http://app.localhost/api/user/create \
+# Cek apakah setup sudah dilakukan
+curl http://app.localhost/api/setup/status
+# {"setup_complete": false}  ← belum ada root, lanjutkan
+
+# Buat akun root pertama
+curl -X POST http://app.localhost/api/setup \
   -H "Content-Type: application/json" \
   -d '{
     "username": "superadmin",
-    "password": "Admin@1234",
+    "password": "Admin@1234!",
     "name": "Super Administrator",
     "group_access": "root",
     "data_domain": "all",
@@ -108,7 +113,9 @@ curl -X POST http://app.localhost/api/user/create \
   }'
 ```
 
-> Hanya **satu** akun `root` yang dapat dibuat. User tambahan dibuat via Admin Panel.
+Setelah berhasil, endpoint `/setup` akan mengembalikan `409` jika dipanggil lagi — akun root sudah terlindungi. Login via Admin Panel, lalu buat user tambahan dari menu **Manajemen User**.
+
+> Password harus mengandung huruf besar, kecil, angka, dan karakter khusus (minimal 8 karakter).
 
 ---
 
@@ -254,15 +261,19 @@ npm install && npm run dev
 ## 8. Perintah Berguna
 
 ```bash
-make setup      # copy .env.example → .env
-make up         # build & jalankan full stack
-make down       # stop semua container
-make restart    # restart semua container
-make logs       # lihat log semua container (real-time)
-make status     # lihat status semua container
-make dev        # jalankan mode development
-make dev-down   # stop dev stack
-make up-be      # jalankan backend + db saja
+make setup        # copy .env.example → .env
+make up           # build & jalankan full stack
+make down         # stop semua container
+make restart      # restart semua container
+make logs         # lihat log semua container (real-time)
+make status       # lihat status semua container
+make dev          # jalankan mode development
+make dev-down     # stop dev stack
+make up-be        # jalankan backend + db saja
+make test         # jalankan semua tests (backend + TS typecheck)
+make test-backend # pytest untuk backend saja
+make test-fe-admin # TypeScript check untuk frontend-admin
+make test-fe-user  # TypeScript check untuk frontend-user
 ```
 
 ---

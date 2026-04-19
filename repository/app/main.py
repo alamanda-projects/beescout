@@ -98,6 +98,54 @@ async def health_check():
     return {"status": "ok", "version": app_version}
 
 
+@app.get("/setup/status", tags=["system"])
+async def setup_status():
+    """Returns whether the initial root account has been created."""
+    existing_root = await usrcollection.find_one({"group_access": "root", "is_active": True})
+    return {"setup_complete": existing_root is not None}
+
+
+@app.post("/setup", tags=["system"])
+async def bootstrap_setup(user_form: UserCreate):
+    """
+    One-time setup endpoint to create the first root account.
+    Returns 409 if a root account already exists.
+    This endpoint is disabled once setup is complete.
+    """
+    existing_root = await usrcollection.find_one({"group_access": "root", "is_active": True})
+    if existing_root:
+        raise HTTPException(status_code=409, detail="Setup already complete. A root account exists.")
+
+    if len(user_form.password) < 8:
+        raise HTTPException(status_code=422, detail=pwd_422_long)
+
+    valid_chars = set(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+={}[]<>,./?;:'\""
+    )
+    if not any(c.isupper() for c in user_form.password):
+        raise HTTPException(status_code=422, detail=pwd_422_upcase)
+    if not any(c.islower() for c in user_form.password):
+        raise HTTPException(status_code=422, detail=pwd_422_locase)
+    if not any(c.isdigit() for c in user_form.password):
+        raise HTTPException(status_code=422, detail=pwd_422_num)
+    if not any(c in valid_chars for c in user_form.password if not c.isalnum()):
+        raise HTTPException(status_code=422, detail=pwd_422_spc)
+
+    hashed_password = Hasher.get_password_hash(user_form.password)
+    user_data = {
+        "username": user_form.username,
+        "password": hashed_password,
+        "name": user_form.name,
+        "group_access": "root",
+        "data_domain": user_form.data_domain,
+        "is_active": True,
+        "type": "user",
+        "created_at": datetime.now(),
+    }
+    await usrcollection.insert_one(user_data)
+    return {"message": "Root account created. Please log in and disable this endpoint in production."}
+
+
 @app.get("/", response_class=RedirectResponse, status_code=302)
 async def default_page():
     return "/welcome"
