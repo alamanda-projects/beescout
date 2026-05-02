@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { LayoutDashboard, FileText, Users, User, FilePlus, Puzzle, ClipboardCheck } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, User, Puzzle, ClipboardCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getPendingApprovals } from '@/lib/api/admin'
 
@@ -11,7 +11,6 @@ const navItems = [
   { href: '/',             label: 'Dashboard',       icon: LayoutDashboard },
   { href: '/contracts',    label: 'Data Contract',   icon: FileText },
   { href: '/catalog',      label: 'Katalog Aturan',  icon: Puzzle },
-  { href: '/contracts/new', label: 'Tambah Kontrak', icon: FilePlus, indent: true },
   { href: '/approvals',    label: 'Persetujuan',     icon: ClipboardCheck, badge: true },
   { href: '/users',        label: 'Manajemen User',  icon: Users },
   { href: '/profile',      label: 'Profil Saya',     icon: User },
@@ -40,25 +39,9 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {navItems.map(({ href, label, icon: Icon, indent, badge }) => {
+        {navItems.map(({ href, label, icon: Icon, badge }) => {
           const isActive = href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/')
-          const isNew = href === '/contracts/new'
           const pendingCount = badge ? pendingApprovals.length : 0
-
-          if (isNew) {
-            return (
-              <Link key={href} href={href}
-                className={cn(
-                  'flex items-center gap-2.5 ml-4 px-3 py-2 rounded-lg text-xs font-medium transition-colors',
-                  isActive
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'
-                )}>
-                <Icon size={14} />
-                {label}
-              </Link>
-            )
-          }
 
           return (
             <Link key={href} href={href}
