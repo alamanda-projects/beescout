@@ -13,8 +13,9 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import Dict
 from app.model.users import UserCreate
-from app.core.connection import database, col_usr, col_dgr
+from app.core.connection import database, col_usr, col_dgr, col_apr
 from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate, BUILTIN_RULES
+from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
 from app.core.hasher import Hasher
 from app.core.generator import (
@@ -56,6 +57,7 @@ current_dateTime = datetime.now()
 usrcollection = database[col_usr]
 dccollection = database[col_dgr]
 catalogcollection = database["catalog_rules"]
+aprcollection = database[col_apr]
 
 # Error response
 usrnotallowed = [usr_403, usr_403_elders, usr_403_guardian]
@@ -523,14 +525,19 @@ async def generate_contract_number(current_user: dict = Depends(token_verificati
 async def insert_datacontract(
     data: All, current_user: dict = Depends(token_verification)
 ):
-    # # checking access level
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
-    await access_verification(user_level, user_status, grplvladmin)
-    # # checking access level
+    await access_verification(user_level, user_status, grplvlall)
+
+    payload = data.dict()
+    payload["created_by"] = current_user["usr"]
+    payload["managers"] = []
+    payload["approval_status"] = None
+    payload["pending_changes"] = None
+    payload["pending_by"] = None
 
     try:
-        dccollection.insert_one(data.dict())
+        await dccollection.insert_one(payload)
         return {"message": "Insert Success"}
     except Exception as e:
         return {"error": str(e)}
@@ -542,35 +549,108 @@ async def update_datacontract(
 ):
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
-    await access_verification(user_level, user_status, grplvladmin)
+    username = current_user["usr"]
+    await access_verification(user_level, user_status, grplvlall)
 
     existing = await dccollection.find_one({"contract_number": contract_number})
     if not existing:
         raise HTTPException(status_code=404, detail=dcnotfound)
 
+    # developer/user: hanya bisa edit kontrak milik sendiri
+    if user_level not in grplvladmin:
+        is_owner = existing.get("created_by") == username
+        is_manager = username in (existing.get("managers") or [])
+        if not is_owner and not is_manager:
+            raise HTTPException(status_code=403, detail=random.choice(usrnotallowed))
+
     try:
         payload = data.dict()
         payload.pop("contract_number", None)
-        await dccollection.update_one(
-            {"contract_number": contract_number},
-            {"$set": payload}
-        )
-        return {"message": "Update Success"}
+
+        if user_level in grplvladmin:
+            # admin/root: langsung terapkan perubahan
+            await dccollection.update_one(
+                {"contract_number": contract_number},
+                {"$set": payload}
+            )
+            return {"message": "Update Success"}
+        else:
+            # developer/user: simpan sebagai pending + buat approval record
+            # Tentukan approvers: semua admin/root aktif + contract managers
+            admin_users = await usrcollection.find(
+                {"group_access": {"$in": grplvladmin}, "is_active": True},
+                {"username": 1, "_id": 0}
+            ).to_list(None)
+            approvers = list({u["username"] for u in admin_users} | set(existing.get("managers") or []))
+
+            from nanoid import generate
+            approval_id = generate(size=16)
+
+            approval_doc = {
+                "approval_id": approval_id,
+                "contract_number": contract_number,
+                "requested_by": username,
+                "proposed_changes": payload,
+                "approvers": approvers,
+                "votes": [],
+                "status": "pending",
+                "created_at": datetime.now().isoformat(),
+                "resolved_at": None,
+            }
+            await aprcollection.insert_one(approval_doc)
+
+            await dccollection.update_one(
+                {"contract_number": contract_number},
+                {"$set": {
+                    "approval_status": "pending",
+                    "pending_changes": payload,
+                    "pending_by": username,
+                    "approval_id": approval_id,
+                }}
+            )
+            return {
+                "message": "Perubahan diajukan dan menunggu persetujuan pengelola kontrak.",
+                "approval_id": approval_id,
+                "approvers": approvers,
+            }
     except Exception as e:
         return {"error": str(e)}
 
 
 @app.get("/datacontract/lists", tags=["datacontract"])
 async def get_datacontract(current_user: dict = Depends(token_verification)):
-    # # checking access level
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
-    await access_verification(user_level, user_status, grplvladmin)
-    # # checking access level
+    username = current_user["usr"]
+    await access_verification(user_level, user_status, grplvlall)
 
-    dclist = await display_all()
+    if user_level in grplvladmin:
+        # admin/root: lihat semua kontrak
+        docs = await dccollection.find({}, {"_id": 0}).to_list(None)
+    else:
+        # developer/user: hanya kontrak yang dibuat atau ditugaskan
+        docs = await dccollection.find(
+            {"$or": [{"created_by": username}, {"managers": username}]},
+            {"_id": 0}
+        ).to_list(None)
 
-    return dclist
+    return [All(**doc) for doc in docs] if docs else []
+
+
+@app.get("/datacontract/mine", tags=["datacontract"])
+async def get_my_contracts(current_user: dict = Depends(token_verification)):
+    """Kontrak yang dibuat atau ditugaskan kepada user yang sedang login."""
+    user_level = current_user["lvl"]
+    user_status = current_user["sts"]
+    username = current_user["usr"]
+    await access_verification(user_level, user_status, grplvlall)
+
+    docs = await dccollection.find(
+        {"$or": [{"created_by": username}, {"managers": username}]},
+        {"_id": 0}
+    ).to_list(None)
+
+    return [All(**doc) for doc in docs] if docs else []
 
 
 @app.get("/datacontract/metadata", tags=["datacontract"])
@@ -1034,3 +1114,99 @@ async def import_yaml_contract(
         {"contract_number": data["contract_number"]}, {"_id": 0}
     )
     return saved
+
+
+# # # ======================= Approval Endpoints =======================
+
+@app.get("/approval/pending", tags=["approval"])
+async def get_pending_approvals(current_user: dict = Depends(token_verification)):
+    """Daftar approval yang menunggu vote dari user yang sedang login."""
+    username = current_user["usr"]
+    user_level = current_user["lvl"]
+    user_status = current_user["sts"]
+    await access_verification(user_level, user_status, grplvlall)
+
+    docs = await aprcollection.find(
+        {"approvers": username, "status": "pending", "votes.username": {"$ne": username}},
+        {"_id": 0}
+    ).to_list(None)
+    return docs
+
+
+@app.get("/approval/mine", tags=["approval"])
+async def get_my_approvals(current_user: dict = Depends(token_verification)):
+    """Daftar approval yang diajukan oleh user yang sedang login."""
+    username = current_user["usr"]
+    user_level = current_user["lvl"]
+    user_status = current_user["sts"]
+    await access_verification(user_level, user_status, grplvlall)
+
+    docs = await aprcollection.find(
+        {"requested_by": username},
+        {"_id": 0}
+    ).to_list(None)
+    return docs
+
+
+@app.post("/approval/{approval_id}/vote", tags=["approval"])
+async def vote_approval(
+    approval_id: str,
+    vote_data: VoteRequest,
+    current_user: dict = Depends(token_verification),
+):
+    """Cast approve/reject vote. Jika semua setuju → terapkan perubahan."""
+    username = current_user["usr"]
+    user_level = current_user["lvl"]
+    user_status = current_user["sts"]
+    await access_verification(user_level, user_status, grplvlall)
+
+    record = await aprcollection.find_one({"approval_id": approval_id})
+    if not record:
+        raise HTTPException(status_code=404, detail="Approval tidak ditemukan.")
+    if record["status"] != "pending":
+        raise HTTPException(status_code=409, detail=f"Approval sudah {record['status']}.")
+    if username not in record["approvers"]:
+        raise HTTPException(status_code=403, detail=random.choice(usrnotallowed))
+    already_voted = any(v["username"] == username for v in record.get("votes", []))
+    if already_voted:
+        raise HTTPException(status_code=409, detail="Anda sudah memberikan vote.")
+
+    new_vote = {
+        "username": username,
+        "vote": vote_data.vote,
+        "reason": vote_data.reason,
+        "voted_at": datetime.now().isoformat(),
+    }
+    await aprcollection.update_one({"approval_id": approval_id}, {"$push": {"votes": new_vote}})
+
+    if vote_data.vote == "rejected":
+        await aprcollection.update_one(
+            {"approval_id": approval_id},
+            {"$set": {"status": "rejected", "resolved_at": datetime.now().isoformat()}},
+        )
+        await dccollection.update_one(
+            {"contract_number": record["contract_number"]},
+            {"$set": {"approval_status": "rejected", "pending_changes": None, "pending_by": None, "approval_id": None}},
+        )
+        return {"message": "Perubahan ditolak."}
+
+    updated = await aprcollection.find_one({"approval_id": approval_id})
+    approved_votes = [v for v in updated["votes"] if v["vote"] == "approved"]
+    if len(approved_votes) == len(record["approvers"]):
+        changes = record["proposed_changes"]
+        changes.pop("contract_number", None)
+        changes["approval_status"] = None
+        changes["pending_changes"] = None
+        changes["pending_by"] = None
+        changes["approval_id"] = None
+        await dccollection.update_one(
+            {"contract_number": record["contract_number"]},
+            {"$set": changes},
+        )
+        await aprcollection.update_one(
+            {"approval_id": approval_id},
+            {"$set": {"status": "approved", "resolved_at": datetime.now().isoformat()}},
+        )
+        return {"message": "Semua setuju. Perubahan berhasil diterapkan."}
+
+    return {"message": "Vote diterima. Menunggu persetujuan anggota lain."}
