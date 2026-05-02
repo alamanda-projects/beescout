@@ -35,6 +35,9 @@ eggs/
 lib/
 lib64/
 parts/
+# Allow frontend src/lib — root lib/ rule above would otherwise block it
+!frontend-admin/src/lib/
+!frontend-user/src/lib/
 sdist/
 var/
 wheels/
