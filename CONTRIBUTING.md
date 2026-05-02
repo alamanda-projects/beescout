@@ -64,8 +64,10 @@ Dengan berkontribusi pada proyek BeeScout, Anda setuju untuk mematuhi Code of Co
 Sebelum Anda berkontribusi, penting untuk memahami tujuan dan ruang lingkup proyek BeeScout. Bacalah [Executive Summary](README.md#executive-summary) dan [Discover the standard](data-contract/docs/README.md) untuk memahami secara keseluruhan.
 
 ### 2. Read the Contribution Guidelines
-
-Pastikan untuk membaca dan memahami panduan kontribusi yang telah ditetapkan. Panduan ini memberikan informasi tentang cara menyusun kontribusi Anda, proses pull request, dan aturan-aturan lain yang perlu diikuti. Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
+ 
+ Pastikan untuk membaca dan memahami panduan kontribusi yang telah ditetapkan. Panduan ini memberikan informasi tentang cara menyusun kontribusi Anda, proses pull request, dan aturan-aturan lain yang perlu diikuti. Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
+ 
+- Pelajari alur pengujian otomatis kami di [**docs/ci_cd.md**](docs/ci_cd.md).
 
 ### 3. Finding Areas of Contribution
 
@@ -103,8 +105,17 @@ git push origin fitur-baru
 ```
 
 ### 8. Create a Pull Request
-
-Buat pull request dari branch Anda ke branch utama repository BeeScout. Pastikan untuk memberikan deskripsi yang jelas dan rinci tentang perubahan yang Anda lakukan.
+ 
+ Buat pull request dari branch Anda ke branch utama repository BeeScout. Pastikan untuk memberikan deskripsi yang jelas dan rinci tentang perubahan yang Anda lakukan.
+ 
+ #### 📋 Pre-PR Checklist
+ 
+ Sebelum menekan tombol 'Create Pull Request', pastikan Anda telah melakukan hal-hal berikut:
+ - [ ] Menjalankan `make test` dan semua pengujian berhasil.
+ - [ ] Memastikan tidak ada error TypeScript (`make test-fe-admin`, `make test-fe-user`).
+ - [ ] Kode telah mengikuti gaya penulisan yang konsisten.
+ - [ ] Dokumentasi telah diperbarui jika ada penambahan fitur atau perubahan API.
+ - [ ] Menambahkan entri yang sesuai di [CHANGELOG.md](CHANGELOG.md).
 
 ### 9. Collaboration and Response
 

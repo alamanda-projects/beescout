@@ -14,45 +14,51 @@ Platform ini kini hadir dengan arsitektur modular penuh: backend API terpusat, d
 
 ```mermaid
 graph TD
-    Internet([Internet / Browser])
+    subgraph Client ["Client Layer (Browser)"]
+        User(["User / Developer"])
+        Admin(["Admin / Root"])
+    end
 
-    subgraph Docker["Docker Network"]
-        direction TB
+    subgraph Gateway ["Gateway Layer"]
+        Nginx["🔀 Nginx Reverse Proxy<br/>(Rate Limit, Security, IP ACL)"]
+    end
 
-        Nginx["🔀 Nginx
-        Reverse Proxy
-        (port 80/443)"]
+    subgraph Frontend ["Frontend Layer (Next.js 15)"]
+        FEUser["🌐 frontend-user<br/>(Port 3000)"]
+        FEAdmin["🛡️ frontend-admin<br/>(Port 3001)"]
+    end
 
-        subgraph FE["Frontend Layer"]
-            FEUser["🌐 frontend-user
-            Next.js · port 3000
-            Role: user, developer"]
-            FEAdmin["🛡️ frontend-admin
-            Next.js · port 3001
-            Role: admin, root"]
-        end
-
-        Backend["⚙️ Backend
-        FastAPI · port 8888
-        JWT · RBAC · Rate Limit"]
-
-        subgraph Internal["internal-net (isolated)"]
-            DB["🗄️ MongoDB
-            port 27017
-            (tidak terekspos)"]
+    subgraph Backend ["Backend Layer (FastAPI)"]
+        API["⚙️ BeeScout Repository API<br/>(Port 8888)"]
+        
+        subgraph Logic ["Internal Services"]
+            Auth["🔐 JWT Auth & RBAC"]
+            ContractSvc["📋 Contract Management"]
+            ApprovalSvc["🗳️ Approval Workflow"]
+            CatalogSvc["📚 Rule Catalog"]
+            ImportSvc["📥 YAML Import/Validator"]
         end
     end
 
-    Internet -->|"app.domain.com"| Nginx
-    Internet -->|"admin.domain.com
-    (IP restricted)"| Nginx
+    subgraph Data ["Data Layer"]
+        DB[("🗄️ MongoDB<br/>(Isolated Network)")]
+    end
+
+    User -->|"app.domain.com"| Nginx
+    Admin -->|"admin.domain.com"| Nginx
+    
     Nginx --> FEUser
     Nginx --> FEAdmin
-    Nginx -->|"/api/*"| Backend
-    FEUser -->|"via Nginx /api"| Backend
-    FEAdmin -->|"via Nginx /api"| Backend
-    Backend --> DB
+    Nginx -->|"/api/*"| API
+
+    FEUser --> API
+    FEAdmin --> API
+    
+    API --> Logic
+    Logic --> DB
 ```
+
+[Lihat detail arsitektur (Mermaid)](docs/architecture.mmd)
 
 ### Prinsip Keamanan (Defence in Depth)
 
@@ -201,16 +207,22 @@ Pengguna dengan role `user` atau `developer` dapat mengajukan perubahan pada Dat
 - Admin/Root dapat meninjau (diff), memberikan komentar/alasan, dan melakukan voting (Approve/Reject).
 - Perubahan hanya akan diterapkan secara otomatis jika semua approver memberikan suara setuju.
 
+Panduan lengkap → [**Alur Persetujuan**](docs/approval_workflow.md)
+
 ### 📚 Katalog Aturan (Rule Catalog)
 Pusat pengelolaan aturan kualitas data (Data Quality Rules) yang dapat digunakan kembali di berbagai kontrak.
 - Mendukung aturan bawaan (built-in) dan aturan kustom.
 - Memastikan konsistensi definisi kualitas data di seluruh organisasi.
 - Dapat diakses via API untuk integrasi dengan pipeline CI/CD.
 
+Panduan lengkap → [**Katalog Aturan**](docs/rule_catalog.md)
+
 ### 📥 Import & Validasi YAML
 Mendukung import Data Contract dalam jumlah besar menggunakan format YAML standar ODCS.
 - Validasi skema berlapis (YAML syntax & ODCS compliance).
 - Deteksi dini kesalahan tipe data atau field wajib sebelum data masuk ke database.
+
+Panduan lengkap → [**Import & Validasi YAML**](docs/yaml_import.md)
 ```
 
 ---
@@ -311,6 +323,17 @@ Informasi lebih lanjut mengenai segala perubahan dalam project ini bisa dilihat 
 - [**Getting Started Guide**](getting-started.md) — Panduan instalasi dan konfigurasi mendalam.
 - [**Claude Guardrails (CLAUDE.md)**](CLAUDE.md) — Panduan teknis, konvensi kode, dan troubleshooting.
 - [**Contributing Guide**](CONTRIBUTING.md) — Cara berkontribusi dan etika kolaborasi.
+- [**CI/CD & Testing**](docs/ci_cd.md) — Alur kerja pengujian otomatis.
+- [**Kredensial Default**](docs/credentials.md) — Daftar akun untuk pengembangan.
+
+---
+
+## API Reference
+
+Dokumentasi API interaktif tersedia saat aplikasi berjalan di mode development:
+
+- **Swagger UI**: [http://app.localhost/api/docs](http://app.localhost/api/docs)
+- **ReDoc**: [http://app.localhost/api/redoc](http://app.localhost/api/redoc)
 
 ## References
 

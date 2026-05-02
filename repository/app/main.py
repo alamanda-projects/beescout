@@ -82,8 +82,8 @@ app = FastAPI(
         "name": app_license_info_name,
         "url": app_license_info_url,
     },
-    docs_url=None,
-    redoc_url=None,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 app.state.limiter = limiter
