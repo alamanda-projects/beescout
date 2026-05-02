@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { Contract } from '@/types/contract'
+import type { Contract, ApprovalRecord } from '@/types/contract'
 
 export async function getContracts(contractNumber?: string): Promise<Contract[]> {
   try {
@@ -44,6 +44,30 @@ export async function getContractPorts(contractNumber: string) {
 
 export async function getContractExamples(contractNumber: string) {
   const res = await apiClient.get('/datacontract/examples/filter', {
+    params: { contract_number: contractNumber },
+  })
+  return res.data
+}
+
+export async function getMyContracts(): Promise<Contract[]> {
+  try {
+    const res = await apiClient.get('/datacontract/mine')
+    const data = res.data
+    if (Array.isArray(data)) return data
+    if (data && typeof data === 'object') return [data as Contract]
+    return []
+  } catch {
+    return []
+  }
+}
+
+export async function getMyApprovals(): Promise<ApprovalRecord[]> {
+  const res = await apiClient.get('/approval/mine')
+  return Array.isArray(res.data) ? res.data : []
+}
+
+export async function updateContract(contractNumber: string, data: unknown) {
+  const res = await apiClient.put('/datacontract/update', data, {
     params: { contract_number: contractNumber },
   })
   return res.data

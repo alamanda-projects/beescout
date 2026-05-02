@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { Contract } from '@/types/contract'
+import type { Contract, ApprovalRecord } from '@/types/contract'
 
 export async function getAllContracts(): Promise<Contract[]> {
   const res = await apiClient.get('/datacontract/lists')
@@ -61,5 +61,15 @@ export async function createUser(data: {
   is_active: boolean
 }) {
   const res = await apiClient.post('/user/create', data)
+  return res.data
+}
+
+export async function getPendingApprovals(): Promise<ApprovalRecord[]> {
+  const res = await apiClient.get('/approval/pending')
+  return Array.isArray(res.data) ? res.data : []
+}
+
+export async function castVote(approvalId: string, vote: 'approved' | 'rejected', reason?: string) {
+  const res = await apiClient.post(`/approval/${approvalId}/vote`, { vote, reason: reason || null })
   return res.data
 }

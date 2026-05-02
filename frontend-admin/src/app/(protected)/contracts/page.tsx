@@ -90,9 +90,14 @@ export default function AdminContractsPage() {
                 {filtered.map((c: Contract) => (
                   <TableRow key={c.contract_number}>
                     <TableCell>
-                      <Link href={`/contracts/${c.contract_number}`} className="font-medium hover:text-indigo-600 transition-colors">
-                        {c.metadata?.name ?? '-'}
-                      </Link>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link href={`/contracts/${c.contract_number}`} className="font-medium hover:text-indigo-600 transition-colors">
+                          {c.metadata?.name ?? '-'}
+                        </Link>
+                        {c.approval_status === 'pending' && (
+                          <Badge variant="warning" className="text-[10px] py-0 px-1.5">Pending Approval</Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">{c.contract_number}</code></TableCell>
                     <TableCell className="text-sm">{c.metadata?.owner ?? '-'}</TableCell>
