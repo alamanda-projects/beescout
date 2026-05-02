@@ -86,6 +86,31 @@ export interface Contract {
   model?: ModelColumn[]
   ports?: Port[]
   examples?: Examples
+  created_by?: string
+  managers?: string[]
+  approval_status?: string | null
+  pending_changes?: Record<string, unknown> | null
+  pending_by?: string | null
+  approval_id?: string | null
+}
+
+export interface Vote {
+  username: string
+  vote: 'approved' | 'rejected'
+  reason?: string | null
+  voted_at?: string | null
+}
+
+export interface ApprovalRecord {
+  approval_id: string
+  contract_number: string
+  requested_by: string
+  proposed_changes: Record<string, unknown>
+  approvers: string[]
+  votes: Vote[]
+  status: 'pending' | 'approved' | 'rejected'
+  created_at?: string | null
+  resolved_at?: string | null
 }
 
 export const CONTRACT_TYPE_LABELS: Record<string, string> = {

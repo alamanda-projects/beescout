@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
-import { getContracts } from '@/lib/api/contracts'
+import { getMyContracts } from '@/lib/api/contracts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -41,8 +41,8 @@ export default function ContractsPage() {
   const [search, setSearch] = useState('')
 
   const { data: contracts = [], isLoading } = useQuery({
-    queryKey: ['contracts'],
-    queryFn: () => getContracts(),
+    queryKey: ['my-contracts'],
+    queryFn: getMyContracts,
   })
 
   const filtered = useMemo(() => {
@@ -62,7 +62,7 @@ export default function ContractsPage() {
       <div>
         <h2 className="text-xl font-semibold text-slate-900">Data Contract</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Daftar kontrak data yang dapat Anda akses
+          Kontrak data yang Anda buat atau kelola
         </p>
       </div>
 
@@ -110,14 +110,19 @@ export default function ContractsPage() {
                 {filtered.map((c: Contract) => (
                   <TableRow key={c.contract_number} className="cursor-pointer">
                     <TableCell>
-                      <Link
-                        href={`/contracts/${c.contract_number}`}
-                        className="block w-full"
-                      >
-                        <span className="font-medium text-slate-900 hover:text-indigo-600 transition-colors">
-                          {c.metadata?.name ?? '-'}
-                        </span>
-                      </Link>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link href={`/contracts/${c.contract_number}`}>
+                          <span className="font-medium text-slate-900 hover:text-indigo-600 transition-colors">
+                            {c.metadata?.name ?? '-'}
+                          </span>
+                        </Link>
+                        {c.approval_status === 'pending' && (
+                          <Badge variant="warning" className="text-[10px] py-0 px-1.5">Pending</Badge>
+                        )}
+                        {c.approval_status === 'rejected' && (
+                          <Badge variant="destructive" className="text-[10px] py-0 px-1.5">Ditolak</Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
