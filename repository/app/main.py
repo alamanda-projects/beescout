@@ -461,6 +461,14 @@ async def list_sakeys(current_user: dict = Depends(token_verification)):
     return {"sakeys": sakey_list}
 
 
+@app.get("/user/lists", tags=["user"])
+async def list_users(current_user: dict = Depends(require_admin)):
+    """List semua user. Hanya dapat diakses oleh root dan admin."""
+    cursor = usrcollection.find({}, {"_id": 0, "password": 0})
+    users = await cursor.to_list(length=500)
+    return users
+
+
 # Example route to get user data
 @app.get("/user/me", response_model=dict, tags=["user"])
 async def who_am_i(current_user: dict = Depends(token_verification)):
