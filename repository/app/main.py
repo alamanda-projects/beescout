@@ -523,14 +523,19 @@ async def generate_contract_number(current_user: dict = Depends(token_verificati
 async def insert_datacontract(
     data: All, current_user: dict = Depends(token_verification)
 ):
-    # # checking access level
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
-    await access_verification(user_level, user_status, grplvladmin)
-    # # checking access level
+    await access_verification(user_level, user_status, grplvlall)
+
+    payload = data.dict()
+    payload["created_by"] = current_user["usr"]
+    payload["managers"] = []
+    payload["approval_status"] = None
+    payload["pending_changes"] = None
+    payload["pending_by"] = None
 
     try:
-        dccollection.insert_one(data.dict())
+        await dccollection.insert_one(payload)
         return {"message": "Insert Success"}
     except Exception as e:
         return {"error": str(e)}
@@ -542,35 +547,80 @@ async def update_datacontract(
 ):
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
-    await access_verification(user_level, user_status, grplvladmin)
+    username = current_user["usr"]
+    await access_verification(user_level, user_status, grplvlall)
 
     existing = await dccollection.find_one({"contract_number": contract_number})
     if not existing:
         raise HTTPException(status_code=404, detail=dcnotfound)
 
+    # developer/user: hanya bisa edit kontrak milik sendiri
+    if user_level not in grplvladmin:
+        is_owner = existing.get("created_by") == username
+        is_manager = username in (existing.get("managers") or [])
+        if not is_owner and not is_manager:
+            raise HTTPException(status_code=403, detail=random.choice(usrnotallowed))
+
     try:
         payload = data.dict()
         payload.pop("contract_number", None)
-        await dccollection.update_one(
-            {"contract_number": contract_number},
-            {"$set": payload}
-        )
-        return {"message": "Update Success"}
+
+        if user_level in grplvladmin:
+            # admin/root: langsung terapkan perubahan
+            await dccollection.update_one(
+                {"contract_number": contract_number},
+                {"$set": payload}
+            )
+            return {"message": "Update Success"}
+        else:
+            # developer/user: simpan sebagai pending, tunggu approval
+            await dccollection.update_one(
+                {"contract_number": contract_number},
+                {"$set": {
+                    "approval_status": "pending",
+                    "pending_changes": payload,
+                    "pending_by": username,
+                }}
+            )
+            return {"message": "Perubahan diajukan dan menunggu persetujuan pengelola kontrak."}
     except Exception as e:
         return {"error": str(e)}
 
 
 @app.get("/datacontract/lists", tags=["datacontract"])
 async def get_datacontract(current_user: dict = Depends(token_verification)):
-    # # checking access level
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
-    await access_verification(user_level, user_status, grplvladmin)
-    # # checking access level
+    username = current_user["usr"]
+    await access_verification(user_level, user_status, grplvlall)
 
-    dclist = await display_all()
+    if user_level in grplvladmin:
+        # admin/root: lihat semua kontrak
+        docs = await dccollection.find({}, {"_id": 0}).to_list(None)
+    else:
+        # developer/user: hanya kontrak yang dibuat atau ditugaskan
+        docs = await dccollection.find(
+            {"$or": [{"created_by": username}, {"managers": username}]},
+            {"_id": 0}
+        ).to_list(None)
 
-    return dclist
+    return [All(**doc) for doc in docs] if docs else []
+
+
+@app.get("/datacontract/mine", tags=["datacontract"])
+async def get_my_contracts(current_user: dict = Depends(token_verification)):
+    """Kontrak yang dibuat atau ditugaskan kepada user yang sedang login."""
+    user_level = current_user["lvl"]
+    user_status = current_user["sts"]
+    username = current_user["usr"]
+    await access_verification(user_level, user_status, grplvlall)
+
+    docs = await dccollection.find(
+        {"$or": [{"created_by": username}, {"managers": username}]},
+        {"_id": 0}
+    ).to_list(None)
+
+    return [All(**doc) for doc in docs] if docs else []
 
 
 @app.get("/datacontract/metadata", tags=["datacontract"])

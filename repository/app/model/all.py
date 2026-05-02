@@ -31,6 +31,11 @@ class All(BaseModel):
     model: List[Model]  # -> merujuk ke ./model.py
     ports: List[Ports]  # -> merujuk ke ./ports.py
     examples: Examples  # -> merujuk ke ./examples.py
+    created_by: Optional[str] = None      # username pembuat kontrak
+    managers: Optional[List[str]] = None  # username yang ditugaskan sebagai pengelola
+    approval_status: Optional[str] = None # None | "pending" | "approved" | "rejected"
+    pending_changes: Optional[dict] = None
+    pending_by: Optional[str] = None
 
 
 class Metadatas(BaseModel):
