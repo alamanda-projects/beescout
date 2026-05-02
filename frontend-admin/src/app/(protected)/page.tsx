@@ -30,8 +30,8 @@ export default function AdminDashboardPage() {
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const { data: contracts = [], isLoading } = useQuery({ queryKey: ['all-contracts'], queryFn: getAllContracts })
 
-  const domains = [...new Set(contracts.map((c: Contract) => c.metadata?.owner).filter(Boolean))]
-  const types   = [...new Set(contracts.map((c: Contract) => c.metadata?.type).filter(Boolean))]
+  const domains = Array.from(new Set(contracts.map((c: Contract) => c.metadata?.owner).filter(Boolean)))
+  const types   = Array.from(new Set(contracts.map((c: Contract) => c.metadata?.type).filter(Boolean)))
   const recent  = contracts.slice(0, 6)
 
   return (

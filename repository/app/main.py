@@ -96,6 +96,24 @@ app.add_middleware(
 )
 
 
+# ── Role-gated dependency helpers ─────────────────────────────────────────────
+# These wrap token_verification so they can be used with Depends() in routes.
+
+async def require_root(current_user: dict = Depends(token_verification)):
+    await access_verification(current_user["lvl"], current_user["sts"], grplvlroot)
+    return current_user
+
+
+async def require_admin(current_user: dict = Depends(token_verification)):
+    await access_verification(current_user["lvl"], current_user["sts"], grplvladmin)
+    return current_user
+
+
+async def require_any(current_user: dict = Depends(token_verification)):
+    await access_verification(current_user["lvl"], current_user["sts"], grplvlall)
+    return current_user
+
+
 @app.get("/health", tags=["system"])
 async def health_check():
     return {"status": "ok", "version": app_version}
@@ -774,7 +792,7 @@ async def get_datacontract_dbtschema_filter(
 # # # ======================= Bagian ini untuk manajemen katalog aturan kualitas
 
 @app.post("/catalog/seed", tags=["catalog"], include_in_schema=False)
-async def seed_builtin_rules(user=Depends(grplvlroot)):
+async def seed_builtin_rules(user=Depends(require_root)):
     """Isi katalog dengan modul bawaan. Hanya bisa dipanggil oleh root."""
     existing = await catalogcollection.count_documents({})
     if existing > 0:
@@ -784,7 +802,7 @@ async def seed_builtin_rules(user=Depends(grplvlroot)):
 
 
 @app.get("/catalog/rules", tags=["catalog"])
-async def get_all_rules(user=Depends(grplvlall)):
+async def get_all_rules(user=Depends(require_any)):
     """
     Ambil semua modul aturan kualitas.
     Semua role bisa mengakses (read-only untuk developer & user).
@@ -795,7 +813,7 @@ async def get_all_rules(user=Depends(grplvlall)):
 
 
 @app.get("/catalog/rules/{code}", tags=["catalog"])
-async def get_rule_by_code(code: str, user=Depends(grplvlall)):
+async def get_rule_by_code(code: str, user=Depends(require_any)):
     """Ambil detail satu modul berdasarkan code."""
     rule = await catalogcollection.find_one({"code": code}, {"_id": 0})
     if not rule:
@@ -804,7 +822,7 @@ async def get_rule_by_code(code: str, user=Depends(grplvlall)):
 
 
 @app.post("/catalog/rules", tags=["catalog"], status_code=201)
-async def create_rule(payload: RuleCatalogCreate, user=Depends(grplvladmin)):
+async def create_rule(payload: RuleCatalogCreate, user=Depends(require_admin)):
     """
     Tambah modul aturan baru ke katalog (model patching).
     Hanya root dan admin.
@@ -823,7 +841,7 @@ async def create_rule(payload: RuleCatalogCreate, user=Depends(grplvladmin)):
 
 
 @app.patch("/catalog/rules/{code}", tags=["catalog"])
-async def update_rule(code: str, payload: RuleCatalogUpdate, user=Depends(grplvladmin)):
+async def update_rule(code: str, payload: RuleCatalogUpdate, user=Depends(require_admin)):
     """
     Update modul kustom. Modul bawaan (is_builtin=True) tidak bisa diubah.
     Hanya root dan admin.
@@ -841,7 +859,7 @@ async def update_rule(code: str, payload: RuleCatalogUpdate, user=Depends(grplvl
 
 
 @app.delete("/catalog/rules/{code}", tags=["catalog"])
-async def delete_rule(code: str, user=Depends(grplvladmin)):
+async def delete_rule(code: str, user=Depends(require_admin)):
     """
     Hapus modul kustom. Modul bawaan tidak bisa dihapus.
     Hanya root dan admin.
@@ -862,7 +880,7 @@ async def delete_rule(code: str, user=Depends(grplvladmin)):
 @app.post("/contracts/validate-yaml", tags=["contracts"])
 async def validate_yaml_import(
     file: UploadFile = File(...),
-    user=Depends(grplvladmin),
+    user=Depends(require_admin),
 ):
     """
     Validasi file YAML data contract sebelum diimport.
@@ -977,7 +995,7 @@ async def validate_yaml_import(
 @app.post("/contracts/import-yaml", tags=["contracts"], status_code=201)
 async def import_yaml_contract(
     file: UploadFile = File(...),
-    user=Depends(grplvladmin),
+    user=Depends(require_admin),
 ):
     """
     Import data contract dari file YAML.

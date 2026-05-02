@@ -238,7 +238,6 @@ export default function EditContractPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
       <div className="flex items-start justify-between">
         <div>
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2 mb-2 text-muted-foreground">
@@ -532,7 +531,7 @@ export default function EditContractPage() {
               setValue('metadata.quality', dsRules)
               const currentModel = form.getValues('model') ?? []
               currentModel.forEach((col, i) => {
-                setValue(`model.${i}.quality`, colRulesMap[col.column] ?? [])
+                setValue(`model.${i}.quality` as any, colRulesMap[col.column] ?? [])
               })
               toast.success('Aturan kualitas berhasil diperbarui')
             }}

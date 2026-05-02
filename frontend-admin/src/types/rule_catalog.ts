@@ -47,7 +47,7 @@ export interface RuleCatalogCreate {
 
 export interface QualityCustomProp {
   property: string
-  value: string | number
+  value: string
 }
 
 export interface QualityRule {

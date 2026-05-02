@@ -512,6 +512,10 @@ export default function NewContractPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
           <QualityRulesEditor
             contractNumber={watch('contract_number')}
             columns={watch('model') ?? []}
@@ -523,7 +527,7 @@ export default function NewContractPage() {
               setValue('metadata.quality', dsRules)
               const currentModel = form.getValues('model') ?? []
               currentModel.forEach((col, i) => {
-                setValue(`model.${i}.quality`, colRulesMap[col.column] ?? [])
+                setValue(`model.${i}.quality` as any, colRulesMap[col.column] ?? [])
               })
               toast.success('Aturan kualitas berhasil diperbarui')
             }}

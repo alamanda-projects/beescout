@@ -177,7 +177,7 @@ function ImportYamlModal({ context, contractNumber, onPrefill, onClose }: ModalP
       router.push(`/contracts/${saved.contract_number}`)
       router.refresh()
     } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      const detail = (err as any)?.response?.data?.detail
       let msg = 'Gagal mengimport kontrak.'
       if (typeof detail === 'string') msg = detail
       else if (Array.isArray(detail)) msg = detail.map((e: { msg?: string }) => e.msg ?? JSON.stringify(e)).join('; ')

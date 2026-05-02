@@ -43,7 +43,7 @@ export default function AdminContractsPage() {
           <p className="text-sm text-muted-foreground mt-1">Kelola semua data contract di seluruh domain</p>
         </div>
         <div className="flex items-center gap-2">
-          <ImportYamlButton context="list" userRole={user?.group_access} />
+          <ImportYamlButton context="list" userRole={user?.group_access as any} />
           <Button asChild>
             <Link href="/contracts/new"><Plus size={16} className="mr-1" />Tambah Kontrak</Link>
           </Button>

@@ -74,7 +74,7 @@ export default function AdminContractDetailPage() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="capitalize text-sm px-3 py-1">{metadata?.type ?? '-'}</Badge>
-            <ImportYamlButton context="detail" contractNumber={cn} userRole={user?.group_access} />
+            <ImportYamlButton context="detail" contractNumber={cn} userRole={user?.group_access as any} />
             <Button asChild size="sm" variant="outline">
               <Link href={`/contracts/${cn}/edit`}><Pencil size={14} className="mr-1.5" />Edit</Link>
             </Button>

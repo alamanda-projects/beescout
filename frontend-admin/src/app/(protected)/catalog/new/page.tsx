@@ -82,7 +82,7 @@ export default function NewCatalogPage() {
       router.push('/catalog')
     },
     onError: (err: unknown) => {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      const detail = (err as any)?.response?.data?.detail
       let msg = 'Gagal menyimpan modul.'
       if (typeof detail === 'string') msg = detail
       else if (Array.isArray(detail)) msg = detail.map((e: { msg?: string }) => e.msg ?? JSON.stringify(e)).join('; ')
