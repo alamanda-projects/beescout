@@ -5,7 +5,7 @@
 # # # Function: Main script
 # # # =======================
 
-from fastapi import FastAPI, HTTPException, Depends, Request, Body
+from fastapi import FastAPI, HTTPException, Depends, Request, Body, UploadFile, File
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -14,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from typing import Dict
 from app.model.users import UserCreate
 from app.core.connection import database, col_usr, col_dgr
+from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate, BUILTIN_RULES
 from app.core.display import *
 from app.core.hasher import Hasher
 from app.core.generator import (
@@ -37,6 +38,7 @@ from app.core.verificator import (
 from app.info.app_info import *
 from decouple import config
 import random
+import yaml
 
 # Origins allowed to make cross-origin requests (comma-separated in env)
 _raw_origins = config("ALLOWED_ORIGINS", default="http://localhost:3000,http://localhost:3001")
@@ -53,6 +55,7 @@ current_dateTime = datetime.now()
 # Database declaration
 usrcollection = database[col_usr]
 dccollection = database[col_dgr]
+catalogcollection = database["catalog_rules"]
 
 # Error response
 usrnotallowed = [usr_403, usr_403_elders, usr_403_guardian]
@@ -144,6 +147,12 @@ async def bootstrap_setup(user_form: UserCreate):
     }
     await usrcollection.insert_one(user_data)
     return {"message": "Root account created. Please log in and disable this endpoint in production."}
+
+
+@app.on_event("startup")
+async def seed_catalog():
+    if await catalogcollection.count_documents({}) == 0:
+        await catalogcollection.insert_many(BUILTIN_RULES)
 
 
 @app.get("/", response_class=RedirectResponse, status_code=302)
@@ -759,3 +768,243 @@ async def get_datacontract_dbtschema_filter(
     dcfilter = await display_dbtschema(contract_number)
 
     return dcfilter
+
+
+# # # ======================= Rule Catalog
+# # # ======================= Bagian ini untuk manajemen katalog aturan kualitas
+
+@app.post("/catalog/seed", tags=["catalog"], include_in_schema=False)
+async def seed_builtin_rules(user=Depends(grplvlroot)):
+    """Isi katalog dengan modul bawaan. Hanya bisa dipanggil oleh root."""
+    existing = await catalogcollection.count_documents({})
+    if existing > 0:
+        raise HTTPException(status_code=409, detail="Katalog sudah memiliki data.")
+    await catalogcollection.insert_many(BUILTIN_RULES)
+    return {"message": f"{len(BUILTIN_RULES)} modul bawaan berhasil ditambahkan."}
+
+
+@app.get("/catalog/rules", tags=["catalog"])
+async def get_all_rules(user=Depends(grplvlall)):
+    """
+    Ambil semua modul aturan kualitas.
+    Semua role bisa mengakses (read-only untuk developer & user).
+    """
+    cursor = catalogcollection.find({}, {"_id": 0})
+    rules = await cursor.to_list(length=200)
+    return rules
+
+
+@app.get("/catalog/rules/{code}", tags=["catalog"])
+async def get_rule_by_code(code: str, user=Depends(grplvlall)):
+    """Ambil detail satu modul berdasarkan code."""
+    rule = await catalogcollection.find_one({"code": code}, {"_id": 0})
+    if not rule:
+        raise HTTPException(status_code=404, detail=f"Modul '{code}' tidak ditemukan.")
+    return rule
+
+
+@app.post("/catalog/rules", tags=["catalog"], status_code=201)
+async def create_rule(payload: RuleCatalogCreate, user=Depends(grplvladmin)):
+    """
+    Tambah modul aturan baru ke katalog (model patching).
+    Hanya root dan admin.
+    """
+    existing = await catalogcollection.find_one({"code": payload.code})
+    if existing:
+        raise HTTPException(status_code=409, detail=f"Modul dengan code '{payload.code}' sudah ada.")
+
+    doc = payload.model_dump()
+    doc["is_builtin"] = False
+    doc["is_active"] = True
+    await catalogcollection.insert_one(doc)
+
+    created = await catalogcollection.find_one({"code": payload.code}, {"_id": 0})
+    return created
+
+
+@app.patch("/catalog/rules/{code}", tags=["catalog"])
+async def update_rule(code: str, payload: RuleCatalogUpdate, user=Depends(grplvladmin)):
+    """
+    Update modul kustom. Modul bawaan (is_builtin=True) tidak bisa diubah.
+    Hanya root dan admin.
+    """
+    rule = await catalogcollection.find_one({"code": code})
+    if not rule:
+        raise HTTPException(status_code=404, detail=f"Modul '{code}' tidak ditemukan.")
+    if rule.get("is_builtin"):
+        raise HTTPException(status_code=403, detail="Modul bawaan tidak bisa diubah.")
+
+    update_data = {k: v for k, v in payload.model_dump().items() if v is not None}
+    await catalogcollection.update_one({"code": code}, {"$set": update_data})
+    updated = await catalogcollection.find_one({"code": code}, {"_id": 0})
+    return updated
+
+
+@app.delete("/catalog/rules/{code}", tags=["catalog"])
+async def delete_rule(code: str, user=Depends(grplvladmin)):
+    """
+    Hapus modul kustom. Modul bawaan tidak bisa dihapus.
+    Hanya root dan admin.
+    """
+    rule = await catalogcollection.find_one({"code": code})
+    if not rule:
+        raise HTTPException(status_code=404, detail=f"Modul '{code}' tidak ditemukan.")
+    if rule.get("is_builtin"):
+        raise HTTPException(status_code=403, detail="Modul bawaan tidak bisa dihapus.")
+
+    await catalogcollection.delete_one({"code": code})
+    return {"message": f"Modul '{code}' berhasil dihapus."}
+
+
+# # # ======================= YAML Import & Validation
+# # # ======================= Bagian ini untuk validasi dan import file YAML
+
+@app.post("/contracts/validate-yaml", tags=["contracts"])
+async def validate_yaml_import(
+    file: UploadFile = File(...),
+    user=Depends(grplvladmin),
+):
+    """
+    Validasi file YAML data contract sebelum diimport.
+    Hanya root dan admin.
+    """
+    content = await file.read()
+
+    # ── Layer 1: YAML syntax
+    try:
+        data = yaml.safe_load(content)
+    except yaml.YAMLError as e:
+        return {
+            "valid": False,
+            "layer": "yaml_syntax",
+            "errors": [{"line": getattr(e, "problem_mark", None) and e.problem_mark.line + 1,
+                        "message": str(e)}],
+            "suggestions": ["Periksa indentasi YAML — gunakan spasi, bukan tab.",
+                            "Pastikan setiap key diikuti tanda titik dua dan spasi: 'key: value'"],
+        }
+
+    if not isinstance(data, dict):
+        return {"valid": False, "layer": "yaml_syntax",
+                "errors": [{"message": "File YAML harus berupa objek/mapping di level teratas."}],
+                "suggestions": []}
+
+    # ── Layer 2: ODCS schema
+    errors = []
+    warnings = []
+
+    for field in ["standard_version", "metadata"]:
+        if field not in data:
+            errors.append({"field": field, "message": f"Field wajib '{field}' tidak ditemukan."})
+
+    metadata = data.get("metadata", {})
+    if isinstance(metadata, dict):
+        for mf in ["name", "owner", "version", "type"]:
+            if not metadata.get(mf):
+                errors.append({"field": f"metadata.{mf}",
+                                "message": f"Field wajib 'metadata.{mf}' tidak ditemukan atau kosong."})
+
+        if not data.get("contract_number"):
+            warnings.append({"field": "contract_number",
+                             "message": "contract_number tidak ada — akan digenerate otomatis oleh sistem."})
+
+        valid_roles = {"owner","consumer","steward","producer","engineer","analyst","architect"}
+        for i, s in enumerate(metadata.get("stakeholders") or []):
+            if s.get("role") and s["role"] not in valid_roles:
+                errors.append({
+                    "field": f"metadata.stakeholders[{i}].role",
+                    "message": f"Nilai role '{s['role']}' tidak valid.",
+                    "suggestion": f"Ganti dengan salah satu: {', '.join(sorted(valid_roles))}",
+                })
+
+        sla = metadata.get("sla") or {}
+        if "retention" in sla and not isinstance(sla["retention"], int):
+            errors.append({
+                "field": "metadata.sla.retention",
+                "message": f"'retention' harus berupa angka bulat (integer), ditemukan: {type(sla['retention']).__name__}",
+                "suggestion": "Ubah nilai retention menjadi angka: retention: 1 (bukan '1 tahun').",
+            })
+
+        valid_dims = {"completeness", "validity", "accuracy", "security"}
+        for i, q in enumerate(metadata.get("quality") or []):
+            if q.get("dimension") and q["dimension"] not in valid_dims:
+                errors.append({
+                    "field": f"metadata.quality[{i}].dimension",
+                    "message": f"Dimensi '{q['dimension']}' tidak valid.",
+                    "suggestion": f"Gunakan salah satu: {', '.join(sorted(valid_dims))}",
+                })
+
+    for i, col in enumerate(data.get("model") or []):
+        if not col.get("column"):
+            errors.append({"field": f"model[{i}].column",
+                           "message": "Nama kolom tidak boleh kosong."})
+        for j, q in enumerate(col.get("quality") or []):
+            if not q.get("dimension"):
+                errors.append({
+                    "field": f"model[{i}].quality[{j}].dimension",
+                    "message": "Field 'dimension' wajib ada di setiap aturan kualitas kolom.",
+                })
+
+    if errors:
+        return {
+            "valid": False,
+            "layer": "odcs_schema",
+            "errors": errors,
+            "warnings": warnings,
+            "suggestions": [e.get("suggestion") for e in errors if e.get("suggestion")],
+        }
+
+    summary = {
+        "contract_name": metadata.get("name"),
+        "owner": metadata.get("owner"),
+        "type": metadata.get("type"),
+        "version": metadata.get("version"),
+        "columns": len(data.get("model") or []),
+        "dataset_quality_rules": len(metadata.get("quality") or []),
+        "column_quality_rules": sum(len(c.get("quality") or []) for c in (data.get("model") or [])),
+        "stakeholders": len(metadata.get("stakeholders") or []),
+        "has_contract_number": bool(data.get("contract_number")),
+        "raw": data,
+    }
+
+    return {
+        "valid": True,
+        "layer": "passed",
+        "warnings": warnings,
+        "summary": summary,
+    }
+
+
+@app.post("/contracts/import-yaml", tags=["contracts"], status_code=201)
+async def import_yaml_contract(
+    file: UploadFile = File(...),
+    user=Depends(grplvladmin),
+):
+    """
+    Import data contract dari file YAML.
+    Hanya root dan admin.
+    """
+    content = await file.read()
+
+    try:
+        data = yaml.safe_load(content)
+    except yaml.YAMLError as e:
+        raise HTTPException(status_code=422, detail=f"YAML syntax error: {str(e)}")
+
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=422, detail="File YAML tidak valid.")
+
+    if not data.get("contract_number"):
+        data["contract_number"] = await cn_generator()
+
+    existing = await dccollection.find_one({"contract_number": data["contract_number"]})
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Kontrak dengan nomor '{data['contract_number']}' sudah ada."
+        )
+
+    await dccollection.insert_one(data)
+    saved = await dccollection.find_one(
+        {"contract_number": data["contract_number"]}, {"_id": 0}
+    )
+    return saved

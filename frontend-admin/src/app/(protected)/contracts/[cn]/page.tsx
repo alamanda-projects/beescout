@@ -3,6 +3,8 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getContractByNumber } from '@/lib/api/admin'
+import { getMe } from '@/lib/api/auth'
+import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -34,6 +36,7 @@ export default function AdminContractDetailPage() {
   const { cn } = useParams<{ cn: string }>()
   const router = useRouter()
 
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const { data: contract, isLoading, isError } = useQuery({
     queryKey: ['contract', cn],
     queryFn: () => getContractByNumber(cn),
@@ -71,6 +74,7 @@ export default function AdminContractDetailPage() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="capitalize text-sm px-3 py-1">{metadata?.type ?? '-'}</Badge>
+            <ImportYamlButton context="detail" contractNumber={cn} userRole={user?.group_access} />
             <Button asChild size="sm" variant="outline">
               <Link href={`/contracts/${cn}/edit`}><Pencil size={14} className="mr-1.5" />Edit</Link>
             </Button>

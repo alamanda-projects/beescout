@@ -7,6 +7,9 @@ import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getContractByNumber, updateContract } from '@/lib/api/admin'
+import { getMe } from '@/lib/api/auth'
+import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
+import QualityRulesEditor from '@/components/quality/QualityRulesEditor'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -79,8 +82,11 @@ const SECTIONS = ['Informasi Dasar', 'SLA & Pemangku', 'Struktur Data', 'Koneksi
 export default function EditContractPage() {
   const { cn } = useParams<{ cn: string }>()
   const router = useRouter()
+  const [step, setStep] = useState(0)
   const [activeSection, setActiveSection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
+  const userRole = user?.group_access ?? 'user'
 
   const { data: contract, isLoading } = useQuery({
     queryKey: ['contract', cn],
@@ -233,14 +239,26 @@ export default function EditContractPage() {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2 mb-2 text-muted-foreground">
-          <ArrowLeft size={15} className="mr-1" /> Kembali
-        </Button>
-        <h2 className="text-xl font-semibold text-slate-900">Edit Data Contract</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{cn}</code>
-          {' · '}{contract.metadata?.name}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2 mb-2 text-muted-foreground">
+            <ArrowLeft size={15} className="mr-1" /> Kembali
+          </Button>
+          <h2 className="text-xl font-semibold text-slate-900">Edit Data Contract</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{cn}</code>
+            {' · '}{contract.metadata?.name}
+          </p>
+        </div>
+        <ImportYamlButton
+          context="detail"
+          contractNumber={cn}
+          userRole={userRole as any}
+          onPrefill={(data) => {
+            form.reset(data as any)
+            toast.success('Form berhasil diperbarui dari YAML')
+          }}
+        />
       </div>
 
       {/* Section tabs */}
@@ -503,49 +521,24 @@ export default function EditContractPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">Kualitas Data</CardTitle>
-                  <CardDescription>Aturan kualitas data per dimensi</CardDescription>
-                </div>
-                <Button type="button" variant="outline" size="sm"
-                  onClick={() => addQuality({ code: '', dimension: 'completeness', description: '', impact: '' })}>
-                  <Plus size={14} className="mr-1" />Tambah Aturan
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {qualityRules.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">Belum ada aturan kualitas. Klik &quot;Tambah Aturan&quot; untuk menambah.</p>
-              )}
-              {qualityRules.map((qField, qi) => (
-                <div key={qField.id} className="p-3 border rounded-lg bg-slate-50 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={watch(`metadata.quality.${qi}.dimension`) ?? 'completeness'}
-                      onValueChange={(v) => setValue(`metadata.quality.${qi}.dimension`, v)}
-                    >
-                      <SelectTrigger className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {QUALITY_DIMENSIONS.map(d => <SelectItem key={d.value} value={d.value} className="text-xs">{d.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Input placeholder="Kode aturan, misal: COL_completeness_01" className="h-7 text-xs flex-1" {...register(`metadata.quality.${qi}.code`)} />
-                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50 shrink-0"
-                      onClick={() => removeQuality(qi)}>
-                      <Trash2 size={13} />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Deskripsi aturan" className="h-7 text-xs" {...register(`metadata.quality.${qi}.description`)} />
-                    <Input placeholder="Dampak jika tidak terpenuhi" className="h-7 text-xs" {...register(`metadata.quality.${qi}.impact`)} />
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <QualityRulesEditor
+            contractNumber={cn}
+            columns={watch('model') ?? []}
+            datasetRules={watch('metadata.quality') ?? []}
+            columnRules={Object.fromEntries(
+              (watch('model') ?? []).map((col: any) => [col.column, col.quality ?? []])
+            )}
+            onSave={(dsRules, colRulesMap) => {
+              setValue('metadata.quality', dsRules)
+              const currentModel = form.getValues('model') ?? []
+              currentModel.forEach((col, i) => {
+                setValue(`model.${i}.quality`, colRulesMap[col.column] ?? [])
+              })
+              toast.success('Aturan kualitas berhasil diperbarui')
+            }}
+            userMode={userRole === 'user' ? 'biz' : 'eng'}
+            canSwitchMode={userRole === 'admin' || userRole === 'root'}
+          />
           </div>
         )}
 

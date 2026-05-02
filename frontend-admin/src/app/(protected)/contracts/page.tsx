@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { getAllContracts } from '@/lib/api/admin'
+import { getMe } from '@/lib/api/auth'
+import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,7 @@ const TYPE_VARIANTS: Record<string, 'default' | 'info' | 'success' | 'warning' |
 
 export default function AdminContractsPage() {
   const [search, setSearch] = useState('')
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const { data: contracts = [], isLoading } = useQuery({ queryKey: ['all-contracts'], queryFn: getAllContracts })
 
   const filtered = useMemo(() => {
@@ -39,9 +42,12 @@ export default function AdminContractsPage() {
           <h2 className="text-xl font-semibold text-slate-900">Data Contract</h2>
           <p className="text-sm text-muted-foreground mt-1">Kelola semua data contract di seluruh domain</p>
         </div>
-        <Button asChild>
-          <Link href="/contracts/new"><Plus size={16} className="mr-1" />Tambah Kontrak</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportYamlButton context="list" userRole={user?.group_access} />
+          <Button asChild>
+            <Link href="/contracts/new"><Plus size={16} className="mr-1" />Tambah Kontrak</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>

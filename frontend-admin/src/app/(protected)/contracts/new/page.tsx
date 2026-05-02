@@ -6,6 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { addContract, generateContractNumber } from '@/lib/api/admin'
+import { getMe } from '@/lib/api/auth'
+import { useQuery } from '@tanstack/react-query'
+import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
+import QualityRulesEditor from '@/components/quality/QualityRulesEditor'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -124,6 +128,8 @@ export default function NewContractPage() {
   const [step, setStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGenCN, setIsGenCN] = useState(false)
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
+  const userRole = user?.group_access ?? 'user'
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -151,11 +157,6 @@ export default function NewContractPage() {
   const { fields: stakeholders, append: addStakeholder, remove: removeStakeholder } = useFieldArray({ control: form.control, name: 'metadata.stakeholders' })
   const { fields: columns, append: addColumn, remove: removeColumn } = useFieldArray({ control: form.control, name: 'model' })
   const { fields: ports, append: addPort, remove: removePort } = useFieldArray({ control: form.control, name: 'ports' })
-  const qualityRules: Array<any> = watch('metadata.quality') ?? []
-  const addQuality = () =>
-    setValue('metadata.quality', [...qualityRules, { code: '', dimension: 'completeness', description: '', impact: 'operational', custom_properties: [] }])
-  const removeQuality = (qi: number) =>
-    setValue('metadata.quality', qualityRules.filter((_, idx) => idx !== qi))
 
   const [retentionValue, setRetentionValue] = useState('')
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
@@ -242,9 +243,19 @@ export default function NewContractPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Tambah Data Contract</h2>
-        <p className="text-sm text-muted-foreground mt-1">Isi formulir berikut untuk mendaftarkan kontrak data baru</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Tambah Data Contract</h2>
+          <p className="text-sm text-muted-foreground mt-1">Isi formulir berikut untuk mendaftarkan kontrak data baru</p>
+        </div>
+        <ImportYamlButton
+          context="new"
+          userRole={userRole as any}
+          onPrefill={(data) => {
+            form.reset(data as any)
+            toast.success('Form berhasil diisi dari YAML')
+          }}
+        />
       </div>
 
       <StepIndicator current={step} />
@@ -501,39 +512,24 @@ export default function NewContractPage() {
                       </div>
                     ))}
                   </div>
-                  <ColumnQualitySection columnIndex={i} form={form} />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">Kualitas Data (Dataset)</CardTitle>
-                  <CardDescription>Aturan kualitas yang berlaku untuk keseluruhan dataset</CardDescription>
-                </div>
-                <Button type="button" variant="outline" size="sm"
-                  onClick={() => addQuality()}>
-                  <Plus size={14} className="mr-1" />Tambah Aturan
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {qualityRules.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">Belum ada aturan kualitas. Klik &quot;Tambah Aturan&quot; untuk menambah.</p>
-              )}
-              {qualityRules.map((_, qi) => (
-                <QualityRuleItem
-                  key={qi}
-                  basePath={`metadata.quality.${qi}`}
-                  form={form}
-                  onRemove={() => removeQuality(qi)}
-                />
-              ))}
-            </CardContent>
-          </Card>
+          <QualityRulesEditor
+            contractNumber={watch('contract_number')}
+            columns={watch('model') ?? []}
+            datasetRules={watch('metadata.quality') ?? []}
+            columnRules={Object.fromEntries(
+              (watch('model') ?? []).map((col: any) => [col.column, col.quality ?? []])
+            )}
+            onSave={(dsRules, colRulesMap) => {
+              setValue('metadata.quality', dsRules)
+              const currentModel = form.getValues('model') ?? []
+              currentModel.forEach((col, i) => {
+                setValue(`model.${i}.quality`, colRulesMap[col.column] ?? [])
+              })
+              toast.success('Aturan kualitas berhasil diperbarui')
+            }}
+            userMode={userRole === 'user' ? 'biz' : 'eng'}
+            canSwitchMode={userRole === 'admin' || userRole === 'root'}
+          />
           </div>
         )}
 
@@ -601,96 +597,3 @@ export default function NewContractPage() {
   )
 }
 
-// ─── Shared quality rule item — uses watch+setValue to avoid dynamic useFieldArray ──
-function QualityRuleItem({ basePath, form, onRemove }: {
-  basePath: string
-  form: any
-  onRemove: () => void
-}) {
-  const customProps: Array<{ property: string; value: string }> =
-    form.watch(`${basePath}.custom_properties`) ?? []
-
-  const addProp = () =>
-    form.setValue(`${basePath}.custom_properties`, [...customProps, { property: '', value: '' }])
-
-  const removeProp = (k: number) =>
-    form.setValue(`${basePath}.custom_properties`, customProps.filter((_, idx) => idx !== k))
-
-  return (
-    <div className="p-3 border rounded-lg bg-white space-y-2">
-      <div className="flex items-center gap-2">
-        <Select
-          value={form.watch(`${basePath}.dimension`) ?? 'completeness'}
-          onValueChange={(v) => form.setValue(`${basePath}.dimension`, v)}
-        >
-          <SelectTrigger className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {QUALITY_DIMENSIONS.map(d => <SelectItem key={d.value} value={d.value} className="text-xs">{d.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Input placeholder="Kode aturan (misal: null_check)" className="h-7 text-xs flex-1" {...form.register(`${basePath}.code`)} />
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50 shrink-0" onClick={onRemove}>
-          <Trash2 size={13} />
-        </Button>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Input placeholder="Deskripsi aturan" className="h-7 text-xs" {...form.register(`${basePath}.description`)} />
-        <Input placeholder="Impact (misal: operational)" className="h-7 text-xs" {...form.register(`${basePath}.impact`)} />
-      </div>
-      <div className="pl-2 border-l-2 border-slate-300 space-y-1.5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground font-medium">Custom Properties</span>
-          <Button type="button" variant="ghost" size="sm" className="h-5 px-2 text-xs" onClick={addProp}>
-            <Plus size={10} className="mr-0.5" />Tambah
-          </Button>
-        </div>
-        {customProps.length === 0 && (
-          <p className="text-xs text-muted-foreground italic">Belum ada property. Klik &quot;Tambah&quot; untuk menambah constraint.</p>
-        )}
-        {customProps.map((_, k) => (
-          <div key={k} className="flex gap-1.5">
-            <Input placeholder="property (misal: length, max_date)" className="h-6 text-xs" {...form.register(`${basePath}.custom_properties.${k}.property`)} />
-            <Input placeholder="value (misal: 36, today)" className="h-6 text-xs" {...form.register(`${basePath}.custom_properties.${k}.value`)} />
-            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-red-400 shrink-0" onClick={() => removeProp(k)}>
-              <Trash2 size={10} />
-            </Button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── Column-level quality rules — uses watch+setValue to avoid dynamic useFieldArray ──
-function ColumnQualitySection({ columnIndex, form }: { columnIndex: number; form: any }) {
-  const qualityPath = `model.${columnIndex}.quality` as const
-  const rules: Array<any> = form.watch(qualityPath) ?? []
-
-  const addRule = () =>
-    form.setValue(qualityPath, [...rules, { code: '', dimension: 'completeness', description: '', impact: 'operational', custom_properties: [] }])
-
-  const removeRule = (qi: number) =>
-    form.setValue(qualityPath, rules.filter((_, idx) => idx !== qi))
-
-  return (
-    <div className="border-t border-dashed border-slate-300 pt-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-slate-600">Aturan Kualitas Kolom</span>
-        <Button type="button" variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={addRule}>
-          <Plus size={11} className="mr-1" />Tambah Aturan
-        </Button>
-      </div>
-      {rules.length === 0 && (
-        <p className="text-xs text-muted-foreground italic">Belum ada aturan kualitas untuk kolom ini.</p>
-      )}
-      {rules.map((_, qi) => (
-        <QualityRuleItem
-          key={qi}
-          basePath={`model.${columnIndex}.quality.${qi}`}
-          form={form}
-          onRemove={() => removeRule(qi)}
-        />
-      ))}
-    </div>
-  )
-}

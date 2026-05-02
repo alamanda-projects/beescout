@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Users, User, FilePlus } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, User, FilePlus, Puzzle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/',          label: 'Dashboard',       icon: LayoutDashboard },
   { href: '/contracts', label: 'Data Contract',   icon: FileText },
+  { href: '/catalog',   label: 'Katalog Aturan',  icon: Puzzle },
   { href: '/contracts/new', label: 'Tambah Kontrak', icon: FilePlus, indent: true },
   { href: '/users',     label: 'Manajemen User',  icon: Users },
   { href: '/profile',   label: 'Profil Saya',     icon: User },
