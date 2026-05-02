@@ -1,15 +1,18 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { getMyContracts } from '@/lib/api/contracts'
+import { getMyContracts, importYaml } from '@/lib/api/contracts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Search, FileText, ArrowRight } from 'lucide-react'
+import { Search, FileText, ArrowRight, Plus, Upload } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Contract } from '@/types/contract'
 
 function ContractTypeBadge({ type }: { type?: string }) {
@@ -39,11 +42,34 @@ function TableSkeleton() {
 
 export default function ContractsPage() {
   const [search, setSearch] = useState('')
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
-  const { data: contracts = [], isLoading } = useQuery({
+  const { data: contracts = [], isLoading, refetch } = useQuery({
     queryKey: ['my-contracts'],
     queryFn: getMyContracts,
   })
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    try {
+      await importYaml(file)
+      toast.success('Kontrak berhasil diimpor dari YAML.')
+      refetch()
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      let msg = 'Gagal mengimpor YAML.'
+      if (typeof detail === 'string') msg = detail
+      else if (Array.isArray(detail)) msg = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ')
+      toast.error(msg)
+    } finally {
+      setImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const filtered = useMemo(() => {
     if (!search.trim()) return contracts
@@ -59,11 +85,37 @@ export default function ContractsPage() {
 
   return (
     <div className="space-y-5 max-w-5xl">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-900">Data Contract</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Kontrak data yang Anda buat atau kelola
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Data Contract</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Kontrak data yang Anda buat atau kelola
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".yaml,.yml"
+            className="hidden"
+            onChange={handleImport}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100"
+            disabled={importing}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload size={13} />
+            {importing ? 'Mengimpor...' : 'Import YAML'}
+          </Button>
+          <Button asChild size="sm">
+            <Link href="/contracts/new">
+              <Plus size={14} className="mr-1" />Tambah Kontrak
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>

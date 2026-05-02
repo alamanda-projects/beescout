@@ -72,3 +72,22 @@ export async function updateContract(contractNumber: string, data: unknown) {
   })
   return res.data
 }
+
+export async function addContract(data: unknown) {
+  const res = await apiClient.post('/datacontract/add', data)
+  return res.data
+}
+
+export async function generateContractNumber(): Promise<string> {
+  const res = await apiClient.get('/datacontract/gencn')
+  return res.data.contract_number
+}
+
+export async function importYaml(file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await apiClient.post('/datacontract/import-yaml', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data
+}
