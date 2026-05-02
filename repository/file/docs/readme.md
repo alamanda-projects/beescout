@@ -1,5 +1,8 @@
 # Documentation
 
+> [!IMPORTANT]
+> **CATATAN PENTING**: Kredensial di bawah ini adalah akun bawaan (default) untuk keperluan pengembangan lokal. Untuk penggunaan produksi atau inisialisasi awal, sangat disarankan menggunakan endpoint `/setup` untuk membuat akun `root` pertama kali. Lihat [getting-started.md](../../../getting-started.md) untuk detail selengkapnya.
+
 ## Login
 
 Default user :

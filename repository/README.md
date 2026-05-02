@@ -23,6 +23,12 @@ BeeScout dirancang untuk mendukung praktik **Data Mesh**, **Data Governance**, d
 - 🛠️ **Integrasi CI/CD & Validation Tools**  
   Mendukung integrasi dengan tools seperti dbt, Great Expectations, Airflow, atau sistem ingestion lainnya.
 
+- 🗳️ **Approval Workflow**  
+  Mekanisme persetujuan untuk setiap perubahan kontrak yang diajukan oleh pengguna non-admin.
+
+- 📚 **Rule Catalog**  
+  Katalog terpusat untuk mendefinisikan aturan kualitas data standar organisasi.
+
 ## Screenshots
 
 > 📸 Tangkapan layar akan ditambahkan pada rilis beta
@@ -51,10 +57,10 @@ BeeScout dirancang untuk mendukung praktik **Data Mesh**, **Data Governance**, d
 
 2. Jalankan aplikasi:
     ```bash
-    docker-compose up -d
+    make up
     ```
 
-3. Akses aplikasi di http://localhost:8888
+3. Akses aplikasi di http://app.localhost (atau port yang dikonfigurasi via Nginx)
 
 ## Dokumentasi Lebih Lengkap
 Dokumentasi lengkap penggunaan dapat dilihat pada tautan berikut : [Dokumentasi Beescout](file/docs/readme.md)

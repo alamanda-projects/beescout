@@ -61,7 +61,7 @@ Dengan berkontribusi pada proyek BeeScout, Anda setuju untuk mematuhi Code of Co
 
 ### 1. Understanding the Project
 
-Sebelum Anda berkontribusi, penting untuk memahami tujuan dan ruang lingkup proyek BeeScout. Bacalah [Executive Summary](README.md#executive-summary) dan [Discover the standard](data-guard-standard/docs/readme.md) untuk memahami secara keseluruhan.
+Sebelum Anda berkontribusi, penting untuk memahami tujuan dan ruang lingkup proyek BeeScout. Bacalah [Executive Summary](README.md#executive-summary) dan [Discover the standard](data-contract/docs/README.md) untuk memahami secara keseluruhan.
 
 ### 2. Read the Contribution Guidelines
 
@@ -69,14 +69,14 @@ Pastikan untuk membaca dan memahami panduan kontribusi yang telah ditetapkan. Pa
 
 ### 3. Finding Areas of Contribution
 
-Identifikasi area atau fitur tertentu yang ingin Anda tingkatkan atau tambahkan kontribusi. Lihat daftar [issues](https://blabla) untuk menemukan proyek-proyek terbuka atau tambahkan proyek baru jika perlu.
+Identifikasi area atau fitur tertentu yang ingin Anda tingkatkan atau tambahkan kontribusi. Lihat daftar [issues](https://github.com/alamanda-projects/beescout/issues) untuk menemukan proyek-proyek terbuka atau tambahkan proyek baru jika perlu.
 
 ### 4. Fork dan Clone Repository
 
 Fork repository BeeScout ke akun GitHub Anda sendiri. Setelah itu, clone repository tersebut ke mesin lokal Anda menggunakan perintah:
 
 ```
-git clone https://blabla.git
+git clone https://github.com/alamanda-projects/beescout.git
 ```
 Pastikan untuk menggantikan USERNAME dengan nama pengguna GitHub Anda.
 

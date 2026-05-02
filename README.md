@@ -188,6 +188,29 @@ graph TD
     DomainCheck -->|"/api/*"| RateCheck{Rate limit OK?}
     RateCheck -->|"OK"| BackendFE["→ backend:8888"]
     RateCheck -->|"Exceeded"| Throttle["429 Too Many Requests"]
+
+---
+
+## Fitur Lanjutan
+
+BeeScout dilengkapi dengan fitur tata kelola data yang canggih untuk mendukung skala enterprise:
+
+### 🗳️ Alur Persetujuan (Approval Workflow)
+Pengguna dengan role `user` atau `developer` dapat mengajukan perubahan pada Data Contract. Perubahan tersebut tidak langsung diterapkan, melainkan masuk ke antrean **Pending Approval**.
+- Admin/Root akan menerima notifikasi di dashboard.
+- Admin/Root dapat meninjau (diff), memberikan komentar/alasan, dan melakukan voting (Approve/Reject).
+- Perubahan hanya akan diterapkan secara otomatis jika semua approver memberikan suara setuju.
+
+### 📚 Katalog Aturan (Rule Catalog)
+Pusat pengelolaan aturan kualitas data (Data Quality Rules) yang dapat digunakan kembali di berbagai kontrak.
+- Mendukung aturan bawaan (built-in) dan aturan kustom.
+- Memastikan konsistensi definisi kualitas data di seluruh organisasi.
+- Dapat diakses via API untuk integrasi dengan pipeline CI/CD.
+
+### 📥 Import & Validasi YAML
+Mendukung import Data Contract dalam jumlah besar menggunakan format YAML standar ODCS.
+- Validasi skema berlapis (YAML syntax & ODCS compliance).
+- Deteksi dini kesalahan tipe data atau field wajib sebelum data masuk ke database.
 ```
 
 ---
@@ -280,6 +303,14 @@ Informasi lebih lanjut untuk bergabung dan berkolaborasi dalam project ini bisa 
 ## Changelog
 
 Informasi lebih lanjut mengenai segala perubahan dalam project ini bisa dilihat pada halaman [Changelog](CHANGELOG.md).
+
+---
+
+## Sumber Daya Pengembang
+
+- [**Getting Started Guide**](getting-started.md) — Panduan instalasi dan konfigurasi mendalam.
+- [**Claude Guardrails (CLAUDE.md)**](CLAUDE.md) — Panduan teknis, konvensi kode, dan troubleshooting.
+- [**Contributing Guide**](CONTRIBUTING.md) — Cara berkontribusi dan etika kolaborasi.
 
 ## References
 
