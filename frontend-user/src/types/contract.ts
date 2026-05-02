@@ -120,3 +120,13 @@ export const CONTRACT_TYPE_LABELS: Record<string, string> = {
   report: 'Laporan',
   model: 'Model',
 }
+
+export const STAKEHOLDER_ROLES = [
+  { value: 'owner', label: 'Data Owner' },
+  { value: 'consumer', label: 'Data Consumer' },
+  { value: 'steward', label: 'Data Steward' },
+  { value: 'producer', label: 'Data Producer' },
+  { value: 'engineer', label: 'Data Engineer' },
+  { value: 'analyst', label: 'Data Analyst' },
+  { value: 'architect', label: 'Data Architect' },
+] as const
