@@ -1,0 +1,151 @@
+# =======================
+# Project : BeeScout
+# File    : nginx/templates/default.conf.template
+# Function: Reverse proxy routing + security headers + rate limiting
+#
+# Variables substituted at container start (set in .env / docker-compose):
+#   BEESCOUT_USER_DOMAIN    — e.g. app.example.com   (user-facing frontend)
+#   BEESCOUT_ADMIN_DOMAIN   — e.g. admin.example.com (admin-facing frontend)
+#   BEESCOUT_RATE_LOGIN     — max login attempts per minute per IP (default 10)
+#   BEESCOUT_RATE_API       — max API requests per second per IP (default 30)
+# =======================
+
+# ── Rate limiting zones ────────────────────────────────────────────────────────
+# Zone for login endpoints — strict, brute-force protection
+limit_req_zone $binary_remote_addr zone=login_limit:10m rate=${BEESCOUT_RATE_LOGIN}r/m;
+
+# Zone for all other API calls — generous but bounded
+limit_req_zone $binary_remote_addr zone=api_limit:10m   rate=${BEESCOUT_RATE_API}r/s;
+
+# ── Global settings ────────────────────────────────────────────────────────────
+server_tokens off;
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# USER FRONTEND — ${BEESCOUT_USER_DOMAIN}
+# Roles: user, developer
+# Access: public internet
+# ══════════════════════════════════════════════════════════════════════════════
+server {
+    listen 80;
+    server_name ${BEESCOUT_USER_DOMAIN};
+
+    client_max_body_size 2m;
+
+    # ── Security headers ────────────────────────────────────────────────────
+    add_header X-Frame-Options             "DENY"                                     always;
+    add_header X-Content-Type-Options      "nosniff"                                  always;
+    add_header Referrer-Policy             "strict-origin-when-cross-origin"          always;
+    add_header Permissions-Policy          "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self';" always;
+
+    # ── Login endpoint — strict rate limiting ───────────────────────────────
+    location = /api/login {
+        limit_req zone=login_limit burst=5 nodelay;
+        limit_req_status 429;
+
+        rewrite ^/api/(.*) /$1 break;
+        proxy_pass         http://backend:8888;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # ── All other API calls ─────────────────────────────────────────────────
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        limit_req_status 429;
+
+        rewrite ^/api/(.*) /$1 break;
+        proxy_pass         http://backend:8888;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # ── Frontend (Next.js) ──────────────────────────────────────────────────
+    location / {
+        proxy_pass         http://frontend-user:3000;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ADMIN FRONTEND — ${BEESCOUT_ADMIN_DOMAIN}
+# Roles: admin, root
+# Access: restricted — configure IP allowlist below for production deployments
+#
+# HOW TO RESTRICT ACCESS BY IP:
+#   Uncomment the allow/deny block below and replace with your own CIDRs.
+#   Multiple allow directives are supported — nginx evaluates top-to-bottom.
+#
+#   Example (allow office + VPN, deny everything else):
+#     allow 203.0.113.10;       # office static IP
+#     allow 10.0.0.0/8;         # VPN subnet
+#     deny  all;
+#
+#   For development (local only):
+#     allow 127.0.0.1;
+#     deny  all;
+# ══════════════════════════════════════════════════════════════════════════════
+server {
+    listen 80;
+    server_name ${BEESCOUT_ADMIN_DOMAIN};
+
+    client_max_body_size 2m;
+
+    # ── IP Access Control ───────────────────────────────────────────────────
+    # Uncomment and configure for production:
+    # allow 10.0.0.0/8;
+    # deny  all;
+
+    # ── Security headers ────────────────────────────────────────────────────
+    add_header X-Frame-Options             "DENY"                                     always;
+    add_header X-Content-Type-Options      "nosniff"                                  always;
+    add_header Referrer-Policy             "strict-origin-when-cross-origin"          always;
+    add_header Permissions-Policy          "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self';" always;
+
+    # ── Login endpoint — stricter rate limiting for admin ───────────────────
+    location = /api/login {
+        limit_req zone=login_limit burst=3 nodelay;
+        limit_req_status 429;
+
+        rewrite ^/api/(.*) /$1 break;
+        proxy_pass         http://backend:8888;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # ── All other API calls ─────────────────────────────────────────────────
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        limit_req_status 429;
+
+        rewrite ^/api/(.*) /$1 break;
+        proxy_pass         http://backend:8888;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # ── Admin Frontend (Next.js) ────────────────────────────────────────────
+    location / {
+        proxy_pass         http://frontend-admin:3001;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+        proxy_cache_bypass $http_upgrade;
+    }
+}

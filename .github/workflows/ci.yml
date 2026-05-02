@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── TypeScript type-check: Admin Frontend ──────────────────────────────────
+  typecheck-admin:
+    name: TypeScript — frontend-admin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend-admin/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  # ── TypeScript type-check: User Frontend ──────────────────────────────────
+  typecheck-user:
+    name: TypeScript — frontend-user
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend-user
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend-user/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  # ── Backend unit tests ─────────────────────────────────────────────────────
+  backend-test:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repository
+    env:
+      # Minimal env for tests — no real DB, uses mock
+      TKN_SECRET_KEY: test_key
+      TKN_SECRET_TOKEN: test_token
+      TKN_ALGORITHM: HS256
+      TKN_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      SA_SECRET_KEY: test_sa_key
+      SA_SECRET_TOKEN: test_sa_token
+      SA_ALGORITHM: HS256
+      SA_ACCESS_TOKEN_EXPIRE_DAYS: "365"
+      MONGODB_HOST: localhost
+      MONGODB_USER: test
+      MONGODB_PASS: test
+      MONGODB_PORT: "27017"
+      MONGODB_DB: test_db
+      MONGODB_COLLECTION_DGR: dgr
+      MONGODB_COLLECTION_USR: dgrusr
+      ALLOWED_ORIGINS: http://localhost:3000
+      COOKIE_SECURE: "false"
+      APP_TITLE: BeeScout
+      APP_DESCRIPTION: Test
+      APP_SUMMARY: Test
+      APP_VERSION: 0.0.0
+      APP_CONTACT_NAME: Test
+      APP_CONTACT_URL: http://localhost
+      APP_CONTACT_EMAIL: test@test.com
+      APP_LICENSE_INFO_NAME: AGPL v3.0
+      APP_LICENSE_INFO_URL: https://www.gnu.org/licenses/agpl-3.0.txt
+      CODE_RANGE: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz
+      CODE_LENGTH: "13"
+      DC_404: "Not found"
+      DC_412: "Invalid"
+      USR_401_UNAUTH: "Unauthorized"
+      USR_401_INACT: "Inactive"
+      USR_401_CNVC: "Could not validate"
+      USR_403: "Forbidden"
+      USR_403_ELDERS: "Forbidden"
+      USR_403_GUARDIAN: "Forbidden"
+      USR_403_OPTIMUS: "Forbidden"
+      USR_403_MEGATRON: "Forbidden"
+      USR_403_GRIMLOCK: "Forbidden"
+      USR_403_OPTIMUS2: "Forbidden"
+      USR_403_MEGATRON2: "Forbidden"
+      USR_403_GRIMLOCK2: "Forbidden"
+      USR_409_ROOT: "Already exists"
+      USR_409_TAKEN: "Already taken"
+      USR_412_UNAME: "Required"
+      USR_412_PWD: "Required"
+      USR_412_NAME: "Required"
+      USR_412_LEVEL: "Required"
+      USR_412_TEAM: "Required"
+      PWD_422_LONG: "Too short"
+      PWD_422_ALL: "Invalid"
+      PWD_422_UPCASE: "Need uppercase"
+      PWD_422_LOCASE: "Need lowercase"
+      PWD_422_NUM: "Need number"
+      PWD_422_SPC: "Need special char"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: repository/infra/python/packages/stdpack.txt
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r infra/python/packages/stdpack.txt
+          pip install pytest pytest-asyncio httpx
+      - name: Run tests
+        run: pytest tests/ -v
+
+  # ── Docker build check ─────────────────────────────────────────────────────
+  docker-build:
+    name: Docker build — ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: backend
+            dockerfile: repository/infra/python/Dockerfile
+            context: .
+          - service: frontend-admin
+            dockerfile: frontend-admin/Dockerfile
+            context: frontend-admin
+          - service: frontend-user
+            dockerfile: frontend-user/Dockerfile
+            context: frontend-user
+          - service: nginx
+            dockerfile: nginx/Dockerfile
+            context: nginx
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

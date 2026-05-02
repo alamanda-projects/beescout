@@ -111,7 +111,7 @@ async def access_verification_filter(
         raise HTTPException(status_code=404, detail=dcnotfound)
 
     # # Team validation
-    dc_team = dc_info["metadata"]["consumer"]
+    dc_team = dc_info["metadata"].get("consumer") or []
 
     dc_team_member = []
     for team_member in dc_team:

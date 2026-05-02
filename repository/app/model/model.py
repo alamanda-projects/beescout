@@ -30,17 +30,17 @@ class ModelQuality(BaseModel):
 
 class Model(BaseModel):
     column: str
-    business_name: Optional[str]
-    logical_type: str
-    physical_type: str
-    is_primary: bool
-    is_nullable: bool
-    is_partition: bool
-    is_clustered: bool
-    is_pii: bool
-    is_audit: bool
-    is_mandatory: bool
-    description: str
-    quality: Optional[List[ModelQuality]]  # -> merujuk ke class ModelQuality
-    sample_value: Optional[List[str]]
-    tags: Optional[List[str]]
+    business_name: Optional[str] = None
+    logical_type: Optional[str] = None
+    physical_type: Optional[str] = None
+    is_primary: Optional[bool] = None
+    is_nullable: Optional[bool] = None
+    is_partition: Optional[bool] = None
+    is_clustered: Optional[bool] = None
+    is_pii: Optional[bool] = None
+    is_audit: Optional[bool] = None
+    is_mandatory: Optional[bool] = None
+    description: Optional[str] = None
+    quality: Optional[List[ModelQuality]] = None
+    sample_value: Optional[List[str]] = None
+    tags: Optional[List[str]] = None

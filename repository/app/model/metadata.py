@@ -20,16 +20,18 @@ from typing import List, Optional, Union
 
 
 class MetadataSla(BaseModel):
-    availability_start: int
-    availability_end: int
-    availability_unit: str
-    frequency: int
-    frequency_unit: str
-    frequency_cron: Optional[str]
-    retention: int
-    retention_unit: str
-    effective_date: str
-    end_of_contract: str
+    availability_start: Optional[int] = None
+    availability_end: Optional[int] = None
+    availability_unit: Optional[str] = None
+    frequency: Optional[int] = None
+    frequency_unit: Optional[str] = None
+    frequency_cron: Optional[str] = None
+    retention: Optional[int] = None
+    retention_unit: Optional[str] = None
+    effective_date: Optional[str] = None
+    end_of_contract: Optional[str] = None
+    availability: Optional[str] = None
+    cron: Optional[str] = None
 
 
 class MetadataQualityCustom(BaseModel):
@@ -61,8 +63,8 @@ class MetadataConsumer(BaseModel):
 
 
 class MetadataDescription(BaseModel):
-    purpose: Optional[str]
-    usage: str
+    purpose: Optional[str] = None
+    usage: Optional[str] = None
 
 
 class Metadata(BaseModel):
@@ -70,9 +72,11 @@ class Metadata(BaseModel):
     type: str
     name: str
     owner: str
-    consumption_mode: Optional[str]
-    description: MetadataDescription  # -> merujuk ke class MetadataDescription
-    consumer: Optional[List[MetadataConsumer]]  # -> merujuk ke class MetadataConsumer
-    stakeholders: List[MetadataStakeholders]  # -> merujuk ke class MetadataStakeholders
-    quality: Optional[List[MetadataQuality]]  # -> merujuk ke class MetadataQuality
-    sla: MetadataSla  # -> merujuk ke class MetadataSla
+    consumption_mode: Optional[str] = None
+    description: Optional[MetadataDescription] = None
+    consumer: Optional[List[MetadataConsumer]] = None
+    stakeholders: Optional[List[MetadataStakeholders]] = None
+    quality: Optional[List[MetadataQuality]] = None
+    sla: Optional[MetadataSla] = None
+    prev_contract: Optional[str] = None
+    contract_reference: Optional[List[str]] = None
