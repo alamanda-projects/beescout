@@ -8,18 +8,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import { CheckCircle2, XCircle, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ApprovalRecord } from '@/types/contract'
 
-function ApprovalStatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') return <Badge variant="success">Disetujui</Badge>
   if (status === 'rejected') return <Badge variant="destructive">Ditolak</Badge>
   return <Badge variant="warning">Menunggu</Badge>
@@ -38,7 +31,6 @@ function VoteProgress({ record }: { record: ApprovalRecord }) {
 
 function ChangesPreview({ changes }: { changes: Record<string, unknown> }) {
   const [open, setOpen] = useState(false)
-  const preview = JSON.stringify(changes, null, 2)
   return (
     <div>
       <button
@@ -50,16 +42,18 @@ function ChangesPreview({ changes }: { changes: Record<string, unknown> }) {
       </button>
       {open && (
         <pre className="mt-2 text-xs bg-slate-50 border rounded p-3 overflow-x-auto max-h-64 text-slate-700">
-          {preview}
+          {JSON.stringify(changes, null, 2)}
         </pre>
       )}
     </div>
   )
 }
 
+type VoteState = { approvalId: string; type: 'approved' | 'rejected' } | null
+
 export default function ApprovalsPage() {
   const queryClient = useQueryClient()
-  const [voteTarget, setVoteTarget] = useState<{ record: ApprovalRecord; type: 'approved' | 'rejected' } | null>(null)
+  const [voteState, setVoteState] = useState<VoteState>(null)
   const [reason, setReason] = useState('')
 
   const { data: approvals = [], isLoading } = useQuery({
@@ -74,7 +68,7 @@ export default function ApprovalsPage() {
       toast.success(vars.vote === 'approved' ? 'Vote setuju berhasil.' : 'Perubahan ditolak.')
       queryClient.invalidateQueries({ queryKey: ['pending-approvals'] })
       queryClient.invalidateQueries({ queryKey: ['all-contracts'] })
-      setVoteTarget(null)
+      setVoteState(null)
       setReason('')
     },
     onError: (err: any) => {
@@ -86,9 +80,19 @@ export default function ApprovalsPage() {
     },
   })
 
+  function openVote(approvalId: string, type: 'approved' | 'rejected') {
+    if (voteState?.approvalId === approvalId && voteState?.type === type) {
+      setVoteState(null)
+      setReason('')
+    } else {
+      setVoteState({ approvalId, type })
+      setReason('')
+    }
+  }
+
   function handleVote() {
-    if (!voteTarget) return
-    submitVote({ id: voteTarget.record.approval_id, vote: voteTarget.type, reason: reason || undefined })
+    if (!voteState) return
+    submitVote({ id: voteState.approvalId, vote: voteState.type, reason: reason || undefined })
   }
 
   return (
@@ -113,107 +117,122 @@ export default function ApprovalsPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {approvals.map((record) => (
-            <Card key={record.approval_id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <CardTitle className="text-sm">
-                        <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs text-slate-600">
-                          {record.contract_number}
-                        </code>
-                      </CardTitle>
-                      <ApprovalStatusBadge status={record.status} />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Diajukan oleh <span className="font-medium text-slate-700">{record.requested_by}</span>
-                      {record.created_at && (
-                        <> · {new Date(record.created_at).toLocaleString('id-ID')}</>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                      onClick={() => { setVoteTarget({ record, type: 'rejected' }); setReason('') }}
-                    >
-                      <XCircle size={14} className="mr-1" /> Tolak
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => { setVoteTarget({ record, type: 'approved' }); setReason('') }}
-                    >
-                      <CheckCircle2 size={14} className="mr-1" /> Setuju
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                <VoteProgress record={record} />
-                {record.votes.length > 0 && (
-                  <div className="space-y-1">
-                    {record.votes.map((v) => (
-                      <div key={v.username} className="flex items-center gap-2 text-xs text-slate-600">
-                        {v.vote === 'approved'
-                          ? <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                          : <XCircle size={12} className="text-red-400 shrink-0" />}
-                        <span className="font-medium">{v.username}</span>
-                        {v.reason && <span className="text-muted-foreground">— {v.reason}</span>}
+          {approvals.map((record) => {
+            const isVoting = voteState?.approvalId === record.approval_id
+            return (
+              <Card key={record.approval_id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-sm">
+                          <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs text-slate-600">
+                            {record.contract_number}
+                          </code>
+                        </CardTitle>
+                        <StatusBadge status={record.status} />
                       </div>
-                    ))}
+                      <p className="text-xs text-muted-foreground">
+                        Diajukan oleh{' '}
+                        <span className="font-medium text-slate-700">{record.requested_by}</span>
+                        {record.created_at && (
+                          <> · {new Date(record.created_at).toLocaleString('id-ID')}</>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => openVote(record.approval_id, 'rejected')}
+                      >
+                        <XCircle size={14} className="mr-1" /> Tolak
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => openVote(record.approval_id, 'approved')}
+                      >
+                        <CheckCircle2 size={14} className="mr-1" /> Setuju
+                      </Button>
+                    </div>
                   </div>
-                )}
-                <ChangesPreview changes={record.proposed_changes} />
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="pt-0 space-y-3">
+                  <VoteProgress record={record} />
+                  {record.votes.length > 0 && (
+                    <div className="space-y-1">
+                      {record.votes.map((v) => (
+                        <div key={v.username} className="flex items-center gap-2 text-xs text-slate-600">
+                          {v.vote === 'approved'
+                            ? <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                            : <XCircle size={12} className="text-red-400 shrink-0" />}
+                          <span className="font-medium">{v.username}</span>
+                          {v.reason && <span className="text-muted-foreground">— {v.reason}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <ChangesPreview changes={record.proposed_changes} />
+
+                  {isVoting && (
+                    <div className="mt-3 p-4 rounded-lg border bg-slate-50 space-y-3">
+                      <p className="text-sm font-medium text-slate-800">
+                        {voteState?.type === 'approved'
+                          ? 'Konfirmasi: Setujui perubahan ini?'
+                          : 'Konfirmasi: Tolak perubahan ini?'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {voteState?.type === 'approved'
+                          ? 'Jika semua approver setuju, perubahan akan langsung diterapkan.'
+                          : 'Perubahan akan dibatalkan segera setelah ditolak.'}
+                      </p>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-slate-700">
+                          Alasan {voteState?.type === 'rejected' ? '(wajib)' : '(opsional)'}
+                        </label>
+                        <Textarea
+                          placeholder="Tulis alasan Anda..."
+                          className="text-sm resize-none bg-white"
+                          rows={3}
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setVoteState(null); setReason('') }}
+                        >
+                          Batal
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={isPending || (voteState?.type === 'rejected' && !reason.trim())}
+                          className={
+                            voteState?.type === 'approved'
+                              ? 'bg-emerald-600 hover:bg-emerald-700'
+                              : 'bg-red-600 hover:bg-red-700'
+                          }
+                          onClick={handleVote}
+                        >
+                          {isPending
+                            ? 'Menyimpan...'
+                            : voteState?.type === 'approved'
+                            ? 'Ya, Setuju'
+                            : 'Ya, Tolak'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       )}
-
-      <Dialog open={!!voteTarget} onOpenChange={(o) => { if (!o) { setVoteTarget(null); setReason('') } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {voteTarget?.type === 'approved' ? 'Konfirmasi Persetujuan' : 'Konfirmasi Penolakan'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <p className="text-sm text-muted-foreground">
-              {voteTarget?.type === 'approved'
-                ? 'Anda akan menyetujui perubahan kontrak ini. Jika semua approver setuju, perubahan akan langsung diterapkan.'
-                : 'Anda akan menolak perubahan kontrak ini. Perubahan akan dibatalkan segera.'}
-            </p>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700">
-                Alasan {voteTarget?.type === 'rejected' ? '(wajib)' : '(opsional)'}
-              </label>
-              <Textarea
-                placeholder="Tulis alasan Anda..."
-                className="text-sm resize-none"
-                rows={3}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setVoteTarget(null); setReason('') }}>
-              Batal
-            </Button>
-            <Button
-              disabled={isPending || (voteTarget?.type === 'rejected' && !reason.trim())}
-              className={voteTarget?.type === 'approved' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
-              onClick={handleVote}
-            >
-              {isPending ? 'Menyimpan...' : voteTarget?.type === 'approved' ? 'Setuju' : 'Tolak'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
