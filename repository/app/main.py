@@ -474,8 +474,8 @@ async def list_users(current_user: dict = Depends(require_admin)):
 @app.patch("/user/{username}", tags=["user"])
 async def update_user(username: str, payload: dict = Body(...), current_user: dict = Depends(require_root)):
     """Edit user (nama, peran, domain, status aktif, password). Hanya root."""
-    target = await usrcollection.find_one({"username": username, "type": "user"})
-    if not target:
+    target = await usrcollection.find_one({"username": username})
+    if not target or target.get("type") == "sa":
         raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
     # Tidak boleh edit sesama root
@@ -489,7 +489,11 @@ async def update_user(username: str, payload: dict = Body(...), current_user: di
         raise HTTPException(status_code=400, detail="Tidak ada field yang valid untuk diupdate.")
 
     if "password" in update_data:
-        update_data["password"] = Hasher.get_password_hash(update_data["password"])
+        pwd = update_data["password"]
+        if len(pwd) < 8 or not any(c.isupper() for c in pwd) or not any(c.islower() for c in pwd) \
+                or not any(c.isdigit() for c in pwd) or not any(not c.isalnum() for c in pwd):
+            raise HTTPException(status_code=422, detail="Password harus min. 8 karakter, mengandung huruf besar, kecil, angka, dan karakter khusus.")
+        update_data["password"] = Hasher.get_password_hash(pwd)
 
     if "group_access" in update_data and update_data["group_access"] in grplvlroot:
         raise HTTPException(status_code=403, detail="Tidak dapat mengubah peran menjadi root.")
@@ -501,8 +505,8 @@ async def update_user(username: str, payload: dict = Body(...), current_user: di
 @app.delete("/user/{username}", tags=["user"])
 async def delete_user(username: str, current_user: dict = Depends(require_root)):
     """Hapus user permanen. Hanya root. Tidak bisa hapus root lain."""
-    target = await usrcollection.find_one({"username": username, "type": "user"})
-    if not target:
+    target = await usrcollection.find_one({"username": username})
+    if not target or target.get("type") == "sa":
         raise HTTPException(status_code=404, detail="User tidak ditemukan.")
 
     if target.get("group_access") in grplvlroot:
