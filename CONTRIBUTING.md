@@ -1,139 +1,85 @@
-# BeeScout
+# Contributing to BeeScout
 
-## Executive Summary
+## Paradigma Baru: Open Source Native AI
 
-BeeScout adalah inisiatif terbuka untuk menciptakan standar kontrak data terbuka di Indonesia. Dengan fokus pada keterbukaan, kerjasama, dan etika kontribusi, proyek ini bertujuan membentuk lingkungan yang inklusif bagi semua peserta. Code of Conduct yang ditetapkan memberikan landasan untuk kolaborasi positif, sementara panduan kontribusi memberikan arahan praktis bagi para pengembang. Melalui transparansi, tanggung jawab, dan penghargaan terhadap kontributor, BeeScout berusaha menjadi proyek yang dinamis dan berkelanjutan.
+BeeScout bukan sekadar proyek Open Source biasa. Proyek ini dibangun dengan filosofi **AI-Native**, di mana pengembangan utamanya dibantu oleh AI Agent (**Claude Code**). Hal ini menciptakan peluang unik bagi siapa pun untuk berkontribusi, terlepas dari apakah mereka bisa menulis kode (coding) atau tidak.
 
-## Table of Content
+### Visi Kontribusi Inklusif
+Kami percaya bahwa inovasi terbaik datang dari kolaborasi antara ahli domain (produk, UX, analis data) dan teknologi. Di BeeScout, **non-coder** dapat berkontribusi secara langsung pada fungsionalitas sistem dengan "memerintah" AI untuk mengeksekusi visi mereka.
 
-- [Executive Summary](CONTRIBUTING.md#executive-summary)
-- [Table of Content](CONTRIBUTING.md#table-of-content)
-- [Code of Conduct](CONTRIBUTING.md#code-of-conduct)
-- [How to Contribute](CONTRIBUTING.md#how-to-contribute)
-- [List of Contributors](CONTRIBUTING.md#list-of-contributors)
-- [FAQ](CONTRIBUTING.md#faq)
+---
 
-## Code of Conduct
+## Bagaimana Cara Berkontribusi?
 
-Code of Conduct ini bertujuan untuk menciptakan lingkungan yang terbuka, ramah, dan inklusif bagi semua kontributor dan pengguna BeeScout. Kami mengharapkan semua orang yang terlibat dalam proyek ini untuk mematuhi pedoman ini untuk mempromosikan kolaborasi yang positif dan produktif.
+Terdapat dua jalur utama untuk berkontribusi, tergantung pada latar belakang Anda:
 
-### Contribution Ethics
+### 1. Jalur Ahli Domain (Product, UX, Business) — "The Commander"
+Jika Anda adalah seorang Product Manager, UX Designer, atau Business Analyst, fokuslah pada **Problem Solving** dan **User Experience**. Anda tidak perlu pusing dengan sintaksis bahasa pemrograman.
 
-1. **Keterbukaan dan Penghargaan**: Hargai kontribusi setiap orang, terlepas dari tingkat pengalaman atau latar belakang. Mendukung keterbukaan ide dan saran yang membangun.
+- **Definisi Masalah:** Buat Issue yang sangat detail mengenai problem yang ingin diselesaikan. Gunakan persona seperti **Mbak Indah (User)** atau **Mas Dimas (Developer)** untuk mendeskripsikan kebutuhan.
+- **Instruksi Bahasa Alami:** Berikan instruksi seperti: *"Saya ingin tombol 'Approve' hanya muncul jika status kontrak adalah 'Pending' dan user yang login adalah Pak Bambang."*
+- **Validasi Logika:** Review hasil kerja AI. Apakah alurnya sudah sesuai dengan kebutuhan bisnis? Apakah teks di UI sudah "Indonesia banget"?
+- **Dokumentasi & Schema:** Perbarui `data-contract/examples/` atau dokumen panduan agar mencerminkan aturan bisnis yang baru.
 
-2. **Kesopanan dan Harga Diri**: Berkomunikasilah dengan sopan dan hormat. Hindari bahasa atau perilaku yang merendahkan atau menyinggung.
+### 2. Jalur Pengembang (Coder) — "The Architect"
+Sebagai developer, peran Anda bergeser menjadi "Arsitek" yang memastikan kode yang dihasilkan AI tetap berkualitas tinggi, aman, dan efisien.
 
-3. **Kolaborasi dan Tim Kerja**: Fokus pada kerja tim dan kolaborasi. Berbagi pengetahuan dan pengalaman dengan tujuan meningkatkan kualitas proyek.
+- **Code Review:** Tinjau Pull Request (PR) yang dihasilkan oleh kontributor (atau AI mereka). Pastikan mengikuti konvensi di [CLAUDE.md](CLAUDE.md).
+- **Core Engine:** Fokus pada optimasi database, keamanan JWT, infrastruktur Docker, atau fitur kompleks yang membutuhkan sentuhan manusia.
+- **Refactoring:** Jika AI mulai membuat kode yang repetitif, bantu merapikannya ke dalam komponen yang lebih modular.
 
-4. **Penyelesaian Konflik dengan Dewasa**: Jika terjadi perbedaan pendapat, penyelesaian konflik harus dilakukan dengan cara yang dewasa dan konstruktif. Hindari konfrontasi yang tidak perlu.
+---
 
-### Contribution to the Project
+## Alur Kerja Kontribusi
 
-1. **Kode Etik**: Setiap kontributor harus mematuhi standar etika yang berlaku dalam dunia pengembangan perangkat lunak.
+### 1. Memahami Konteks
+Bacalah [README.md](README.md) dan terutama [CLAUDE.md](CLAUDE.md). `CLAUDE.md` adalah "otak" proyek ini yang berisi aturan main bagi AI agar tidak melakukan kesalahan teknis.
 
-2. **Dokumentasi yang Jelas**: Setiap perubahan atau kontribusi harus disertai dengan dokumentasi yang jelas dan dapat dimengerti oleh anggota tim lainnya.
-
-3. **Respek Terhadap Lisensi**: Pastikan bahwa setiap kontribusi mematuhi lisensi yang berlaku untuk proyek ini.
-
-### Openness and Communication
-
-1. **Transparansi**: Pertahankan keterbukaan dalam semua komunikasi terkait proyek, termasuk keputusan dan perubahan signifikan.
-
-2. **Responsif**: Berikan tanggapan yang cepat dan sopan terhadap pertanyaan atau kontribusi dari komunitas.
-
-3. **Forum yang Aman**: Pastikan bahwa setiap anggota merasa aman untuk berpartisipasi dan mengemukakan ide tanpa takut direndahkan.
-
-### Penalty
-
-Pelanggaran terhadap Code of Conduct ini dapat mengakibatkan sanksi, termasuk penghapusan kontribusi atau pengeluaran dari proyek ini. Setiap kasus pelanggaran akan dinilai dengan cermat dan adil.
-
-### Reporting Violations
-
-Jika Anda menyaksikan atau mengalami pelanggaran terhadap Code of Conduct ini, harap laporkan kepada tim pengelola proyek melalui [email atau forum yang disediakan].
-
-### Conclusion
-
-Dengan berkontribusi pada proyek BeeScout, Anda setuju untuk mematuhi Code of Conduct ini. Terima kasih atas partisipasi dan kontribusi Anda untuk menciptakan lingkungan yang inklusif dan positif bagi semua.
-
-**Notes:** Code of Conduct ini dapat mengalami perubahan sesuai dengan perkembangan proyek dan masukan dari kontributor. Pastikan untuk selalu memeriksa versi terbaru.
-
-## How to Contribute
-
-### 1. Understanding the Project
-
-Sebelum Anda berkontribusi, penting untuk memahami tujuan dan ruang lingkup proyek BeeScout. Bacalah [Executive Summary](README.md#executive-summary) dan [Discover the standard](data-contract/docs/README.md) untuk memahami secara keseluruhan.
-
-### 2. Read the Contribution Guidelines
- 
- Pastikan untuk membaca dan memahami panduan kontribusi yang telah ditetapkan. Panduan ini memberikan informasi tentang cara menyusun kontribusi Anda, proses pull request, dan aturan-aturan lain yang perlu diikuti. Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
- 
-- Pelajari alur pengujian otomatis kami di [**docs/ci_cd.md**](docs/ci_cd.md).
-
-### 3. Finding Areas of Contribution
-
-Identifikasi area atau fitur tertentu yang ingin Anda tingkatkan atau tambahkan kontribusi. Lihat daftar [issues](https://github.com/alamanda-projects/beescout/issues) untuk menemukan proyek-proyek terbuka atau tambahkan proyek baru jika perlu.
-
-### 4. Fork dan Clone Repository
-
-Fork repository BeeScout ke akun GitHub Anda sendiri. Setelah itu, clone repository tersebut ke mesin lokal Anda menggunakan perintah:
-
-```
+### 2. Fork dan Clone
+```bash
 git clone https://github.com/alamanda-projects/beescout.git
-```
-Pastikan untuk menggantikan USERNAME dengan nama pengguna GitHub Anda.
-
-### 5. Create a New Branch
-
-Sebelum membuat perubahan, buat branch baru untuk mengisolasi pekerjaan Anda. Gunakan nama branch yang mencerminkan fitur atau perbaikan yang akan Anda lakukan.
-
-```
-git checkout -b fitur-baru
+cd beescout
 ```
 
-### 6. Do change
+### 3. Berinteraksi dengan Claude (Jika Anda memiliki akses)
+Gunakan instruksi bahasa alami untuk melakukan perubahan. Contoh:
+> *"Claude, tolong tambahkan field 'last_verified' di metadata kontrak dan tampilkan di halaman detail admin untuk Bu Retno."*
 
-Lakukan perubahan atau penambahan sesuai dengan tujuan kontribusi Anda. Pastikan untuk mengikuti pedoman kode dan standar yang telah ditetapkan.
+### 4. Pengujian (Wajib)
+Semua kontribusi, baik dari manusia maupun AI, harus lolos uji:
+- Backend: `make test-backend`
+- Frontend: `make test-fe-admin` & `make test-fe-user`
 
-### 7. Commit and Push Changes
+### 5. Pull Request
+Saat membuat PR, sertakan:
+- **Apa** yang diubah.
+- **Kenapa** perubahan ini penting (hubungkan dengan Persona User).
+- **Bukti** hasil (screenshot atau rekaman terminal).
 
-Setelah selesai, lakukan commit perubahan dan push ke branch yang telah Anda buat.
+---
 
-```
-git add .
-git commit -m "Menambahkan fitur baru: <deskripsi fitur>"
-git push origin fitur-baru
-```
+## Etika Kontribusi (Code of Conduct)
 
-### 8. Create a Pull Request
- 
- Buat pull request dari branch Anda ke branch utama repository BeeScout. Pastikan untuk memberikan deskripsi yang jelas dan rinci tentang perubahan yang Anda lakukan.
- 
- #### 📋 Pre-PR Checklist
- 
- Sebelum menekan tombol 'Create Pull Request', pastikan Anda telah melakukan hal-hal berikut:
- - [ ] Menjalankan `make test` dan semua pengujian berhasil.
- - [ ] Memastikan tidak ada error TypeScript (`make test-fe-admin`, `make test-fe-user`).
- - [ ] Kode telah mengikuti gaya penulisan yang konsisten.
- - [ ] Dokumentasi telah diperbarui jika ada penambahan fitur atau perubahan API.
- - [ ] Menambahkan entri yang sesuai di [CHANGELOG.md](CHANGELOG.md).
+Kami mengutamakan lingkungan yang **Ramah, Terbuka, dan Saling Menghargai**.
+1. **Hargai Ide:** Tidak ada ide yang terlalu "bodoh". Ide dari non-coder sama berharganya dengan kode dari developer senior.
+2. **Komunikasi Sopan:** Gunakan bahasa yang membangun.
+3. **Transparansi AI:** Jika Anda menggunakan AI untuk membantu kontribusi Anda, itu sangat disambut! Namun tetaplah bertanggung jawab atas hasil akhirnya.
 
-### 9. Collaboration and Response
+---
 
-Anda mungkin akan diminta untuk melakukan perubahan atau perbaikan berdasarkan tanggapan dari kontributor lain atau tim pengelola proyek. Pastikan untuk berkolaborasi dengan positif dan merespons tanggapan dengan cepat.
+## Daftar Kontributor
 
-### 10. Acknowledgment of Contribution
+| Nama | Peran | Spesialisasi |
+|---|---|---|
+| [Hani Perkasa](https://www.linkedin.com/in/haninp/) | Data Architect | System Design & Philosophy |
+| [Ardhi Wahyudhi](https://www.linkedin.com/in/ardhi-wahyudhi/) | Data Engineer | Backend & Infrastructure |
 
-Setelah pull request Anda diterima, Anda akan diakui sebagai kontributor proyek BeeScout. Terima kasih atas kontribusi Anda!
-
-### Notes
-
-Pastikan untuk selalu berkomunikasi melalui forum atau platform yang ditentukan untuk proyek ini, dan jangan ragu untuk bertanya jika Anda memiliki pertanyaan. Kami senang dengan setiap kontribusi dan berterima kasih atas partisipasi Anda dalam pengembangan BeeScout!
-
-## List of Contributors
-
-| Name                                                | Roles     |
-| --------------------------------------------------- | --------- |
-| [Hani Perkasa](https://www.linkedin.com/in/haninp/) | Data Architect |
-| [Ardhi Wahyudhi](https://www.linkedin.com/in/ardhi-wahyudhi/) | Data Engineer |
+---
 
 ## FAQ
+
+**Q: Saya bukan programmer, apakah saya benar-benar bisa berkontribusi?**  
+A: YA. Anda bisa berkontribusi pada penulisan spesifikasi, desain alur di Issue, atau memberikan feedback UX. Kami akan membantu menerjemahkannya menjadi kode melalui asistensi AI.
+
+**Q: Mengapa struktur folder proyek ini sangat spesifik?**  
+A: Struktur ini dirancang agar "AI-Friendly", memudahkan agen AI untuk memahami di mana letak logika bisnis, model data, dan komponen UI tanpa tersesat.

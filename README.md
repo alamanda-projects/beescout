@@ -10,6 +10,17 @@ Platform ini kini hadir dengan arsitektur modular penuh: backend API terpusat, d
 
 ---
 
+## 🤖 Filosofi & Metodologi (AI-Native OSS)
+
+BeeScout dikembangkan dengan pendekatan yang unik di dunia Open Source:
+
+1.  **AI-Assisted Development**: Kode sumber proyek ini dibangun dan dipelihara dengan asistensi agentic AI (**Claude Code**).
+2.  **Product-First Contribution**: Kami mendesain proyek ini agar inklusif bagi **non-coder**. Ahli domain (Product/UX) bisa berkontribusi dengan mendefinisikan masalah dan instruksi logis, sementara AI membantu mengeksekusinya menjadi kode.
+3.  **Persona-Driven Design**: Setiap fitur dirancang untuk melayani persona spesifik (**Pak Bambang, Bu Retno, Mas Dimas, Mbak Indah**) untuk memastikan BeeScout benar-benar menyelesaikan masalah nyata di lapangan.
+
+---
+
+
 ## Arsitektur Sistem
 
 ```mermaid
