@@ -15,6 +15,36 @@ BeeScout is a **Data Contract Management System** (DCMS) built on the [Open Data
 
 ---
 
+## User Personas
+
+BeeScout serves four distinct types of users, each with different goals and technical requirements:
+
+### 1. Superadmin (Root) — "Pak Bambang"
+- **Role:** `root` (Access: Admin Frontend)
+- **Goal:** System health, security, and global configuration.
+- **Mindset:** *"The system must be secure, stable, and all secrets must be properly managed."*
+- **Key Focus:** Initial bootstrap, environment variables, global user management, and infrastructure.
+
+### 2. Admin (Data Steward/Governance) — "Bu Retno"
+- **Role:** `admin` (Access: Admin Frontend)
+- **Goal:** Ensure data quality and contract compliance across the organization.
+- **Mindset:** *"Data contracts must be valid, standardized, and have clear accountability."*
+- **Key Focus:** Contract lifecycle (CRUD), rule catalog management, and onboarding users to domains.
+
+### 3. Developer (Data/Backend Engineer) — "Mas Dimas"
+- **Role:** `developer` (Access: User Frontend - `eng` mode)
+- **Goal:** Efficiently integrate data producers or consumers into technical pipelines.
+- **Mindset:** *"I need precise technical schemas and stable API endpoints to build my services."*
+- **Key Focus:** Physical types, endpoint connectivity, Service Account keys, and schema versioning.
+
+### 4. User (Business Analyst/Data Consumer) — "Mbak Indah"
+- **Role:** `user` (Access: User Frontend - `biz` mode)
+- **Goal:** Discover and understand data assets for analysis and reporting.
+- **Mindset:** *"What data exists and can I trust it for my business needs?"*
+- **Key Focus:** Logical meaning, business descriptions, SLA metrics, and quality guarantees.
+
+---
+
 ## Repository Layout
 
 ```
