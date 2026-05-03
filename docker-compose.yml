@@ -47,17 +47,9 @@ services:
       context: .
       dockerfile: repository/infra/python/Dockerfile
     env_file:
-      - repository/app/.env
+      - .env
     environment:
       MONGODB_HOST: db
-      MONGODB_USER: ${MONGODB_USER}
-      MONGODB_PASS: ${MONGODB_PASS}
-      MONGODB_DB: ${MONGODB_DB}
-      MONGODB_PORT: ${MONGODB_PORT:-27017}
-      MONGODB_COLLECTION_DGR: ${MONGODB_COLLECTION_DGR:-dgr}
-      MONGODB_COLLECTION_USR: ${MONGODB_COLLECTION_USR:-dgrusr}
-      COOKIE_SECURE: ${COOKIE_SECURE:-true}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     networks:
       - public-net
       - internal-net

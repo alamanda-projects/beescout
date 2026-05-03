@@ -64,6 +64,22 @@ export async function createUser(data: {
   return res.data
 }
 
+export async function updateUser(username: string, data: {
+  name?: string
+  group_access?: string
+  data_domain?: string
+  is_active?: boolean
+  password?: string
+}) {
+  const res = await apiClient.patch(`/user/${username}`, data)
+  return res.data
+}
+
+export async function deleteUser(username: string) {
+  const res = await apiClient.delete(`/user/${username}`)
+  return res.data
+}
+
 export async function getPendingApprovals(): Promise<ApprovalRecord[]> {
   const res = await apiClient.get('/approval/pending')
   return Array.isArray(res.data) ? res.data : []

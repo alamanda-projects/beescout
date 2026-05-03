@@ -2,6 +2,16 @@
 
 Semua perubahan signifikan pada proyek BeeScout akan dicatat di file ini.
 
+## 🛡️ Kebijakan Pembaruan
+
+Kami mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Setiap Kontributor **wajib** memperbarui file ini saat melakukan Pull Request yang menyertakan perubahan fungsional:
+
+- Gunakan kategori: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- Sertakan tanggal dalam format `YYYY-MM-DD`.
+- Deskripsikan perubahan dari sudut pandang nilai bagi pengguna/pengembang.
+
+---
+
 ## [1.5.0] - 2024-05-02
 
 ### Added

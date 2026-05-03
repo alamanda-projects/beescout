@@ -1,0 +1,43 @@
+graph TD
+    subgraph Client ["Client Layer (Browser)"]
+        User(["User / Developer"])
+        Admin(["Admin / Root"])
+    end
+
+    subgraph Gateway ["Gateway Layer"]
+        Nginx["🔀 Nginx Reverse Proxy<br/>(Rate Limit, Security, IP ACL)"]
+    end
+
+    subgraph Frontend ["Frontend Layer (Next.js 15)"]
+        FEUser["🌐 frontend-user<br/>(Port 3000)"]
+        FEAdmin["🛡️ frontend-admin<br/>(Port 3001)"]
+    end
+
+    subgraph Backend ["Backend Layer (FastAPI)"]
+        API["⚙️ BeeScout Repository API<br/>(Port 8888)"]
+        
+        subgraph Logic ["Internal Services"]
+            Auth["🔐 JWT Auth & RBAC"]
+            ContractSvc["📋 Contract Management"]
+            ApprovalSvc["🗳️ Approval Workflow"]
+            CatalogSvc["📚 Rule Catalog"]
+            ImportSvc["📥 YAML Import/Validator"]
+        end
+    end
+
+    subgraph Data ["Data Layer"]
+        DB[("🗄️ MongoDB<br/>(Isolated Network)")]
+    end
+
+    User -->|"app.domain.com"| Nginx
+    Admin -->|"admin.domain.com"| Nginx
+    
+    Nginx --> FEUser
+    Nginx --> FEAdmin
+    Nginx -->|"/api/*"| API
+
+    FEUser --> API
+    FEAdmin --> API
+    
+    API --> Logic
+    Logic --> DB

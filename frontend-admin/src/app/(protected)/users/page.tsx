@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getMe } from '@/lib/api/auth'
-import { createUser, getUsers } from '@/lib/api/admin'
+import { createUser, getUsers, updateUser, deleteUser } from '@/lib/api/admin'
+import type { UserRecord } from '@/lib/api/admin'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,9 +19,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
-import { Loader2, UserPlus, Info, CheckCircle2, Users, Search } from 'lucide-react'
+import { Loader2, UserPlus, Info, CheckCircle2, Users, Search, Pencil, Trash2, X, Save, ShieldOff, ShieldCheck } from 'lucide-react'
 
-const schema = z.object({
+// ─── Schema ───────────────────────────────────────────────────────────────────
+const createSchema = z.object({
   username: z.string().min(3, 'Minimal 3 karakter').max(50),
   password: z.string().min(8, 'Minimal 8 karakter')
     .regex(/[A-Z]/, 'Harus ada huruf besar')
@@ -33,7 +35,15 @@ const schema = z.object({
   is_active: z.boolean(),
 })
 
-type FormData = z.infer<typeof schema>
+const editSchema = z.object({
+  name: z.string().min(1, 'Nama wajib diisi'),
+  group_access: z.string().min(1, 'Pilih peran'),
+  data_domain: z.string().min(1, 'Domain wajib diisi'),
+  password: z.string().optional(),
+})
+
+type CreateFormData = z.infer<typeof createSchema>
+type EditFormData = z.infer<typeof editSchema>
 
 const ROLE_BADGE: Record<string, string> = {
   root:      'bg-red-100 text-red-700 border-red-200',
@@ -42,11 +52,155 @@ const ROLE_BADGE: Record<string, string> = {
   user:      'bg-slate-100 text-slate-600 border-slate-200',
 }
 
+// ─── Edit Panel ───────────────────────────────────────────────────────────────
+function EditPanel({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: UserRecord
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<EditFormData>({
+    resolver: zodResolver(editSchema),
+    defaultValues: {
+      name: user.name,
+      group_access: user.group_access,
+      data_domain: user.data_domain,
+      password: '',
+    },
+  })
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (data: EditFormData) => {
+      const payload: Record<string, unknown> = {
+        name: data.name,
+        group_access: data.group_access,
+        data_domain: data.data_domain,
+      }
+      if (data.password?.trim()) payload.password = data.password
+      return updateUser(user.username, payload)
+    },
+    onSuccess: () => {
+      toast.success(`User "${user.username}" berhasil diperbarui.`)
+      onSaved()
+    },
+    onError: (err: any) => {
+      const detail = err?.response?.data?.detail
+      let msg = 'Gagal memperbarui user.'
+      if (typeof detail === 'string') msg = detail
+      else if (Array.isArray(detail)) msg = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ')
+      toast.error(msg)
+    },
+  })
+
+  return (
+    <tr>
+      <td colSpan={6} className="p-0">
+        <div className="bg-indigo-50 border-y border-indigo-100 px-4 py-4">
+          <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs font-semibold text-indigo-700">Edit User: <span className="font-mono">{user.username}</span></p>
+              <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                <X size={15} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="space-y-1">
+                <Label className="text-xs">Nama Lengkap *</Label>
+                <Input className="h-8 text-xs" {...register('name')} />
+                {errors.name && <p className="text-[10px] text-destructive">{errors.name.message}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Peran *</Label>
+                <Select value={watch('group_access')} onValueChange={(v) => setValue('group_access', v)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">user</SelectItem>
+                    <SelectItem value="developer">developer</SelectItem>
+                    <SelectItem value="admin">admin</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.group_access && <p className="text-[10px] text-destructive">{errors.group_access.message}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Domain Data *</Label>
+                <Input className="h-8 text-xs" {...register('data_domain')} />
+                {errors.data_domain && <p className="text-[10px] text-destructive">{errors.data_domain.message}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Password Baru <span className="text-muted-foreground">(opsional)</span></Label>
+                <Input type="password" className="h-8 text-xs" placeholder="Kosongkan jika tidak diubah" {...register('password')} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" size="sm" onClick={onClose}>Batal</Button>
+              <Button type="submit" size="sm" disabled={isPending}>
+                {isPending ? <Loader2 size={13} className="animate-spin mr-1" /> : <Save size={13} className="mr-1" />}
+                Simpan
+              </Button>
+            </div>
+          </form>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+// ─── Delete Confirm Panel ─────────────────────────────────────────────────────
+function DeletePanel({
+  user,
+  onClose,
+  onDeleted,
+}: {
+  user: UserRecord
+  onClose: () => void
+  onDeleted: () => void
+}) {
+  const { mutate, isPending } = useMutation({
+    mutationFn: () => deleteUser(user.username),
+    onSuccess: () => {
+      toast.success(`User "${user.username}" berhasil dihapus.`)
+      onDeleted()
+    },
+    onError: (err: any) => {
+      const detail = err?.response?.data?.detail
+      let msg = 'Gagal menghapus user.'
+      if (typeof detail === 'string') msg = detail
+      else if (Array.isArray(detail)) msg = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ')
+      toast.error(msg)
+    },
+  })
+
+  return (
+    <tr>
+      <td colSpan={6} className="p-0">
+        <div className="bg-red-50 border-y border-red-100 px-4 py-3 flex items-center justify-between gap-4">
+          <p className="text-sm text-red-800">
+            Hapus user <span className="font-mono font-semibold">{user.username}</span> secara permanen? Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="sm" onClick={onClose}>Batal</Button>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700" disabled={isPending} onClick={() => mutate()}>
+              {isPending ? <Loader2 size={13} className="animate-spin mr-1" /> : <Trash2 size={13} className="mr-1" />}
+              Hapus
+            </Button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function UsersPage() {
   const queryClient = useQueryClient()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [search, setSearch] = useState('')
+  const [editTarget, setEditTarget] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   const { data: currentUser } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const { data: users = [], isLoading: usersLoading } = useQuery({
@@ -56,13 +210,29 @@ export default function UsersPage() {
 
   const isRoot = currentUser?.group_access === 'root'
 
-  const { register, handleSubmit, reset, setValue, formState: { errors }, watch } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const { mutate: toggleActive } = useMutation({
+    mutationFn: ({ username, is_active }: { username: string; is_active: boolean }) =>
+      updateUser(username, { is_active }),
+    onSuccess: (_, vars) => {
+      toast.success(`User "${vars.username}" ${vars.is_active ? 'diaktifkan' : 'dinonaktifkan'}.`)
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+    onError: (err: any) => {
+      const detail = err?.response?.data?.detail
+      let msg = 'Gagal mengubah status user.'
+      if (typeof detail === 'string') msg = detail
+      else if (Array.isArray(detail)) msg = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ')
+      toast.error(msg)
+    },
+  })
+
+  const { register, handleSubmit, reset, setValue, formState: { errors }, watch } = useForm<CreateFormData>({
+    resolver: zodResolver(createSchema),
     defaultValues: { is_active: true, group_access: '' },
   })
 
-  const onSubmit = async (data: FormData) => {
-    setIsLoading(true)
+  const onSubmit = async (data: CreateFormData) => {
+    setIsSubmitting(true)
     setSuccess(false)
     try {
       await createUser(data)
@@ -77,7 +247,7 @@ export default function UsersPage() {
       else if (Array.isArray(detail)) msg = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ')
       toast.error(msg)
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -92,6 +262,11 @@ export default function UsersPage() {
 
   const activeCount   = users.filter(u => u.is_active).length
   const inactiveCount = users.filter(u => !u.is_active).length
+
+  function handleEditClose() { setEditTarget(null) }
+  function handleDeleteClose() { setDeleteTarget(null) }
+  function handleSaved() { setEditTarget(null); queryClient.invalidateQueries({ queryKey: ['users'] }) }
+  function handleDeleted() { setDeleteTarget(null); queryClient.invalidateQueries({ queryKey: ['users'] }) }
 
   return (
     <div className="space-y-5 max-w-4xl">
@@ -134,56 +309,111 @@ export default function UsersPage() {
             </div>
           </div>
 
+          {isRoot && (
+            <div className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+              <Info size={13} className="shrink-0" />
+              Anda login sebagai Super Admin — dapat mengedit, menonaktifkan, dan menghapus user.
+            </div>
+          )}
+
           <Card>
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="w-[160px]">Username</TableHead>
+                  <TableHead className="w-[140px]">Username</TableHead>
                   <TableHead>Nama</TableHead>
                   <TableHead className="w-[110px]">Peran</TableHead>
                   <TableHead>Domain</TableHead>
                   <TableHead className="w-[90px] text-center">Status</TableHead>
+                  {isRoot && <TableHead className="w-[120px] text-center">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {usersLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 5 }).map((_, j) => (
+                      {Array.from({ length: isRoot ? 6 : 5 }).map((_, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-sm">
+                    <TableCell colSpan={isRoot ? 6 : 5} className="text-center py-10 text-muted-foreground text-sm">
                       {search ? 'Tidak ada user yang cocok dengan pencarian.' : 'Belum ada user terdaftar.'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filtered.map(u => (
-                    <TableRow key={u.username} className={!u.is_active ? 'opacity-50' : ''}>
-                      <TableCell className="font-mono text-xs font-medium">{u.username}</TableCell>
-                      <TableCell className="text-sm">{u.name}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${ROLE_BADGE[u.group_access] ?? ROLE_BADGE.user}`}>
-                          {u.group_access}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{u.data_domain}</TableCell>
-                      <TableCell className="text-center">
-                        {u.is_active ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Aktif
+                  filtered.flatMap(u => {
+                    const isRootUser = u.group_access === 'root'
+                    const rows = [
+                      <TableRow key={u.username} className={!u.is_active ? 'opacity-50' : ''}>
+                        <TableCell className="font-mono text-xs font-medium">{u.username}</TableCell>
+                        <TableCell className="text-sm">{u.name}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${ROLE_BADGE[u.group_access] ?? ROLE_BADGE.user}`}>
+                            {u.group_access}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />Nonaktif
-                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{u.data_domain}</TableCell>
+                        <TableCell className="text-center">
+                          {u.is_active ? (
+                            <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Aktif
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />Nonaktif
+                            </span>
+                          )}
+                        </TableCell>
+                        {isRoot && (
+                          <TableCell>
+                            {isRootUser ? (
+                              <span className="text-xs text-slate-300 block text-center">—</span>
+                            ) : (
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  title={u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                                  onClick={() => toggleActive({ username: u.username, is_active: !u.is_active })}
+                                  className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                                >
+                                  {u.is_active ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
+                                </button>
+                                <button
+                                  title="Edit"
+                                  onClick={() => { setDeleteTarget(null); setEditTarget(editTarget === u.username ? null : u.username) }}
+                                  className={`p-1.5 rounded hover:bg-slate-100 transition-colors ${editTarget === u.username ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-slate-700'}`}
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  title="Hapus"
+                                  onClick={() => { setEditTarget(null); setDeleteTarget(deleteTarget === u.username ? null : u.username) }}
+                                  className={`p-1.5 rounded hover:bg-red-50 transition-colors ${deleteTarget === u.username ? 'text-red-600 bg-red-50' : 'text-slate-400 hover:text-red-600'}`}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            )}
+                          </TableCell>
                         )}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                      </TableRow>,
+                    ]
+
+                    if (editTarget === u.username) {
+                      rows.push(
+                        <EditPanel key={`edit-${u.username}`} user={u} onClose={handleEditClose} onSaved={handleSaved} />
+                      )
+                    }
+                    if (deleteTarget === u.username) {
+                      rows.push(
+                        <DeletePanel key={`del-${u.username}`} user={u} onClose={handleDeleteClose} onDeleted={handleDeleted} />
+                      )
+                    }
+
+                    return rows
+                  })
                 )}
               </TableBody>
             </Table>
@@ -292,9 +522,9 @@ export default function UsersPage() {
                   </Label>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading || !isRoot}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isLoading ? 'Membuat...' : 'Buat User'}
+                <Button type="submit" className="w-full" disabled={isSubmitting || !isRoot}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSubmitting ? 'Membuat...' : 'Buat User'}
                 </Button>
 
                 {!isRoot && (

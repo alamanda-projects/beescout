@@ -55,7 +55,6 @@ ALLOWED_ORIGINS=http://app.localhost,http://admin.localhost
 
 ```bash
 make up
-# atau: docker compose up --build -d
 ```
 
 Lima container akan berjalan:
@@ -114,6 +113,9 @@ curl -X POST http://app.localhost/api/setup \
 ```
 
 Setelah berhasil, endpoint `/setup` akan mengembalikan `409` jika dipanggil lagi — akun root sudah terlindungi. Login via Admin Panel, lalu buat user tambahan dari menu **Manajemen User**.
+
+> [!IMPORTANT]
+> Daftar kredensial bawaan (default) lainnya untuk keperluan pengembangan dapat dilihat di: [**docs/credentials.md**](docs/credentials.md)
 
 > Password harus mengandung huruf besar, kecil, angka, dan karakter khusus (minimal 8 karakter).
 

@@ -82,8 +82,8 @@ app = FastAPI(
         "name": app_license_info_name,
         "url": app_license_info_url,
     },
-    docs_url=None,
-    redoc_url=None,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 app.state.limiter = limiter
@@ -469,6 +469,55 @@ async def list_users(current_user: dict = Depends(require_admin)):
     cursor = usrcollection.find({}, {"_id": 0, "password": 0})
     users = await cursor.to_list(length=500)
     return users
+
+
+@app.patch("/user/{username}", tags=["user"])
+async def update_user(username: str, payload: dict = Body(...), current_user: dict = Depends(require_root)):
+    """Edit user (nama, peran, domain, status aktif, password). Hanya root."""
+    target = await usrcollection.find_one({"username": username})
+    if not target or target.get("type") == "sa":
+        raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+
+    # Tidak boleh edit sesama root
+    if target.get("group_access") in grplvlroot:
+        raise HTTPException(status_code=403, detail="Tidak dapat mengubah akun root lain.")
+
+    allowed_fields = {"name", "group_access", "data_domain", "is_active", "password"}
+    update_data = {k: v for k, v in payload.items() if k in allowed_fields}
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Tidak ada field yang valid untuk diupdate.")
+
+    if "password" in update_data:
+        pwd = update_data["password"]
+        if len(pwd) < 8 or not any(c.isupper() for c in pwd) or not any(c.islower() for c in pwd) \
+                or not any(c.isdigit() for c in pwd) or not any(not c.isalnum() for c in pwd):
+            raise HTTPException(status_code=422, detail="Password harus min. 8 karakter, mengandung huruf besar, kecil, angka, dan karakter khusus.")
+        update_data["password"] = Hasher.get_password_hash(pwd)
+
+    if "group_access" in update_data and update_data["group_access"] in grplvlroot:
+        raise HTTPException(status_code=403, detail="Tidak dapat mengubah peran menjadi root.")
+
+    await usrcollection.update_one({"username": username}, {"$set": update_data})
+    return {"message": f"User '{username}' berhasil diperbarui."}
+
+
+@app.delete("/user/{username}", tags=["user"])
+async def delete_user(username: str, current_user: dict = Depends(require_root)):
+    """Hapus user permanen. Hanya root. Tidak bisa hapus root lain."""
+    target = await usrcollection.find_one({"username": username})
+    if not target or target.get("type") == "sa":
+        raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+
+    if target.get("group_access") in grplvlroot:
+        raise HTTPException(status_code=403, detail="Tidak dapat menghapus akun root.")
+
+    caller = current_user["usr"]
+    if username == caller:
+        raise HTTPException(status_code=403, detail="Tidak dapat menghapus akun sendiri.")
+
+    await usrcollection.delete_one({"username": username})
+    return {"message": f"User '{username}' berhasil dihapus."}
 
 
 # Example route to get user data
