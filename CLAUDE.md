@@ -94,14 +94,13 @@ make dev          # dev mode: ports exposed, hot reload
 
 ## Environment Variables
 
-Two separate `.env` files are required:
+A single `.env` file at the root is the **Single Source of Truth** for all services.
 
 | File | Used by |
 |---|---|
-| `.env` (root) | docker-compose: nginx domains, rate limits, MongoDB creds, JWT secrets |
-| `repository/app/.env` | FastAPI container at runtime: same secrets in decouple format |
+| `.env` (root) | Docker Compose (all services), Nginx, FastAPI, Next.js |
 
-Both must be consistent. `make setup` / `make setup-be` create them from examples.
+`make setup` copies `.env.example` → `.env`. All services in `docker-compose.yml` source their environment from this root file.
 
 **Critical values to change before first run:**
 - `MONGODB_PASS` — default is `changeme`
