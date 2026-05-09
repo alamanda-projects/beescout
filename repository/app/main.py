@@ -198,11 +198,16 @@ async def welcome():
 @app.post("/login")
 @limiter.limit("10/minute")
 async def login_for_access_token(request: Request, credentials: dict = Body(...)):
-    db_user = await usrcollection.find_one({"username": credentials["username"]})
+    username = credentials.get("username")
+    password = credentials.get("password")
+    if not username or not password:
+        raise HTTPException(status_code=400, detail=random.choice(usrnotallowed))
+
+    db_user = await usrcollection.find_one({"username": username})
     if not db_user:
         raise HTTPException(status_code=400, detail=random.choice(usrnotallowed))
 
-    if not Hasher.verify_password(credentials["password"], db_user["password"]):
+    if not Hasher.verify_password(password, db_user["password"]):
         raise HTTPException(status_code=401, detail=random.choice(usrnotallowed))
 
     access_token_expires = tkn_exp
@@ -466,7 +471,7 @@ async def list_sakeys(current_user: dict = Depends(token_verification)):
 @app.get("/user/lists", tags=["user"])
 async def list_users(current_user: dict = Depends(require_admin)):
     """List semua user. Hanya dapat diakses oleh root dan admin."""
-    cursor = usrcollection.find({}, {"_id": 0, "password": 0})
+    cursor = usrcollection.find({}, {"_id": 0, "password": 0, "private_key": 0})
     users = await cursor.to_list(length=500)
     return users
 
@@ -1242,8 +1247,8 @@ async def vote_approval(
     updated = await aprcollection.find_one({"approval_id": approval_id})
     approved_votes = [v for v in updated["votes"] if v["vote"] == "approved"]
     if len(approved_votes) == len(record["approvers"]):
-        changes = record["proposed_changes"]
-        changes.pop("contract_number", None)
+        _allowed = {"standard_version", "metadata", "model", "ports", "examples"}
+        changes = {k: v for k, v in record["proposed_changes"].items() if k in _allowed}
         changes["approval_status"] = None
         changes["pending_changes"] = None
         changes["pending_by"] = None
