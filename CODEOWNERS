@@ -1,0 +1,44 @@
+# BeeScout — Code Owners
+#
+# File ini menentukan siapa yang otomatis di-request untuk review pada PR
+# yang menyentuh area tertentu. Format: <pattern> <owner1> <owner2> ...
+#
+# Catatan: trusted contributor tambahan akan ditambahkan di sini saat tim
+# maintainer berkembang. Lihat GOVERNANCE.md untuk cara naik tier.
+#
+# Dokumentasi format: https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner untuk semua file
+*                       @haninp
+
+# Backend (FastAPI + MongoDB)
+/repository/            @haninp
+/repository/app/main.py @haninp
+/repository/app/core/   @haninp
+/repository/app/model/  @haninp
+
+# Frontend Admin (Next.js)
+/frontend-admin/        @haninp
+
+# Frontend User (Next.js)
+/frontend-user/         @haninp
+
+# Infrastructure (Docker, Nginx)
+/nginx/                 @haninp
+/docker-compose.yml     @haninp
+/docker-compose.dev.yml @haninp
+/Makefile               @haninp
+
+# Dokumentasi & guardrails
+/docs/                  @haninp
+/CLAUDE.md              @haninp
+/CONTRIBUTING.md        @haninp
+/GOVERNANCE.md          @haninp
+/SECURITY.md            @haninp
+/README.md              @haninp
+
+# Schema referensi (canonical data contract)
+/data-contract/         @haninp
+
+# CI / build
+/.github/workflows/     @haninp
