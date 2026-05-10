@@ -2,21 +2,58 @@
 
 ![BeeScout](./repository/app/img/logo.png)
 
+**Lisensi:** AGPL-3.0 · **Status:** pre-1.0 · **Open source AI-Native** · **Kontribusi disambut**
+
+> **Platform Open Source untuk pengelolaan Data Contract** — terpusat, terstandar, dan kolaboratif. Dibangun dengan filosofi AI-Native: *siapapun bisa berkontribusi, baik yang menulis kode maupun yang merumuskan masalah.*
+
+## Selamat Datang
+
+BeeScout adalah jawaban kami untuk pertanyaan: **"Bagaimana organisasi data bisa dikelola lebih jelas, lebih akuntabel, dan lebih mudah dikolaborasikan — tanpa harus jadi unicorn enterprise tool?"**
+
+Saat ini proyek dalam fase **pre-1.0** — sedang divalidasi via tes UX internal dan perancangan format quality rules. Cocok untuk:
+
+- **Organisasi yang sedang merapikan data governance**-nya
+- **Engineer yang bekerja dengan banyak data producer/consumer**
+- **Analis bisnis yang butuh tahu "data ini bisa dipercaya tidak?"**
+- **Komunitas yang mengeksplorasi pola standar Data Contract** (mengikuti spec [ODCS](https://github.com/bitol-io/open-data-contract-standard))
+
+## Ingin Berkontribusi?
+
+Baik Anda **PM, Business Owner, Developer, atau pengguna AI** — ada jalur yang cocok:
+
+| Profil Anda | Mulai dari |
+|---|---|
+| **Punya ide tapi bukan coder** (PM/Bisnis) | [Buka issue "Ide Bisnis"](.github/ISSUE_TEMPLATE/business-idea.yml) — bahasa natural, tidak perlu install apa-apa |
+| **Developer / engineer** | [Onboarding Kontributor 30 menit](docs/contributor-onboarding.md) → fork → `make dev` |
+| **Pakai AI (Claude Code dsb)** | Sama seperti developer, tapi biarkan AI yang menulis kode. Lihat [AI Usage Policy](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai) |
+| **Ketemu bug** | [Bug Report template](.github/ISSUE_TEMPLATE/bug-report.yml) |
+| **Lapor kerentanan** | Jangan publik — gunakan [SECURITY.md](SECURITY.md) |
+
+> **Baru pertama kali kontribusi OSS?** Mulai di [docs/contributor-onboarding.md](docs/contributor-onboarding.md) — disusun agar Anda bisa selesaikan kontribusi pertama dalam 30 menit.
+
+---
+
 ## Executive Summary
 
 BeeScout adalah platform manajemen **Data Contract** — pencatatan metadata, struktur data, SLA, dan aturan kualitas data secara terpusat. Dibangun dengan konsep Data Contract dan dimodifikasi untuk kemudahan penggunaan, BeeScout menjadi landasan interoperabilitas, konsistensi, dan integritas data lintas domain.
 
-Platform ini kini hadir dengan arsitektur modular penuh: backend API terpusat, dua frontend terpisah (user & admin), reverse proxy berbasis Nginx, dan seluruhnya dapat dijalankan dengan satu perintah Docker Compose.
+Platform ini hadir dengan arsitektur modular penuh: backend API terpusat, dua frontend terpisah (user & admin), reverse proxy berbasis Nginx, dan seluruhnya dapat dijalankan dengan satu perintah Docker Compose.
 
 ---
 
-## 🤖 Filosofi & Metodologi (AI-Native OSS)
+## Filosofi & Metodologi (AI-Native OSS)
 
 BeeScout dikembangkan dengan pendekatan yang unik di dunia Open Source:
 
-1.  **AI-Assisted Development**: Kode sumber proyek ini dibangun dan dipelihara dengan asistensi agentic AI (**Claude Code**).
+1.  **AI-Assisted Development**: Kode sumber proyek ini dibangun dan dipelihara dengan asistensi agentic AI (**Claude Code**) yang dipandu oleh [`CLAUDE.md`](CLAUDE.md) — guardrail proyek.
 2.  **Product-First Contribution**: Kami mendesain proyek ini agar inklusif bagi **non-coder**. Ahli domain (Product/UX) bisa berkontribusi dengan mendefinisikan masalah dan instruksi logis, sementara AI membantu mengeksekusinya menjadi kode.
-3.  **Persona-Driven Design**: Setiap fitur dirancang untuk melayani persona spesifik (**Pak Bambang, Bu Retno, Mas Dimas, Mbak Indah**) untuk memastikan BeeScout benar-benar menyelesaikan masalah nyata di lapangan.
+3.  **Persona-Driven Design**: Setiap fitur dirancang untuk melayani persona spesifik (**Pak Bambang, Bu Retno, Mas Dimas, Mbak Indah**) untuk memastikan BeeScout benar-benar menyelesaikan masalah nyata di lapangan. Lihat [docs/personas.md](docs/personas.md).
+
+### Penggunaan AI di proyek ini,
+
+Penggunaan AI **disambut, bukan dilarang**. Kontributor cukup **disclose** level penggunaan AI di setiap PR (Manual / AI-assisted / AI-driven). Lebih lengkap: [CONTRIBUTING.md — Cara Berkolaborasi dengan AI](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai).
+
+Bagi yang ingin paham *bagaimana* AI menulis kode benar di repo ini: baca [CLAUDE.md](CLAUDE.md) — file itu adalah panduan untuk AI agent, sekaligus rujukan konvensi untuk developer manusia.
 
 ---
 
@@ -31,28 +68,28 @@ graph TD
     end
 
     subgraph Gateway ["Gateway Layer"]
-        Nginx["🔀 Nginx Reverse Proxy<br/>(Rate Limit, Security, IP ACL)"]
+        Nginx["Nginx Reverse Proxy<br/>(Rate Limit, Security, IP ACL)"]
     end
 
     subgraph Frontend ["Frontend Layer (Next.js 15)"]
-        FEUser["🌐 frontend-user<br/>(Port 3000)"]
-        FEAdmin["🛡️ frontend-admin<br/>(Port 3001)"]
+        FEUser["frontend-user<br/>(Port 3000)"]
+        FEAdmin["frontend-admin<br/>(Port 3001)"]
     end
 
     subgraph Backend ["Backend Layer (FastAPI)"]
-        API["⚙️ BeeScout Repository API<br/>(Port 8888)"]
+        API["BeeScout Repository API<br/>(Port 8888)"]
         
         subgraph Logic ["Internal Services"]
-            Auth["🔐 JWT Auth & RBAC"]
-            ContractSvc["📋 Contract Management"]
-            ApprovalSvc["🗳️ Approval Workflow"]
-            CatalogSvc["📚 Rule Catalog"]
-            ImportSvc["📥 YAML Import/Validator"]
+            Auth["JWT Auth & RBAC"]
+            ContractSvc["Contract Management"]
+            ApprovalSvc["Approval Workflow"]
+            CatalogSvc["Rule Catalog"]
+            ImportSvc["YAML Import/Validator"]
         end
     end
 
     subgraph Data ["Data Layer"]
-        DB[("🗄️ MongoDB<br/>(Isolated Network)")]
+        DB[("MongoDB<br/>(Isolated Network)")]
     end
 
     User -->|"app.domain.com"| Nginx
@@ -93,7 +130,7 @@ graph LR
 
 ## Komponen Utama
 
-### 🗄️ Backend — `repository/`
+### Backend — `repository/`
 
 FastAPI REST API dengan MongoDB. Menangani autentikasi JWT, RBAC, dan seluruh operasi Data Contract.
 
@@ -104,22 +141,22 @@ FastAPI REST API dengan MongoDB. Menangani autentikasi JWT, RBAC, dan seluruh op
 - Health check: `/health`
 - Rate limiting pada endpoint login via `slowapi`
 
-### 🌐 Frontend User — `frontend-user/`
+### Frontend User — `frontend-user/`
 
 Aplikasi Next.js 15 untuk pengguna dengan role **`user`** dan **`developer`**.
 
 ```mermaid
 flowchart LR
-    Login["🔐 Login
+    Login["Login
     JWT via httpOnly cookie"] --> Dashboard
-    Dashboard["📊 Dashboard
+    Dashboard["Dashboard
     Stats + kontrak terbaru"] --> Contracts
-    Contracts["📋 Data Contract
+    Contracts["Data Contract
     Daftar + pencarian real-time"] --> Detail
-    Detail["🔍 Detail Kontrak
+    Detail["Detail Kontrak
     4 tab: Info · Model · Port · Contoh"]
     Dashboard --> Profile
-    Profile["👤 Profil
+    Profile["Profil
     Info akun + SA Keys"]
 ```
 
@@ -131,33 +168,33 @@ flowchart LR
 | **Detail Kontrak** | 4 tab: Informasi, Struktur Data (kolom+flag), Koneksi, Contoh Data |
 | **Profil** | Info akun, badge role/status, tabel Service Account Keys |
 
-### 🛡️ Frontend Admin — `frontend-admin/`
+### Frontend Admin — `frontend-admin/`
 
 Aplikasi Next.js 15 untuk pengguna dengan role **`admin`** dan **`root`**. Memiliki role guard di layout — akses non-admin langsung ditolak tanpa menyentuh halaman.
 
 ```mermaid
 flowchart LR
-    Login["🔐 Login
+    Login["Login
     Dark theme
     'Akses Terbatas'"] --> Guard{"Role
     Guard"}
     Guard -->|"admin / root"| Dashboard
-    Guard -->|"user / developer"| Denied["🚫 Akses Ditolak"]
-    Dashboard["📊 Dashboard
+    Guard -->|"user / developer"| Denied["Akses Ditolak"]
+    Dashboard["Dashboard
     Stats + kontrak terbaru"] --> Contracts
     Dashboard --> NewContract
     Dashboard --> Users
     Dashboard --> Profile
-    Contracts["📋 Data Contract
+    Contracts["Data Contract
     Daftar + cari"] --> Detail
-    Detail["🔍 Detail
+    Detail["Detail
     5 tab + JSON Raw"] --> NewContract
-    NewContract["➕ Tambah Kontrak
+    NewContract["Tambah Kontrak
     Multi-step form (4 langkah)"]
-    Users["👥 Manajemen User
+    Users["Manajemen User
     Buat akun baru
     (root only)"]
-    Profile["👤 Profil Admin
+    Profile["Profil Admin
     Info akun + SA Keys"]
 ```
 
@@ -176,22 +213,22 @@ flowchart LR
 ```mermaid
 graph LR
     S1["Step 1
-    📝 Informasi Dasar
+    Informasi Dasar
     Nomor · Tipe · Nama Pemilik · Deskripsi"]
     S2["Step 2
-    📅 SLA & Pemangku Ketersediaan · Frekuensi Retensi · Stakeholders"]
+    SLA & Pemangku Ketersediaan · Frekuensi Retensi · Stakeholders"]
     S3["Step 3
-    🏗️ Struktur & Koneksi Definisi kolom Port & properties"]
+    Struktur & Koneksi Definisi kolom Port & properties"]
     S4["Step 4
-    ✅ Tinjauan Preview JSON Submit ke backend"]
+    Tinjauan Preview JSON Submit ke backend"]
 
     S1 -->|"Validasi"| S2
     S2 -->|"Opsional"| S3
     S3 -->|"Opsional"| S4
-    S4 -->|"Simpan"| Done["✔ Tersimpan Redirect ke daftar"]
+    S4 -->|"Simpan"| Done["Tersimpan Redirect ke daftar"]
 ```
 
-### 🔀 Nginx — `nginx/`
+### Nginx — `nginx/`
 
 Reverse proxy yang menangani routing domain, keamanan, dan rate limiting. Konfigurasi domain-agnostic via environment variable — tidak ada yang hardcoded.
 
@@ -205,6 +242,7 @@ graph TD
     DomainCheck -->|"/api/*"| RateCheck{Rate limit OK?}
     RateCheck -->|"OK"| BackendFE["→ backend:8888"]
     RateCheck -->|"Exceeded"| Throttle["429 Too Many Requests"]
+```
 
 ---
 
@@ -212,7 +250,7 @@ graph TD
 
 BeeScout dilengkapi dengan fitur tata kelola data yang canggih untuk mendukung skala enterprise:
 
-### 🗳️ Alur Persetujuan (Approval Workflow)
+### Alur Persetujuan (Approval Workflow)
 Pengguna dengan role `user` atau `developer` dapat mengajukan perubahan pada Data Contract. Perubahan tersebut tidak langsung diterapkan, melainkan masuk ke antrean **Pending Approval**.
 - Admin/Root akan menerima notifikasi di dashboard.
 - Admin/Root dapat meninjau (diff), memberikan komentar/alasan, dan melakukan voting (Approve/Reject).
@@ -220,7 +258,7 @@ Pengguna dengan role `user` atau `developer` dapat mengajukan perubahan pada Dat
 
 Panduan lengkap → [**Alur Persetujuan**](docs/approval_workflow.md)
 
-### 📚 Katalog Aturan (Rule Catalog)
+### Katalog Aturan (Rule Catalog)
 Pusat pengelolaan aturan kualitas data (Data Quality Rules) yang dapat digunakan kembali di berbagai kontrak.
 - Mendukung aturan bawaan (built-in) dan aturan kustom.
 - Memastikan konsistensi definisi kualitas data di seluruh organisasi.
@@ -228,24 +266,27 @@ Pusat pengelolaan aturan kualitas data (Data Quality Rules) yang dapat digunakan
 
 Panduan lengkap → [**Katalog Aturan**](docs/rule_catalog.md)
 
-### 📥 Import & Validasi YAML
+### Import & Validasi YAML
 Mendukung import Data Contract dalam jumlah besar menggunakan format YAML standar ODCS.
 - Validasi skema berlapis (YAML syntax & ODCS compliance).
 - Deteksi dini kesalahan tipe data atau field wajib sebelum data masuk ke database.
 
 Panduan lengkap → [**Import & Validasi YAML**](docs/yaml_import.md)
-```
 
 ---
 
 ## Roles & Hak Akses
 
-| Role | Akses Frontend | Kemampuan |
-|---|---|---|
-| `root` | Admin Panel | Full access — buat user, kelola semua kontrak, semua domain |
-| `admin` | Admin Panel | Kelola kontrak, lihat semua domain, tidak bisa buat user |
-| `developer` | User App | Baca kontrak lintas domain, generate service account key |
-| `user` | User App | Baca kontrak sesuai `data_domain` yang ditentukan |
+Empat role menentukan **apa yang bisa dilihat & dilakukan** seseorang di BeeScout. Akses kontrak ditentukan oleh **tim**: kontrak terlihat oleh user yang timnya tercantum sebagai *consumer* (atau *producer*) di kontrak tersebut.
+
+| Role | Frontend | Cakupan akses kontrak | Kemampuan tambahan |
+|---|---|---|---|
+| `root` | Admin Panel | Semua kontrak | CRUD user (termasuk root), konfigurasi global |
+| `admin` | Admin Panel | Semua kontrak | Steward — kelola kontrak & rule catalog lintas tim |
+| `developer` | User App | Hanya kontrak yang timnya jadi consumer/producer | Generate Service Account Key untuk integrasi pipeline |
+| `user` | User App | Hanya kontrak yang timnya jadi consumer/producer | Read-only dengan kacamata bisnis |
+
+> **Penting**: `developer` dan `user` punya **cakupan akses yang sama** — keduanya hanya melihat kontrak yang timnya tercantum sebagai consumer/producer. Bedanya bukan luas akses, tapi *kacamata*: developer membaca dengan lensa teknis (schema, physical type, SA Key), user membaca dengan lensa bisnis (deskripsi, SLA, makna kolom). Visi cross-team adalah tanggung jawab `admin` (steward), bukan `developer`. Detail di [docs/personas.md](docs/personas.md).
 
 ---
 
@@ -319,23 +360,37 @@ Panduan lengkap → [getting-started.md](getting-started.md)
 
 ---
 
-## How to Contribute
+## Berkontribusi & Komunitas
 
-Informasi lebih lanjut untuk bergabung dan berkolaborasi dalam project ini bisa melihat halaman [Contributing](CONTRIBUTING.md).
+BeeScout adalah proyek komunitas. Kontribusi diterima dari siapa saja — manusia maupun AI yang dijalankan kontributor manusia.
 
-## Changelog
-
-Informasi lebih lanjut mengenai segala perubahan dalam project ini bisa dilihat pada halaman [Changelog](CHANGELOG.md).
+| Tujuan | Pergi ke |
+|---|---|
+| Kontribusi pertama dalam 30 menit | [docs/contributor-onboarding.md](docs/contributor-onboarding.md) |
+| Etika & jalur kontribusi lengkap | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Kebijakan AI Usage | [CONTRIBUTING.md — Cara Berkolaborasi dengan AI](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai) |
+| Tata kelola proyek (siapa decide apa) | [GOVERNANCE.md](GOVERNANCE.md) |
+| Roadmap (Now / Next / Later) | [ROADMAP.md](ROADMAP.md) |
+| Catatan keputusan arsitektur | [docs/adr/](docs/adr/) |
+| Lapor kerentanan keamanan | [SECURITY.md](SECURITY.md) |
+| Etika komunitas | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Riwayat perubahan | [CHANGELOG.md](CHANGELOG.md) |
 
 ---
 
-## Sumber Daya Pengembang
+## Dokumentasi Teknis
 
-- [**Getting Started Guide**](getting-started.md) — Panduan instalasi dan konfigurasi mendalam.
-- [**Claude Guardrails (CLAUDE.md)**](CLAUDE.md) — Panduan teknis, konvensi kode, dan troubleshooting.
-- [**Contributing Guide**](CONTRIBUTING.md) — Cara berkontribusi dan etika kolaborasi.
-- [**CI/CD & Testing**](docs/ci_cd.md) — Alur kerja pengujian otomatis.
-- [**Kredensial Default**](docs/credentials.md) — Daftar akun untuk pengembangan.
+| Dokumen | Untuk siapa |
+|---|---|
+| [Getting Started](getting-started.md) | Setup lokal, troubleshooting infra |
+| [CLAUDE.md](CLAUDE.md) | Konvensi kode, guardrails AI, gotchas teknis |
+| [docs/personas.md](docs/personas.md) | 4 persona pengguna BeeScout |
+| [docs/glossary.md](docs/glossary.md) | Kamus istilah teknis ↔ bisnis |
+| [docs/approval_workflow.md](docs/approval_workflow.md) | Alur persetujuan perubahan kontrak |
+| [docs/rule_catalog.md](docs/rule_catalog.md) | Katalog aturan kualitas |
+| [docs/yaml_import.md](docs/yaml_import.md) | Import YAML & validasi schema |
+| [docs/credentials.md](docs/credentials.md) | Akun default untuk dev |
+| [docs/ci_cd.md](docs/ci_cd.md) | Alur pengujian otomatis |
 
 ---
 
@@ -351,3 +406,26 @@ Dokumentasi API interaktif tersedia saat aplikasi berjalan di mode development:
 - https://github.com/bitol-io/open-data-contract-standard
 - https://datacontract.com
 - https://www.datamesh-architecture.com/
+
+---
+
+## Lisensi
+
+BeeScout dirilis di bawah **GNU Affero General Public License v3.0 (AGPL-3.0)** — lihat [LICENSE](LICENSE).
+
+**Singkatnya**:
+- **✅ Boleh**: pakai bebas (self-host, modifikasi, komersial)
+- **⚠️ Wajib bagi**: yang mendeploy versi modifikasi sebagai layanan ke pengguna lain (web/API) — source code modifikasi wajib disediakan kepada komunitas.
+- **Tidak ada kewajiban tambahan**: untuk modifikasi internal yang tidak dideploy ke pengguna lain
+
+Alasan memilih AGPL ada di [docs/adr/0002-agpl-3-license.md](docs/adr/0002-agpl-3-license.md).
+
+---
+
+## Bergabung??
+
+> *"Data governance terbaik bukan yang paling mahal tools-nya, tapi yang paling banyak orang mau ikut menjaga."*
+
+Apapun peran Anda di organisasi — engineer, analis, PM, manajer data — ada cara untuk berkontribusi di BeeScout. Kalau Anda merasa proyek ini bisa lebih baik, **andalah yang proyek ini butuhkan**.
+
+Mulai dari [docs/contributor-onboarding.md](docs/contributor-onboarding.md). Kami tunggu di [Issues](https://github.com/alamanda-projects/beescout/issues) atau [Discussions](https://github.com/alamanda-projects/beescout/discussions).
