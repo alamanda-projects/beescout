@@ -1,164 +1,53 @@
 # BeeScout — Claude Code Guardrails
 
-## Project Overview
+> This file is the **technical guardrail for AI agents (and developers)** working on this codebase.
+> It contains conventions, gotchas, and rules-of-thumb that prevent common mistakes.
+> It does **not** explain what BeeScout is or who it's for — see the docs below for that.
 
-BeeScout is a **Data Contract Management System** (DCMS) built on the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard). It lets data teams author, version, and govern data contracts between producers and consumers.
+## Where to find the rest
 
-**Stack:**
-| Layer | Technology |
+| Looking for... | Read this |
 |---|---|
-| Backend API | FastAPI (Python) + MongoDB (Motor async driver) |
-| Admin Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui |
-| User Frontend | Next.js 15 (App Router), same stack |
-| Reverse Proxy | nginx (envsubst template, rate limiting, security headers) |
-| Container | Docker Compose (single `make up` workflow) |
+| What BeeScout does, stack, repo layout | [README.md](README.md) |
+| Local setup & environment variables | [getting-started.md](getting-started.md), [.env.example](.env.example) |
+| Who BeeScout is built for (4 personas) | [docs/personas.md](docs/personas.md) |
+| Business ↔ technical term mapping | [docs/glossary.md](docs/glossary.md) |
+| How to contribute (incl. AI usage policy) | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Who decides what, how to become a maintainer | [GOVERNANCE.md](GOVERNANCE.md) |
+| Reporting vulnerabilities | [SECURITY.md](SECURITY.md) |
+| Canonical data contract schema | [data-contract/examples/full.yaml](data-contract/examples/full.yaml) |
+| Approval workflow, rule catalog, YAML import | [docs/](docs/) |
 
----
-
-## User Personas
-
-BeeScout serves four distinct types of users, each with different goals and technical requirements:
-
-### 1. Superadmin (Root) — "Pak Bambang"
-- **Role:** `root` (Access: Admin Frontend)
-- **Goal:** System health, security, and global configuration.
-- **Mindset:** *"The system must be secure, stable, and all secrets must be properly managed."*
-- **Key Focus:** Initial bootstrap, environment variables, global user management, and infrastructure.
-
-### 2. Admin (Data Steward/Governance) — "Bu Retno"
-- **Role:** `admin` (Access: Admin Frontend)
-- **Goal:** Ensure data quality and contract compliance across the organization.
-- **Mindset:** *"Data contracts must be valid, standardized, and have clear accountability."*
-- **Key Focus:** Contract lifecycle (CRUD), rule catalog management, and onboarding users to domains.
-
-### 3. Developer (Data/Backend Engineer) — "Mas Dimas"
-- **Role:** `developer` (Access: User Frontend - `eng` mode)
-- **Goal:** Efficiently integrate data producers or consumers into technical pipelines.
-- **Mindset:** *"I need precise technical schemas and stable API endpoints to build my services."*
-- **Key Focus:** Physical types, endpoint connectivity, Service Account keys, and schema versioning.
-
-### 4. User (Business Analyst/Data Consumer) — "Mbak Indah"
-- **Role:** `user` (Access: User Frontend - `biz` mode)
-- **Goal:** Discover and understand data assets for analysis and reporting.
-- **Mindset:** *"What data exists and can I trust it for my business needs?"*
-- **Key Focus:** Logical meaning, business descriptions, SLA metrics, and quality guarantees.
-
----
-
-## Repository Layout
-
-```
-beescout/
-├── repository/app/         # FastAPI backend
-│   ├── core/               # DB connection, JWT, hashing, verification
-│   ├── model/              # Pydantic models (metadata.py, model.py, users.py, …)
-│   ├── info/               # App metadata (title, version, contact)
-│   └── main.py             # All routes (single file by design)
-├── frontend-admin/         # Admin UI — roles: admin, root
-│   └── src/
-│       ├── app/(protected)/contracts/  # Contract CRUD pages
-│       ├── lib/api/        # Axios API client
-│       └── types/          # Shared TS types + constants
-├── frontend-user/          # User UI — roles: user, developer
-├── nginx/                  # nginx Dockerfile + envsubst config template
-├── data-contract/examples/ # Reference YAML examples (full.yaml is canonical)
-├── docker-compose.yml      # Production orchestrator
-├── docker-compose.dev.yml  # Dev overlay (exposes ports, hot reload)
-└── Makefile                # Developer workflow entrypoint
-```
-
----
-
-## Quick Start
-
-```bash
-# 1. Clone and copy env files
-make setup        # copies .env.example → .env
-make setup-be     # copies repository/app/.env.example → repository/app/.env
-
-# 2. Edit both .env files with real values (domains, secrets, passwords)
-
-# 3. Add local DNS (first run only)
-# /etc/hosts: 127.0.0.1 app.localhost admin.localhost
-
-# 4. Run
-make up           # build + start all services (production mode)
-make dev          # dev mode: ports exposed, hot reload
-```
-
-**Ports (production):** Everything is behind nginx on port 80. No service ports exposed directly.
-
-**Ports (dev):** backend → `8888`, frontend-admin → `3001`, frontend-user → `3000`.
-
----
-
-## Environment Variables
-
-A single `.env` file at the root is the **Single Source of Truth** for all services.
-
-| File | Used by |
-|---|---|
-| `.env` (root) | Docker Compose (all services), Nginx, FastAPI, Next.js |
-
-`make setup` copies `.env.example` → `.env`. All services in `docker-compose.yml` source their environment from this root file.
-
-**Critical values to change before first run:**
-- `MONGODB_PASS` — default is `changeme`
-- `TKN_SECRET_KEY`, `TKN_SECRET_TOKEN`, `SA_SECRET_KEY`, `SA_SECRET_TOKEN` — generate with `openssl rand -hex 32`
-- `BEESCOUT_USER_DOMAIN`, `BEESCOUT_ADMIN_DOMAIN` — your actual subdomains
-- `ALLOWED_ORIGINS` — must match your domains exactly
-- `COOKIE_SECURE=false` only for local dev without HTTPS
-
----
-
-## Data Contract Schema
-
-The canonical schema is in `data-contract/examples/full.yaml`. All Pydantic models in `repository/app/model/` must match it.
-
-**Key structure:**
-```yaml
-standard_version: 0.0.0
-contract_number: <generated>
-metadata:
-  version: 1.0.0
-  type: CSV               # file format / system type
-  name: ...
-  owner: ...
-  sla:
-    retention: 1          # int (not string)
-    retention_unit: tahun # str: tahun | bulan | pekan | hari | jam
-  quality:                # dataset-level quality rules
-    - code: QR001
-      dimension: completeness
-      custom_properties:
-        - property: threshold
-          value: "0.95"
-model:                    # column definitions
-  - column: id
-    logical_type: UUID    # human-readable (Tipe Data Bisnis)
-    physical_type: VARCHAR(36)  # SQL type (Tipe Data Teknis)
-    quality:              # column-level quality rules (same structure as dataset quality)
-      - code: QR002
-        dimension: validity
-        custom_properties:
-          - property: length
-            value: "36"
-```
-
-**Quality dimensions:** `completeness`, `validity`, `accuracy`
-
-**Stakeholder roles:** `owner`, `consumer`, `steward`, `producer`, `engineer`, `analyst`, `architect`
+When you need user-facing personas (Pak Bambang/Bu Retno/Mas Dimas/Mbak Indah), reference `docs/personas.md` rather than re-deriving them.
 
 ---
 
 ## Backend Conventions
 
-- **All routes in `main.py`** — no router split by design (small surface area)
-- **Pydantic models** in `repository/app/model/` — always check these before adding fields to the frontend form
-- **`retention`** is stored as `int` + separate `retention_unit: str` — never send as combined string
-- **JWT tokens** live in httpOnly cookies — no localStorage auth
-- **Access token expiry:** `TKN_ACCESS_TOKEN_EXPIRE_MINUTES=180` (3 hours)
-- **MongoDB collections:** `dgr` (contracts), `dgrusr` (users) — configured via env
+- **All routes in `repository/app/main.py`** — single-file by design (small surface area). Don't introduce a router split without a [Tech Proposal](.github/ISSUE_TEMPLATE/tech-proposal.yml).
+- **Pydantic models in `repository/app/model/`** — always check these before adding fields to the frontend form. Frontend types in `frontend-admin/src/types/` (and mirrored in `frontend-user/`) must stay in sync.
+- **`retention`** is stored as `int` + separate `retention_unit: str` (values: `tahun | bulan | pekan | hari | jam`). Never combine into one string.
+- **JWT tokens** live in httpOnly cookies — never localStorage. Default access token expiry: 180 minutes (3 hours).
+- **MongoDB collections** are configured via env (`MONGODB_COL_*`). Common ones: `dgr` (contracts), `dgrusr` (users), approvals collection (see `core/connection.py`).
+- **Role gating dependencies**: use the helpers in `main.py` — `require_root`, `require_admin`, `require_any`. Don't re-implement role checks inline.
+- **Endpoint naming**: lowercase + slash-separated noun + verb (e.g., `/datacontract/lists`, `/user/create`, `/approval/{id}/vote`).
+
+### Quick reference: Access Levels
+
+| Role | Frontend | Contract scope | Notes |
+|---|---|---|---|
+| `root` | Admin | All contracts | Plus user management of non-root |
+| `admin` | Admin | All contracts | Acts as steward |
+| `developer` | User | Contracts where user's team is in `metadata.consumer[]` | Technical lens (`eng` mode); plus generate SA keys |
+| `user` | User | Contracts where user's team is in `metadata.consumer[]` | Business lens (`biz` mode) |
+
+> **Important**: `developer` and `user` share the **same scope** — both see contracts where their team (user's `data_domain`) is listed as a consumer. A team is the unit, containing both technical and business members. They differ in mindset/UI mode, not in access. Cross-team visibility is the steward's (`admin`) responsibility. See [docs/personas.md](docs/personas.md).
+>
+> Note: `/datacontract/lists` additionally surfaces contracts where the user is `created_by` or in `managers` — this is the "my responsibilities" lens (separate from the consumer-team scope above).
+
+### Bootstrap
+
+`/setup` (POST) creates the first root account when no root user exists. Returns `409` immediately after — effectively self-disabling. `/setup/status` (GET) shows whether setup is done. Never call `/user/create` for the first root account.
 
 ---
 
@@ -199,7 +88,7 @@ Apply this pattern in **all** form submit handlers.
 
 ### API Client
 
-`frontend-admin/src/lib/api/` — Axios instance with:
+`frontend-admin/src/lib/api/` and `frontend-user/src/lib/api/` — Axios instance with:
 - Base URL from `NEXT_PUBLIC_API_BASE` (env)
 - `withCredentials: true` (cookie-based auth)
 - Interceptor: on 401 → calls logout API → redirects to `/login` (avoids infinite loop)
@@ -210,24 +99,94 @@ Apply this pattern in **all** form submit handlers.
 - Next.js middleware checks cookie presence + JWT format before allowing protected routes
 - Malformed cookies are cleared at middleware level
 
+### UI Language
+
+- User-facing labels follow [docs/glossary.md](docs/glossary.md) (column "Dipakai di UI") — default to Indonesian business terms
+- Variable / function / file names stay in English
+
+---
+
+## Data Contract Schema — Compact Reference
+
+Canonical: [data-contract/examples/full.yaml](data-contract/examples/full.yaml). All Pydantic models in `repository/app/model/` must match it.
+
+```yaml
+standard_version: 0.0.0
+contract_number: <generated>
+metadata:
+  version: 1.0.0
+  type: CSV               # file format / system type
+  name: ...
+  owner: ...
+  sla:
+    retention: 1          # int (not string)
+    retention_unit: tahun # str: tahun | bulan | pekan | hari | jam
+  quality:                # dataset-level quality rules
+    - code: QR001
+      dimension: completeness
+      custom_properties:
+        - property: threshold
+          value: "0.95"
+model:                    # column definitions
+  - column: id
+    logical_type: UUID    # human-readable (Tipe Data Bisnis)
+    physical_type: VARCHAR(36)  # SQL type (Tipe Data Teknis)
+    quality:              # column-level quality rules — same structure as dataset quality
+      - code: QR002
+        dimension: validity
+```
+
+**Quality dimensions** (closed enum): `completeness`, `validity`, `accuracy`
+
+**Stakeholder roles** (closed enum): `owner`, `consumer`, `steward`, `producer`, `engineer`, `analyst`, `architect`
+
+### Schema Versioning
+
+`standard_version` tracks the upstream ODCS spec — **do not bump** without reading the upstream changelog.
+
+For `metadata.version` (the contract's own version):
+- **Patch** (`1.0.0 → 1.0.1`): correction to existing field description or constraint
+- **Minor** (`1.0.0 → 1.1.0`): new optional fields added, backward-compatible
+- **Major** (`1.0.0 → 2.0.0`): breaking change — field renamed, required field added, type changed
+
+If a Pydantic model change would break existing saved contracts (stored as MongoDB documents), it is a **major** change and requires a migration script.
+
+---
+
+## Making Changes — Quick Checklist
+
+| Change type | Touch these files |
+|---|---|
+| Backend model change | `repository/app/model/` + `frontend-admin/src/types/` + `frontend-user/src/types/` + verify against `data-contract/examples/full.yaml` |
+| New frontend page | `src/app/(protected)/` for auth-gated, `src/app/(public)/` for open |
+| nginx routing | `nginx/templates/default.conf.template` (uses envsubst — `${VAR}` syntax, not `$var`) |
+| Rebuild after backend/frontend change | `docker compose build <service> && docker compose up -d <service>` |
+| New endpoint | `main.py` + corresponding test in `repository/tests/` |
+
+## Testing
+
+```bash
+make test           # all tests
+make test-backend   # pytest (repository/tests/)
+make test-fe-admin  # tsc --noEmit
+make test-fe-user   # tsc --noEmit
+```
+
+Tests use `httpx.AsyncClient` + `unittest.mock` — no real MongoDB needed. All new routes should have a corresponding test in `repository/tests/`.
+
 ---
 
 ## Common Troubleshooting
 
 ### MongoDB won't start (WiredTiger crash)
 
-Symptom: container exits immediately, logs say `No space left on device` or `WiredTiger dirty`.
+**Symptom**: container exits immediately, logs say `No space left on device` or `WiredTiger dirty`.
 
-Cause: Docker Desktop VM disk is full (not Mac host disk).
+**Cause**: Docker Desktop VM disk is full (not Mac host disk).
 
 ```bash
-# 1. Free Docker VM disk space
 docker system prune -f && docker builder prune -f
-
-# 2. Repair WiredTiger after unclean shutdown
 docker compose run --rm --entrypoint "mongod --repair --dbpath /data/db" db
-
-# 3. Start normally
 docker compose up -d db
 ```
 
@@ -242,48 +201,22 @@ Run `docker system prune -f` periodically on active projects.
 
 Dev mode (`make dev`) mounts source directories as volumes and runs `next dev`. The `NEXT_PUBLIC_API_BASE` in dev overlay points to `http://localhost:8888` directly. Ensure the backend port is exposed (`docker-compose.dev.yml`).
 
----
+### Backend code change not taking effect
 
-## Access Levels
-
-| Role | Can access | Frontend |
-|---|---|---|
-| `root` | Everything, including user management | Admin |
-| `admin` | Contract CRUD, user management (except root) | Admin |
-| `developer` | Read contracts | User |
-| `user` | Read contracts (own domain only) | User |
-
----
-
-## Bootstrap / First-Run Setup
-
-`/setup` (POST) creates the first root account when no root user exists yet. Returns `409` immediately after — effectively self-disabling. `/setup/status` (GET) shows whether setup is done. Never call `/user/create` for the first root account — it requires an existing root token.
-
-## Testing
+Production mode runs from a built image — `docker compose restart backend` will **not** pick up code changes. Run:
 
 ```bash
-make test           # all tests
-make test-backend   # pytest (repository/tests/)
-make test-fe-admin  # tsc --noEmit
-make test-fe-user   # tsc --noEmit
+docker compose build backend && docker compose up -d backend
 ```
 
-Tests use `httpx.AsyncClient` + `unittest.mock` — no real MongoDB needed. All new routes should have a corresponding test in `repository/tests/`.
+For hot reload, use `make dev` instead.
 
-## Data Contract Schema Versioning
+---
 
-`standard_version` in the YAML tracks the ODCS spec version — do not bump this without reading the upstream ODCS changelog.
+## When in doubt
 
-For the `metadata.version` field (the contract's own version):
-- **Patch** (e.g. `1.0.0 → 1.0.1`): correction to existing field description or constraints
-- **Minor** (e.g. `1.0.0 → 1.1.0`): new optional fields added, backward-compatible
-- **Major** (e.g. `1.0.0 → 2.0.0`): breaking change — field renamed, required field added, type changed
-
-If a Pydantic model change would break existing saved contracts (stored as MongoDB documents), it is a **major** version change and requires a migration script.
-
-## Making Changes
-
-- **Backend model change** → update Pydantic in `repository/app/model/` + update frontend TypeScript types in `frontend-admin/src/types/` + verify against `data-contract/examples/full.yaml`
-- **New frontend page** → add under `src/app/(protected)/` for auth-gated pages, `src/app/(public)/` for open pages
-- **nginx routing change** → edit `nginx/templates/default.conf.template` (uses envsubst — use `${VAR}` syntax, not `$var`)
-- **Rebuild after change** → `docker compose build <service> && docker compose up -d <service>`
+- **Match existing patterns** — find a similar route/component and mirror its style before inventing new abstractions
+- **Don't restructure files for "cleanliness"** unless requested — single-file `main.py` is intentional
+- **Ask before adding dependencies** — open a [Tech Proposal](.github/ISSUE_TEMPLATE/tech-proposal.yml) issue first
+- **Verify schema changes against** `data-contract/examples/full.yaml` — that's canonical
+- **Re-read this file before non-trivial work** — gotchas above are from real bugs that bit us
