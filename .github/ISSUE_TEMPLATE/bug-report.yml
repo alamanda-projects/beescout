@@ -1,0 +1,98 @@
+name: 🐛 Bug Report
+description: Lapor sesuatu yang tidak berjalan sebagaimana mestinya.
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Terima kasih sudah melaporkan! 🐝
+
+        Untuk **kerentanan keamanan**, jangan pakai template ini — laporkan privat lewat [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area mana yang terdampak?
+      options:
+        - "Backend (FastAPI / API endpoint)"
+        - "Frontend Admin (admin.localhost)"
+        - "Frontend User (app.localhost)"
+        - "Infrastructure (Docker, Nginx, env)"
+        - "Dokumentasi"
+        - "Belum yakin"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Apa yang terjadi?
+      description: Jelaskan singkat — apa yang Anda lihat / alami.
+      placeholder: "Saat klik tombol 'Simpan' di form tambah kontrak, halaman blank dan tidak ada notifikasi."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Apa yang Anda harapkan?
+      placeholder: "Kontrak tersimpan dan saya redirect ke daftar dengan toast 'berhasil'."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Cara mereproduksi
+      description: Langkah-langkah yang bisa diulang oleh maintainer untuk melihat bug yang sama.
+      placeholder: |
+        1. Login sebagai admin
+        2. Buka halaman /contracts/new
+        3. Isi semua field di Step 1
+        4. Klik "Simpan"
+        5. Halaman blank
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Bukti (screenshot, log, output console)
+      description: Tempel screenshot, error stacktrace, atau output `docker compose logs`. Sangat membantu untuk diagnosis cepat.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: Versi / commit
+      description: Output `git rev-parse HEAD` atau tag rilis yang Anda pakai.
+      placeholder: "main @ 6b4db1a"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: env
+    attributes:
+      label: Environment
+      options:
+        - "Local Docker (make up)"
+        - "Local Dev (make dev)"
+        - "Self-hosted production"
+        - "Lainnya (jelaskan di bawah)"
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Konteks tambahan
+      description: Hal lain yang relevan — apakah konsisten reproducible? Apakah baru muncul setelah update tertentu?
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pengakuan
+      options:
+        - label: Saya sudah cari issue serupa
+          required: true
+        - label: Bug ini bukan kerentanan keamanan (jika ya, gunakan SECURITY.md)
+          required: true

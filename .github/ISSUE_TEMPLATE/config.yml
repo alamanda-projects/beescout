@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Lapor kerentanan keamanan
+    url: https://github.com/alamanda-projects/beescout/security/advisories/new
+    about: Untuk kerentanan keamanan, gunakan GitHub Security Advisory (privat). Jangan buat issue publik.
+  - name: 💬 Diskusi & tanya jawab
+    url: https://github.com/alamanda-projects/beescout/discussions
+    about: Untuk pertanyaan terbuka, ide awal yang belum matang, atau berbagi pengalaman penggunaan.
+  - name: 📖 Baca panduan kontribusi
+    url: https://github.com/alamanda-projects/beescout/blob/main/CONTRIBUTING.md
+    about: Pelajari dua jalur kontribusi — Commander (non-tech) dan Architect (tech) — sebelum membuat issue.

@@ -1,0 +1,92 @@
+name: 🏗️ Tech Proposal
+description: Untuk developer / arsitek — usulkan perubahan teknis (refactor, fitur kompleks, breaking change).
+title: "[Tech] "
+labels: ["tech-proposal", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Architect Path 🛠️
+
+        Template ini untuk usulan yang sudah dipikirkan implementasinya — refactor, integrasi baru, breaking change.
+        Untuk ide bisnis tanpa detail teknis, gunakan **💡 Ide Bisnis** sebagai gantinya.
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Mengapa perubahan ini diperlukan? Masalah teknis / hutang teknis apa yang dipecahkan?
+      placeholder: |
+        Contoh: "Saat ini main.py sudah > 1500 baris. Penambahan endpoint baru sulit
+        dilakukan tanpa konflik. Perlu pemecahan ke beberapa router."
+    validations:
+      required: true
+
+  - type: textarea
+    id: design
+    attributes:
+      label: Desain Usulan
+      description: Bagaimana cara mengimplementasikan? Sebutkan file utama, alur data, dependensi baru.
+      placeholder: |
+        - Pecah main.py menjadi: routes/auth.py, routes/contracts.py, routes/users.py
+        - Tetap pakai single-file FastAPI app, hanya import router
+        - Tidak ada perubahan API publik
+    validations:
+      required: true
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Apakah ini breaking change?
+      options:
+        - "Tidak — fully backward compatible"
+        - "Ya — API berubah, butuh migration guide"
+        - "Ya — schema database berubah, butuh script migrasi"
+        - "Ya — env var / config berubah"
+        - "Belum yakin"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatif yang sudah dipertimbangkan
+      description: Pendekatan lain dan kenapa tidak dipilih.
+
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Trade-off
+      description: Apa yang dikorbankan? Performance, kompleksitas, learning curve untuk kontributor baru?
+
+  - type: dropdown
+    id: persona
+    attributes:
+      label: Persona pengguna yang terdampak (jika ada)
+      multiple: true
+      options:
+        - "Pak Bambang (Root)"
+        - "Bu Retno (Admin)"
+        - "Mas Dimas (Developer)"
+        - "Mbak Indah (User)"
+        - "Hanya kontributor (tidak terlihat user)"
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Strategi pengujian
+      description: Bagaimana kita memastikan ini aman dirilis?
+      placeholder: |
+        - Unit test untuk router baru
+        - Smoke test endpoint lama tetap respons sama
+        - Manual test di make dev sebelum merge
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pengakuan
+      options:
+        - label: Saya sudah baca [CLAUDE.md](../blob/main/CLAUDE.md) dan proposal ini selaras dengan konvensi
+          required: true
+        - label: Saya bersedia membuka PR (sendiri atau lewat AI) jika proposal disetujui
+          required: false

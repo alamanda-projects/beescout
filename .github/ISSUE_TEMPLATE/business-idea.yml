@@ -1,0 +1,92 @@
+name: 💡 Ide Bisnis / Business Idea
+description: Untuk PM, Business Owner, Analis — usulkan kebutuhan dalam bahasa natural, tanpa harus paham teknis.
+title: "[Idea] "
+labels: ["business-idea", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Selamat datang! 🐝
+
+        Template ini cocok untuk Anda yang **mengerti masalah bisnis** tetapi tidak harus bisa coding.
+        Cukup ceritakan masalah dan dampaknya — tim maintainer (atau AI yang dijalankan kontributor lain) akan menerjemahkan ke implementasi.
+
+        Tidak yakin masuk template mana? Lihat [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md).
+
+  - type: dropdown
+    id: persona
+    attributes:
+      label: Siapa yang paling terdampak?
+      description: Pilih persona yang masalahnya akan terselesaikan oleh ide ini. Detail persona di [docs/personas.md](../blob/main/docs/personas.md).
+      options:
+        - "Pak Bambang — Superadmin / Root (system health, security, config global)"
+        - "Bu Retno — Admin / Data Steward (kualitas data, compliance, lifecycle kontrak)"
+        - "Mas Dimas — Developer / Data Engineer (integrasi pipeline, schema teknis)"
+        - "Mbak Indah — User / Business Analyst (discover & pakai data untuk laporan)"
+        - "Beberapa persona di atas"
+        - "Belum yakin"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Apa masalah yang ingin diselesaikan?
+      description: Ceritakan dalam bahasa natural. Kondisi sekarang seperti apa? Apa yang menyulitkan?
+      placeholder: |
+        Contoh: "Saat Bu Retno mau cek kontrak yang sudah lewat masa retensi, dia harus
+        scroll satu per satu. Tidak ada cara cepat untuk filter kontrak yang sudah expired."
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Bagaimana keadaan ideal setelah masalah ini diselesaikan?
+      description: Bukan detail teknis — cukup gambaran bagaimana persona di atas akan bekerja lebih baik.
+      placeholder: |
+        Contoh: "Bu Retno bisa lihat daftar kontrak expired hanya dalam 1 klik dari halaman
+        Data Contract. Idealnya muncul badge merah di kontrak yang lewat retensi."
+    validations:
+      required: true
+
+  - type: textarea
+    id: success
+    attributes:
+      label: Bagaimana kita tahu solusinya berhasil?
+      description: Kriteria sukses dari sudut pandang pengguna. Tidak perlu metric teknis.
+      placeholder: |
+        Contoh:
+        - Saat saya buka halaman Data Contract, kontrak yang sudah expired ditandai jelas
+        - Saya bisa filter "hanya tampilkan yang expired"
+        - Saya bisa export hasilnya ke CSV untuk dilaporkan ke atasan
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Konteks tambahan (opsional)
+      description: Screenshot, mockup, link ke dokumen, atau cerita kasus nyata dari lapangan.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Seberapa mendesak menurut Anda?
+      options:
+        - "Rendah — nice to have"
+        - "Sedang — banyak yang akan terbantu"
+        - "Tinggi — sedang menghambat pekerjaan"
+        - "Belum yakin"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pengakuan
+      options:
+        - label: Saya sudah mencari issue serupa dan tidak menemukannya
+          required: true
+        - label: Saya memahami ide ini akan ditinjau & mungkin di-reframe oleh maintainer sebelum dikerjakan
+          required: true

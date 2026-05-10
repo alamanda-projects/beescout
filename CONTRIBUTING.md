@@ -35,35 +35,82 @@ Sebagai developer, peran Anda bergeser menjadi "Arsitek" yang memastikan kode ya
 ### 1. Memahami Konteks
 Bacalah [README.md](README.md) dan terutama [CLAUDE.md](CLAUDE.md). `CLAUDE.md` adalah "otak" proyek ini yang berisi aturan main bagi AI agar tidak melakukan kesalahan teknis.
 
-### 2. Fork dan Clone
+### 2. Buka Issue Dulu (untuk perubahan non-trivial)
+
+Pilih template yang sesuai:
+
+| Template | Untuk siapa | Kapan dipakai |
+|---|---|---|
+| [💡 Ide Bisnis](.github/ISSUE_TEMPLATE/business-idea.yml) | PM, Business Owner, Analis | Tahu masalahnya, tidak harus tahu teknisnya |
+| [🐛 Bug Report](.github/ISSUE_TEMPLATE/bug-report.yml) | Siapa saja | Sesuatu rusak / tidak sesuai harapan |
+| [🏗️ Tech Proposal](.github/ISSUE_TEMPLATE/tech-proposal.yml) | Developer / arsitek | Sudah punya rencana implementasi |
+
+Untuk **kerentanan keamanan** — jangan buka issue publik, lihat [SECURITY.md](SECURITY.md).
+
+### 3. Fork dan Clone
 ```bash
 git clone https://github.com/alamanda-projects/beescout.git
 cd beescout
 ```
 
-### 3. Berinteraksi dengan Claude (Jika Anda memiliki akses)
+### 4. Berinteraksi dengan Claude (Jika Anda memiliki akses)
 Gunakan instruksi bahasa alami untuk melakukan perubahan. Contoh:
 > *"Claude, tolong tambahkan field 'last_verified' di metadata kontrak dan tampilkan di halaman detail admin untuk Bu Retno."*
 
-### 4. Pengujian (Wajib)
+### 5. Pengujian (Wajib)
 Semua kontribusi, baik dari manusia maupun AI, harus lolos uji:
 - Backend: `make test-backend`
 - Frontend: `make test-fe-admin` & `make test-fe-user`
 
-### 5. Pull Request
-Saat membuat PR, sertakan:
-- **Apa** yang diubah.
-- **Kenapa** perubahan ini penting (hubungkan dengan Persona User).
-- **Bukti** hasil (screenshot atau rekaman terminal).
+### 6. Pull Request
+PR template akan otomatis muncul. Pastikan mengisi:
+- **Persona terdampak** + link ke issue
+- **AI Usage Disclosure** (lihat section di bawah)
+- **Bukti pengujian** (screenshot atau output `make test`)
+
+---
+
+## Cara Berkolaborasi dengan AI
+
+BeeScout adalah proyek **AI-Native** — penggunaan AI **disambut**, bukan dilarang. Yang kami minta hanya transparansi, agar reviewer punya konteks yang tepat.
+
+### Tiga level penggunaan AI
+
+| Level | Maksud | Contoh |
+|---|---|---|
+| **Tidak menggunakan AI** | Ditulis manual sepenuhnya | Bug fix kecil yang Anda tahu persis perbaikannya |
+| **AI-assisted** | AI bantu sebagian, Anda review tiap baris | Refactor dengan AI, lalu Anda baca diff sebelum commit |
+| **AI-driven** | AI menulis sebagian besar, Anda jadi reviewer/operator | Claude Code menulis fitur dari spec issue |
+
+### Kewajiban kontributor saat menggunakan AI
+
+1. **Disclose di PR** — centang level yang sesuai di PR template
+2. **Baca dan paham** kode yang dihasilkan AI sebelum commit. Jangan paste tanpa verifikasi.
+3. **Bertanggung jawab atas hasil** — Anda yang menekan "submit", Anda yang akan ditanya saat review
+4. **Tidak melanggar lisensi** — pastikan output AI tidak menyalin kode berlisensi tidak kompatibel (mis. GPL-2 untuk proyek AGPL-3 ini boleh, tapi proprietary tidak)
+
+### Yang dilarang
+
+- Mengirim PR yang Anda sendiri tidak paham isinya
+- Membuat commit history palsu yang mengaburkan asal-usul AI
+- Spam PR auto-generated tanpa konteks issue yang jelas
+
+> Aturan ini **bukan untuk membatasi** — hanya memastikan kualitas tidak turun seiring volume kontribusi yang diaktifkan oleh AI.
 
 ---
 
 ## Etika Kontribusi (Code of Conduct)
 
-Kami mengutamakan lingkungan yang **Ramah, Terbuka, dan Saling Menghargai**.
+Kami mengutamakan lingkungan yang **Ramah, Terbuka, dan Saling Menghargai**. Aturan lengkap di [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+Tiga prinsip inti:
 1. **Hargai Ide:** Tidak ada ide yang terlalu "bodoh". Ide dari non-coder sama berharganya dengan kode dari developer senior.
 2. **Komunikasi Sopan:** Gunakan bahasa yang membangun.
-3. **Transparansi AI:** Jika Anda menggunakan AI untuk membantu kontribusi Anda, itu sangat disambut! Namun tetaplah bertanggung jawab atas hasil akhirnya.
+3. **Transparansi AI:** Lihat section *Cara Berkolaborasi dengan AI* di atas.
+
+## Tata Kelola Proyek
+
+Siapa membuat keputusan apa, dan bagaimana naik tier (Contributor → Trusted → Maintainer): lihat [GOVERNANCE.md](GOVERNANCE.md).
 
 ---
 
