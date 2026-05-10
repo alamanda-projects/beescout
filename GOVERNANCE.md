@@ -102,16 +102,47 @@ BeeScout adalah AI-Native, jadi:
 
 ---
 
-## Branch Protection (saat di-enable di GitHub)
+## Branch Protection — AKTIF di `main`
 
-Setting yang akan diberlakukan untuk `main`:
+Sejak **2026-05-10**, branch `main` dilindungi oleh aturan berikut. Semua kontributor (termasuk maintainer) tunduk pada aturan ini, dengan satu pengecualian: maintainer dengan akses admin repo dapat melakukan bypass via GitHub UI saat darurat (kondisi `enforce_admins=false`).
 
-- ✅ Require pull request before merging
-- ✅ Require review from Code Owners
-- ✅ Require status checks to pass (CI lulus)
-- ✅ Dismiss stale reviews when new commits are pushed
-- ❌ Allow force pushes — disabled
-- ❌ Allow deletions — disabled
+### Aturan yang berlaku
+
+- **Require pull request** — tidak ada `git push origin main` langsung
+- **Require review from CODEOWNERS** — minimal 1 approval dari [CODEOWNERS](CODEOWNERS), saat ini hanya [@haninp](https://github.com/haninp)
+- **Dismiss stale reviews** — approval otomatis hilang saat ada commit baru di PR
+- **Require status checks** — 3 CI job wajib hijau:
+  - `TypeScript — frontend-admin`
+  - `TypeScript — frontend-user`
+  - `Backend tests (pytest)`
+- **Strict** — branch harus up-to-date dengan `main` sebelum bisa di-merge
+- **Conversation resolution required** — semua thread diskusi PR harus resolved
+- **Linear history required** — paksa squash atau rebase, tidak ada merge commit
+- **Restrict who can push** — allowlist hanya `[haninp]`
+- **Force push** — dinonaktifkan
+- **Branch deletion** — dinonaktifkan
+
+### Repo-level merge settings
+
+- **Squash merge only** — merge commit & rebase merge dinonaktifkan
+- **Auto-delete head branch** — setelah PR di-merge, branch fork otomatis dihapus
+
+### Saat tim berkembang ke 2-3 maintainer
+
+Update di **dua tempat**:
+
+1. File [CODEOWNERS](CODEOWNERS) — tambah username baru per area
+2. Push allowlist via gh CLI:
+   ```bash
+   gh api -X PUT repos/alamanda-projects/beescout/branches/main/protection/restrictions/users \
+     -f users[]=haninp -f users[]=username2 -f users[]=username3
+   ```
+
+### Saat darurat (production down, security hotfix)
+
+Karena `enforce_admins=false`, [@haninp](https://github.com/haninp) sebagai admin repo dapat bypass aturan ini via tombol GitHub UI ("Bypass branch protections"). Gunakan dengan hati-hati — setiap bypass dicatat di audit log GitHub.
+
+Bila ingin lebih ketat (admin pun tunduk tanpa bypass), update `enforce_admins=true` via API.
 
 ---
 
