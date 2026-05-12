@@ -187,3 +187,7 @@ cython_debug/
 
 # Docker DGR db
 dataguard-repository/data/
+
+# Next.js auto-generated
+frontend-admin/next-env.d.ts
+frontend-user/next-env.d.ts
