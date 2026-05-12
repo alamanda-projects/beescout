@@ -121,12 +121,31 @@ export const CONTRACT_TYPE_LABELS: Record<string, string> = {
   model: 'Model',
 }
 
-export const STAKEHOLDER_ROLES = [
-  { value: 'owner', label: 'Data Owner' },
-  { value: 'consumer', label: 'Data Consumer' },
-  { value: 'steward', label: 'Data Steward' },
-  { value: 'producer', label: 'Data Producer' },
-  { value: 'engineer', label: 'Data Engineer' },
-  { value: 'analyst', label: 'Data Analyst' },
-  { value: 'architect', label: 'Data Architect' },
-] as const
+export interface StakeholderRoleItem { value: string; label: string }
+export interface StakeholderRoleGroup { group: string; items: StakeholderRoleItem[] }
+
+export const STAKEHOLDER_ROLE_GROUPS: StakeholderRoleGroup[] = [
+  {
+    group: 'Peran Bisnis',
+    items: [
+      { value: 'owner', label: 'Data Owner' },
+      { value: 'consumer', label: 'Data Consumer' },
+      { value: 'analyst', label: 'Data Analyst' },
+    ],
+  },
+  {
+    group: 'Peran Teknis',
+    items: [
+      { value: 'producer', label: 'Data Producer' },
+      { value: 'engineer', label: 'Data Engineer' },
+      { value: 'architect', label: 'Data Architect' },
+      { value: 'steward', label: 'Data Steward' },
+    ],
+  },
+]
+
+export const STAKEHOLDER_ROLES: StakeholderRoleItem[] = STAKEHOLDER_ROLE_GROUPS.flatMap(g => g.items)
+
+export function getStakeholderRoleLabel(value: string): string {
+  return STAKEHOLDER_ROLES.find(r => r.value === value)?.label ?? value
+}

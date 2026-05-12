@@ -16,6 +16,7 @@ import { ArrowLeft, CheckCircle2, XCircle, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 import type { ModelColumn, Stakeholder } from '@/types/contract'
+import { getStakeholderRoleLabel } from '@/types/contract'
 
 function BoolCell({ value }: { value?: boolean }) {
   return value
@@ -136,7 +137,7 @@ export default function AdminContractDetailPage() {
                       {metadata.stakeholders.map((s: Stakeholder, i: number) => (
                         <TableRow key={i}>
                           <TableCell className="font-medium">{s.name}</TableCell>
-                          <TableCell>{s.role}</TableCell>
+                          <TableCell>{getStakeholderRoleLabel(s.role)}</TableCell>
                           <TableCell className="text-muted-foreground">{s.email ?? '-'}</TableCell>
                           <TableCell className="text-muted-foreground">{formatDate(s.date_in)}</TableCell>
                         </TableRow>
