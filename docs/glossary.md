@@ -70,6 +70,20 @@
 | Pydantic Model | Model Validasi | Definisi struktur data di backend yang otomatis memvalidasi input | (tidak di UI) |
 | YAML | YAML | Format file untuk konfigurasi/data yang mudah dibaca manusia | YAML (untuk import) |
 
+## F. Atribut Kolom (Column Flags)
+
+> Label kolom-kolom ini muncul di form Data Contract (Step 3 — Struktur Data). UI menampilkan istilah Inggris (konvensi industri data) + tooltip ⓘ dengan penjelasan ID di bawah. Sinkron dengan `frontend-admin/src/lib/field-help.ts`.
+
+| Istilah teknis | Padanan bisnis (ID) | Penjelasan singkat | Dipakai di UI |
+|---|---|---|---|
+| Primary Key (`is_primary`) | Kunci Utama | Kolom kunci utama. Nilainya unik (tidak ada duplikat) dan tidak boleh kosong | Primary Key (+ tooltip ID) |
+| Nullable (`is_nullable`) | Boleh Kosong | Kolom boleh kosong saat data dikirim | Nullable (+ tooltip ID) |
+| Data PII (`is_pii`) | Data Pribadi | *Personal Identifiable Information* — kolom berisi data pribadi yang harus dilindungi (nama, NIK, email, dll) | Data PII (+ tooltip ID) |
+| Mandatory (`is_mandatory`) | Wajib | Kolom harus diisi saat data dikirim ke kontrak. Jika kosong, data ditolak | Wajib (+ tooltip ID) |
+| Partition Key (`is_partition`) | Kunci Partisi | Kolom dipakai untuk membagi data ke beberapa bagian (umumnya berdasar tanggal/region) agar query lebih cepat | Partition (+ tooltip ID) |
+| Clustered (`is_clustered`) | Pengelompokan Storage | Kolom yang dipakai mengelompokkan data berdekatan di storage agar query yang memfilter kolom ini lebih efisien | Clustered (+ tooltip ID) |
+| Audit (`is_audit`) | Kolom Audit | Kolom yang mencatat jejak perubahan (siapa, kapan). Umumnya: created_at, updated_at, created_by | Audit (+ tooltip ID) |
+
 ---
 
 ## Aturan saat menulis UI

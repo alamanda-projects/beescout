@@ -20,9 +20,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
-import { Plus, Trash2, Loader2, ArrowLeft, Save } from 'lucide-react'
+import { Plus, Trash2, Loader2, ArrowLeft, Save, Info } from 'lucide-react'
 import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLES, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
+import { COLUMN_FLAG_HELP } from '@/lib/field-help'
 
 const schema = z.object({
   standard_version: z.string().min(1, 'Wajib diisi'),
@@ -498,23 +500,39 @@ export default function EditContractPage() {
                     <Label className="text-xs">Deskripsi</Label>
                     <Input placeholder="Penjelasan singkat kolom ini" className="h-8 text-xs" {...register(`model.${i}.description`)} />
                   </div>
-                  <div className="flex gap-6 flex-wrap">
-                    {([
-                      { key: 'is_primary', label: 'Primary Key' },
-                      { key: 'is_nullable', label: 'Nullable' },
-                      { key: 'is_pii', label: 'Data PII' },
-                      { key: 'is_mandatory', label: 'Wajib' },
-                    ] as const).map(({ key, label }) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`${field.id}-${key}`}
-                          checked={!!watch(`model.${i}.${key}`)}
-                          onCheckedChange={(v) => setValue(`model.${i}.${key}`, !!v)}
-                        />
-                        <Label htmlFor={`${field.id}-${key}`} className="text-xs font-normal cursor-pointer">{label}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  <TooltipProvider delayDuration={150}>
+                    <div className="flex gap-6 flex-wrap">
+                      {([
+                        { key: 'is_primary', label: 'Primary Key' },
+                        { key: 'is_nullable', label: 'Nullable' },
+                        { key: 'is_pii', label: 'Data PII' },
+                        { key: 'is_mandatory', label: 'Wajib' },
+                      ] as const).map(({ key, label }) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${field.id}-${key}`}
+                            checked={!!watch(`model.${i}.${key}`)}
+                            onCheckedChange={(v) => setValue(`model.${i}.${key}`, !!v)}
+                          />
+                          <Label htmlFor={`${field.id}-${key}`} className="text-xs font-normal cursor-pointer">{label}</Label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label={`Penjelasan ${label}`}
+                                className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded"
+                              >
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              {COLUMN_FLAG_HELP[key]?.description ?? label}
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipProvider>
                 </div>
               ))}
             </CardContent>
