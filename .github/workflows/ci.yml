@@ -72,6 +72,7 @@ jobs:
       APP_DESCRIPTION: Test
       APP_SUMMARY: Test
       APP_VERSION: 0.0.0
+      APP_TERM_OF_SERVICE: http://localhost/terms
       APP_CONTACT_NAME: Test
       APP_CONTACT_URL: http://localhost
       APP_CONTACT_EMAIL: test@test.com
