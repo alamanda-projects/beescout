@@ -118,6 +118,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r infra/python/packages/stdpack.txt
+          pip install -r infra/python/packages/addpack.txt
           pip install pytest pytest-asyncio httpx
       - name: Run tests
         run: pytest tests/ -v
