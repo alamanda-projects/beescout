@@ -165,6 +165,8 @@ Apa yang terjadi selanjutnya:
 - Bila kontribusi Anda konsisten, Anda akan diundang naik ke **Trusted Contributor** ([GOVERNANCE.md](../GOVERNANCE.md))
 - Anda bisa membantu review PR baru dari kontributor lain — itu kontribusi berharga juga
 
+**Untuk kontribusi berikutnya yang scope-nya lebih besar**: baca [docs/sdlc.md](sdlc.md) — alur 7 tahap lengkap dengan Definition of Ready/Done dan strategi pengujian per layer.
+
 ## Bantuan Saat Stuck
 
 | Saat | Pergi ke |

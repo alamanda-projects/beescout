@@ -32,6 +32,8 @@ Sebagai developer, peran Anda bergeser menjadi "Arsitek" yang memastikan kode ya
 
 ## Alur Kerja Kontribusi
 
+> **Ringkas di sini, detail di [docs/sdlc.md](docs/sdlc.md)** — dokumen SDLC menjelaskan 7 tahap (Plan → Design → Develop → Test → Review → Merge → Release) dengan Definition of Ready/Done di tiap tahap. Wajib dibaca sebelum kontribusi non-trivial.
+
 ### 1. Memahami Konteks
 Bacalah [README.md](README.md) dan terutama [CLAUDE.md](CLAUDE.md). `CLAUDE.md` adalah "otak" proyek ini yang berisi aturan main bagi AI agar tidak melakukan kesalahan teknis.
 

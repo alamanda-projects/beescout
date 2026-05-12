@@ -367,6 +367,7 @@ BeeScout adalah proyek komunitas. Kontribusi diterima dari siapa saja — manusi
 | Tujuan | Pergi ke |
 |---|---|
 | Kontribusi pertama dalam 30 menit | [docs/contributor-onboarding.md](docs/contributor-onboarding.md) |
+| Alur lengkap dari issue → release (SDLC) | [docs/sdlc.md](docs/sdlc.md) |
 | Etika & jalur kontribusi lengkap | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Kebijakan AI Usage | [CONTRIBUTING.md — Cara Berkolaborasi dengan AI](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai) |
 | Tata kelola proyek (siapa decide apa) | [GOVERNANCE.md](GOVERNANCE.md) |
