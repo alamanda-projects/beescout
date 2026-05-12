@@ -15,14 +15,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, RefreshCw, ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CONTRACT_TYPE_LABELS, STAKEHOLDER_ROLES } from '@/types/contract'
+import { CONTRACT_TYPE_LABELS, STAKEHOLDER_ROLE_GROUPS } from '@/types/contract'
 
 const CONTRACT_TYPES = Object.keys(CONTRACT_TYPE_LABELS) as string[]
 const CONSUMPTION_MODES = ['batch', 'streaming', 'real-time', 'on-demand']
@@ -421,7 +421,14 @@ export default function NewContractPage() {
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih peran" /></SelectTrigger>
                         <SelectContent>
-                          {STAKEHOLDER_ROLES.map(r => <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>)}
+                          {STAKEHOLDER_ROLE_GROUPS.map(g => (
+                            <SelectGroup key={g.group}>
+                              <SelectLabel className="text-xs">{g.group}</SelectLabel>
+                              {g.items.map(r => (
+                                <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, ArrowLeft, Save, Info } from 'lucide-react'
-import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLES, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
+import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
 import { COLUMN_FLAG_HELP } from '@/lib/field-help'
 
 const schema = z.object({
@@ -425,7 +425,14 @@ export default function EditContractPage() {
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih peran" /></SelectTrigger>
                         <SelectContent>
-                          {STAKEHOLDER_ROLES.map(r => <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>)}
+                          {STAKEHOLDER_ROLE_GROUPS.map(g => (
+                            <SelectGroup key={g.group}>
+                              <SelectLabel className="text-xs">{g.group}</SelectLabel>
+                              {g.items.map(r => (
+                                <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
