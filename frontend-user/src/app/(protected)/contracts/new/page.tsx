@@ -229,8 +229,9 @@ export default function NewContractPage() {
         examples: { type: null, data: null },
       }
       await addContract(payload)
+      const cn = watch('contract_number')
       toast.success('Data contract berhasil disimpan!')
-      router.push('/contracts')
+      router.push(cn ? `/contracts/${cn}` : '/contracts')
     } catch (err: unknown) {
       const detail = (err as any)?.response?.data?.detail
       let msg = 'Gagal menyimpan kontrak.'
