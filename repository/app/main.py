@@ -6,6 +6,7 @@
 # # # =======================
 
 from fastapi import FastAPI, HTTPException, Depends, Request, Body, UploadFile, File
+from pymongo.errors import DuplicateKeyError
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -173,6 +174,11 @@ async def bootstrap_setup(user_form: UserCreate):
 async def seed_catalog():
     if await catalogcollection.count_documents({}) == 0:
         await catalogcollection.insert_many(BUILTIN_RULES)
+
+
+@app.on_event("startup")
+async def ensure_indexes():
+    await dccollection.create_index("contract_number", unique=True)
 
 
 @app.get("/", response_class=RedirectResponse, status_code=302)
@@ -590,11 +596,18 @@ async def insert_datacontract(
     payload["pending_changes"] = None
     payload["pending_by"] = None
 
+    existing = await dccollection.find_one(
+        {"contract_number": payload["contract_number"]},
+        {"_id": 1},
+    )
+    if existing:
+        raise HTTPException(status_code=409, detail=dc_409)
+
     try:
         await dccollection.insert_one(payload)
         return {"message": "Insert Success"}
-    except Exception as e:
-        return {"error": str(e)}
+    except DuplicateKeyError:
+        raise HTTPException(status_code=409, detail=dc_409)
 
 
 @app.put("/datacontract/update", tags=["datacontract"])

@@ -81,6 +81,7 @@ jobs:
       CODE_RANGE: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz
       CODE_LENGTH: "13"
       DC_404: "Not found"
+      DC_409: "Already exists"
       DC_412: "Invalid"
       USR_401_UNAUTH: "Unauthorized"
       USR_401_INACT: "Inactive"

@@ -20,6 +20,7 @@ app_license_info_url = config("APP_LICENSE_INFO_URL")
 
 dc_404 = config("DC_404")
 dc_412 = config("DC_412")
+dc_409 = config("DC_409", default="Contract number sudah terdaftar")
 
 usr_401_unauth = config("USR_401_UNAUTH")
 usr_401_inact = config("USR_401_INACT")
