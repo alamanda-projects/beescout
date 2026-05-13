@@ -196,7 +196,7 @@ function ImportYamlModal({ context, contractNumber, onPrefill, onClose }: ModalP
               {context === 'new' ? 'Isi Form dari File YAML' : 'Import Data Contract dari YAML'}
             </span>
           </div>
-          <button onClick={onClose} className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700">
+          <button type="button" onClick={onClose} className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700">
             <X size={16} />
           </button>
         </div>

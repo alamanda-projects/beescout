@@ -34,6 +34,7 @@ function ChangesPreview({ changes }: { changes: Record<string, unknown> }) {
   return (
     <div>
       <button
+        type="button"
         onClick={() => setOpen((p) => !p)}
         className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 transition-colors"
       >

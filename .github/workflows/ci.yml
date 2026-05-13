@@ -124,6 +124,15 @@ jobs:
       - name: Run tests
         run: pytest tests/ -v
 
+  # ── QA: form button safety (Issue #11 regression guard) ───────────────────
+  qa-form-buttons:
+    name: QA — form button safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run form button safety check
+        run: bash scripts/qa-form-buttons.sh
+
   # ── Docker build check ─────────────────────────────────────────────────────
   docker-build:
     name: Docker build — ${{ matrix.service }}
