@@ -374,6 +374,7 @@ export default function UsersPage() {
                             ) : (
                               <div className="flex items-center justify-center gap-1">
                                 <button
+                                  type="button"
                                   title={u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                                   onClick={() => toggleActive({ username: u.username, is_active: !u.is_active })}
                                   className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
@@ -381,6 +382,7 @@ export default function UsersPage() {
                                   {u.is_active ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
                                 </button>
                                 <button
+                                  type="button"
                                   title="Edit"
                                   onClick={() => { setDeleteTarget(null); setEditTarget(editTarget === u.username ? null : u.username) }}
                                   className={`p-1.5 rounded hover:bg-slate-100 transition-colors ${editTarget === u.username ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-slate-700'}`}
@@ -388,6 +390,7 @@ export default function UsersPage() {
                                   <Pencil size={14} />
                                 </button>
                                 <button
+                                  type="button"
                                   title="Hapus"
                                   onClick={() => { setEditTarget(null); setDeleteTarget(deleteTarget === u.username ? null : u.username) }}
                                   className={`p-1.5 rounded hover:bg-red-50 transition-colors ${deleteTarget === u.username ? 'text-red-600 bg-red-50' : 'text-slate-400 hover:text-red-600'}`}

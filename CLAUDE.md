@@ -86,6 +86,20 @@ toast.error(msg)
 
 Apply this pattern in **all** form submit handlers.
 
+### Form buttons — `type` is mandatory
+
+Every raw `<button>` used as a non-submit action **must** have an explicit `type="button"`. HTML default for `<button>` inside `<form>` is `type="submit"` — silently triggers form submit on click.
+
+```tsx
+// ✗ wrong — clicking this submits the parent form
+<button onClick={toggleMode}>Bisnis</button>
+
+// ✓ right
+<button type="button" onClick={toggleMode}>Bisnis</button>
+```
+
+Shadcn `<Button>` defaults to `type="button"` (defensive default in [frontend-admin/src/components/ui/button.tsx](frontend-admin/src/components/ui/button.tsx)) — submit buttons must be explicit (`<Button type="submit">`). Enforced in CI by [scripts/qa-form-buttons.sh](scripts/qa-form-buttons.sh). See [docs/form-buttons.md](docs/form-buttons.md) for the full convention.
+
 ### API Client
 
 `frontend-admin/src/lib/api/` and `frontend-user/src/lib/api/` — Axios instance with:

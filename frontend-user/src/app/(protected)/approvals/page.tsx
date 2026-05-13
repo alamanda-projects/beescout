@@ -29,6 +29,7 @@ function VoteList({ record }: { record: ApprovalRecord }) {
   return (
     <div>
       <button
+        type="button"
         onClick={() => setOpen((p) => !p)}
         className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors"
       >
