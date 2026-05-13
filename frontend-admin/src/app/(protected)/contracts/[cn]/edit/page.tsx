@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, ArrowLeft, Save, Info } from 'lucide-react'
 import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
-import { COLUMN_FLAG_HELP } from '@/lib/field-help'
+import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
 
 const schema = z.object({
   standard_version: z.string().min(1, 'Wajib diisi'),
@@ -493,16 +493,42 @@ export default function EditContractPage() {
                       <Input placeholder="Nama ramah pengguna" className="h-8 text-xs" {...register(`model.${i}.business_name`)} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Tipe Data Bisnis</Label>
-                      <Input placeholder="Contoh: Tanggal, Nama, Nilai..." className="h-8 text-xs" {...register(`model.${i}.logical_type`)} />
+                  <TooltipProvider delayDuration={150}>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <Label className="text-xs">Tipe Data Bisnis</Label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button type="button" aria-label="Penjelasan Tipe Data Bisnis"
+                                className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">{DATA_TYPE_HELP.logical.tooltip}</TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <Input placeholder="Contoh: Tanggal, Nama, Nilai..." className="h-8 text-xs" {...register(`model.${i}.logical_type`)} />
+                        <p className="text-[10px] text-muted-foreground">{DATA_TYPE_HELP.logical.examples}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <Label className="text-xs">Tipe Data Teknis</Label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button type="button" aria-label="Penjelasan Tipe Data Teknis"
+                                className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">{DATA_TYPE_HELP.physical.tooltip}</TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <Input placeholder="Contoh: VARCHAR(255), INT, DATE..." className="h-8 text-xs font-mono" {...register(`model.${i}.physical_type`)} />
+                        <p className="text-[10px] text-muted-foreground">{DATA_TYPE_HELP.physical.examples}</p>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Tipe Data Teknis</Label>
-                      <Input placeholder="Contoh: VARCHAR(255), INT, DATE..." className="h-8 text-xs font-mono" {...register(`model.${i}.physical_type`)} />
-                    </div>
-                  </div>
+                  </TooltipProvider>
                   <div className="space-y-1">
                     <Label className="text-xs">Deskripsi</Label>
                     <Input placeholder="Penjelasan singkat kolom ini" className="h-8 text-xs" {...register(`model.${i}.description`)} />

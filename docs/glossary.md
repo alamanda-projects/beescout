@@ -70,7 +70,36 @@
 | Pydantic Model | Model Validasi | Definisi struktur data di backend yang otomatis memvalidasi input | (tidak di UI) |
 | YAML | YAML | Format file untuk konfigurasi/data yang mudah dibaca manusia | YAML (untuk import) |
 
-## F. Atribut Kolom (Column Flags)
+## F. Mapping Tipe Bisnis ↔ Teknis
+
+> Saat mengisi kolom Data Contract (Step 3 — Struktur Data), terdapat dua field tipe data:
+>
+> - **Tipe Data Bisnis** (`logical_type`) — istilah yang dipahami pengguna domain
+> - **Tipe Data Teknis** (`physical_type`) — tipe SQL/storage yang dipakai sistem
+>
+> Keduanya **free-text** (sesuai ODCS spec) supaya tetap fleksibel lintas database. Tabel di bawah adalah panduan pemetaan umum untuk membantu Bu Retno (non-IT) memilih tipe teknis yang sesuai.
+
+| Tipe Bisnis | Tipe Teknis (contoh) | Catatan |
+|---|---|---|
+| Tanggal | `DATE`, `TIMESTAMP`, `DATETIME` | `TIMESTAMP` jika butuh jam/menit/detik |
+| Nama / Teks Pendek | `VARCHAR(255)`, `STRING` | Batasi panjang sesuai kebutuhan |
+| Teks Panjang | `TEXT`, `CLOB` | Untuk deskripsi/komentar bebas |
+| Jumlah Uang | `DECIMAL(15,2)`, `NUMERIC(15,2)` | Jangan pakai `FLOAT` (rentan bug pembulatan) |
+| Identifier | `UUID`, `VARCHAR(36)`, `BIGINT` | UUID untuk identifier global; BIGINT untuk auto-increment |
+| Status / Kategori | `VARCHAR(50)`, `ENUM` | `ENUM` jika nilainya tertutup dan jarang berubah |
+| Bilangan Bulat | `INTEGER`, `INT`, `BIGINT` | `BIGINT` untuk angka besar (≥ 2 miliar) |
+| Bilangan Desimal | `DECIMAL`, `NUMERIC`, `FLOAT`, `DOUBLE` | Pakai `DECIMAL` jika presisi penting (mis. keuangan) |
+| Boolean | `BOOLEAN`, `BIT`, `TINYINT(1)` | Beberapa DB tidak punya `BOOLEAN` native |
+| Email / URL | `VARCHAR(320)`, `VARCHAR(2048)` | Pakai constraint validasi terpisah |
+
+**Catatan pemakaian**:
+- Tipe teknis yang dipilih sebaiknya sesuai dengan **database aktual** tempat data disimpan
+- Jika kontrak melayani lebih dari satu database, dokumentasikan tipe yang paling restrictive
+- Validasi tambahan (panjang, format, range) didefinisikan di **Aturan Kualitas** (Step 4), bukan di tipe data
+
+---
+
+## G. Atribut Kolom (Column Flags)
 
 > Label kolom-kolom ini muncul di form Data Contract (Step 3 — Struktur Data). UI menampilkan istilah Inggris (konvensi industri data) + tooltip ⓘ dengan penjelasan ID di bawah. Sinkron dengan `frontend-admin/src/lib/field-help.ts`.
 

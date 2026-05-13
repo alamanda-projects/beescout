@@ -44,3 +44,23 @@ export const COLUMN_FLAG_HELP: Record<string, FieldHelp> = {
       'Audit — kolom yang mencatat jejak perubahan (siapa, kapan). Biasanya: created_at, updated_at, created_by.',
   },
 }
+
+/**
+ * Tipe Data Bisnis (`logical_type`) vs Tipe Data Teknis (`physical_type`).
+ *
+ * Field di form sengaja free-text agar sejalan dengan ODCS spec. Helper text
+ * di bawah ini menampilkan contoh konkret + link anchor ke glossary supaya
+ * Bu Retno (non-IT) dapat memetakan istilah bisnis ke tipe SQL yang sesuai.
+ */
+export const DATA_TYPE_HELP = {
+  logical: {
+    examples: 'Contoh: Tanggal, Nama, Jumlah Uang, Identifier, Status',
+    tooltip:
+      'Tipe Data Bisnis — istilah yang dipahami pengguna domain (mis. "Tanggal", "Nama", "Jumlah Uang"). Lihat docs/glossary.md (section "Mapping Tipe Bisnis ↔ Teknis") untuk daftar pemetaan.',
+  },
+  physical: {
+    examples: 'Contoh: VARCHAR(255), DATE, DECIMAL(15,2), UUID, BOOLEAN',
+    tooltip:
+      'Tipe Data Teknis — tipe SQL/storage yang dipakai sistem (mis. VARCHAR(255), DATE, DECIMAL). Lihat docs/glossary.md (section "Mapping Tipe Bisnis ↔ Teknis") untuk daftar pemetaan.',
+  },
+} as const
