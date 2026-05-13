@@ -277,7 +277,11 @@ export default function EditContractPage() {
         ))}
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
+      >
 
         {/* ── Informasi Dasar ─────────────────────────────────────── */}
         {activeSection === 0 && (
