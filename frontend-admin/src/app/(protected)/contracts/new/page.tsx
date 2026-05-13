@@ -262,7 +262,10 @@ export default function NewContractPage() {
 
       <StepIndicator current={step} />
 
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
+      >
 
         {/* ── Step 0: Informasi Dasar ─────────────────────────────── */}
         {step === 0 && (

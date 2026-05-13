@@ -82,6 +82,7 @@ function ModeSwitcher({
   return (
     <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-0.5">
       <button
+        type="button"
         onClick={() => onChange('biz')}
         className={cn(
           'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
@@ -93,6 +94,7 @@ function ModeSwitcher({
         <User2 size={12} /> Bisnis
       </button>
       <button
+        type="button"
         onClick={() => onChange('eng')}
         className={cn(
           'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
@@ -382,12 +384,14 @@ function EngRuleForm({
                 className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-green-300 focus:outline-none"
               />
               <button
+                type="button"
                 onClick={() => setProps(prev => prev.filter((_, j) => j !== i))}
                 className="text-zinc-600 hover:text-red-400 text-sm"
               >×</button>
             </div>
           ))}
           <button
+            type="button"
             onClick={() => setProps(prev => [...prev, { property: '', value: '' }])}
             className="flex items-center gap-1.5 text-[11px] text-zinc-600 hover:text-sky-400 border border-dashed border-zinc-700 rounded px-2 py-1 w-fit"
           >
@@ -397,6 +401,7 @@ function EngRuleForm({
       </div>
       <div className="flex justify-end pt-1">
         <button
+          type="button"
           onClick={handleAdd}
           className="flex items-center gap-1.5 rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-200 text-xs px-3 py-1.5"
         >
@@ -467,7 +472,7 @@ function RuleList({
               </div>
             )}
           </div>
-          <button onClick={() => onRemove(i)} className={cn(
+          <button type="button" onClick={() => onRemove(i)} className={cn(
             'shrink-0 p-1 rounded hover:bg-red-50',
             mode === 'eng' ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500',
           )}>
@@ -544,6 +549,7 @@ export default function QualityRulesEditor({
         {(['dataset', 'column'] as const).map(l => (
           <button
             key={l}
+            type="button"
             onClick={() => setActiveLayer(l)}
             className={cn(
               'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
@@ -601,6 +607,7 @@ export default function QualityRulesEditor({
               <Card key={col.column} className={cn(isOpen && 'border-amber-200')}>
                 {/* Column accordion header */}
                 <button
+                  type="button"
                   className="flex w-full items-center justify-between px-4 py-3 text-left"
                   onClick={() => setExpandedCol(isOpen ? null : col.column)}
                 >
