@@ -22,6 +22,30 @@ When you need user-facing personas (Pak Bambang/Bu Retno/Mas Dimas/Mbak Indah), 
 
 ---
 
+## Working Mode
+
+The maintainer (single, [@haninp](https://github.com/haninp)) operates **brainstorm-heavy** — most input is "ide / fitur / bug report" in Bahasa Indonesia. **Your job is to execute**: investigate the codebase, propose a concrete plan when the task is non-trivial, implement, run QA, and open a PR.
+
+- **Language**: Maintainer writes in Bahasa Indonesia. Reply in the same language. User-facing UI strings are Indonesian (follow [docs/glossary.md](docs/glossary.md)); code identifiers, file names, commit subjects, and PR titles stay in English (conventional-commit style).
+- **PR is the unit of delivery** — every change goes through a PR, even one-line fixes. Maintainer reviews & merges from mobile (GitHub mobile app).
+- **Issues are the source of truth** for pending work — not chat history, not memory. If a non-trivial decision emerges mid-task, leave a comment on the relevant issue/PR before the chat moves on. Future agents (cloud or local) read issues, not transcripts.
+- **`docs/sdlc.md`** is the canonical lifecycle. Skip steps only when the change is truly trivial (typo, comment fix).
+
+### Definition of Done (before opening a PR)
+
+1. **Tests pass locally**: `make test` (backend + both frontend typechecks).
+2. **QA scripts pass**: every `scripts/qa-*.sh` relevant to the change exits 0. The form button safety check (`scripts/qa-form-buttons.sh`) runs on every PR via CI — keep it green.
+3. **New convention discovered? Document it.** Add a section to this file (and a longer write-up under `docs/` if it deserves one). Future you / future agent will need it.
+4. **PR description** includes: short summary, "Closes #N" trailer, test plan checklist.
+5. **Branch naming**: `<type>/<issue#>-<slug>` where `type` ∈ `fix | feat | chore | docs | refactor`. Example: `fix/12-unique-contract-number`.
+6. **Squash-merge only** (project default). The branch is deleted on merge.
+
+### When the task is non-trivial
+
+Use the plan mode (Claude Code) or write a plan file to `.github/` / comment on the issue **before** writing code. A plan should include: context (why), scope (what), files to touch, risk/trade-offs, and verification approach. Mirror the style of existing plans under `.claude/plans/` if available, or follow [docs/sdlc.md](docs/sdlc.md)'s "Design" step.
+
+---
+
 ## Backend Conventions
 
 - **All routes in `repository/app/main.py`** — single-file by design (small surface area). Don't introduce a router split without a [Tech Proposal](.github/ISSUE_TEMPLATE/tech-proposal.yml).
@@ -224,6 +248,39 @@ docker compose build backend && docker compose up -d backend
 ```
 
 For hot reload, use `make dev` instead.
+
+### Backend crash-loops on startup with `DuplicateKeyError` (unique index build)
+
+**Symptom**: `Application startup failed. Exiting.` with `E11000 duplicate key error … contract_number_1`.
+
+**Cause**: `ensure_indexes()` tries to build a unique index on a collection that already contains duplicates (e.g., from before the index was introduced).
+
+**Fix**: run the dedup helper, then restart the backend.
+
+```bash
+# Inspect duplicates first (replace password from .env)
+docker exec beescout-db-1 mongosh \
+  "mongodb://$MONGODB_USER:$MONGODB_PASS@localhost:27017/$MONGODB_DB?authSource=admin" \
+  --eval 'db.dgr.aggregate([{$group:{_id:"$contract_number",c:{$sum:1}}},{$match:{c:{$gt:1}}}]).toArray()'
+
+# Then run the dedup script (keeps oldest doc per contract_number, deletes the rest)
+docker compose run --rm backend python -m scripts.dedupe_contracts --apply
+docker compose restart backend
+```
+
+Script source: [repository/scripts/dedupe_contracts.py](repository/scripts/dedupe_contracts.py).
+
+### `mongosh` says "Command requires authentication"
+
+MongoDB root credentials live on the `admin` database, not on the app DB. Always pass `?authSource=admin`:
+
+```bash
+docker exec beescout-db-1 mongosh \
+  "mongodb://admin:<password>@localhost:27017/dgrdb?authSource=admin" \
+  --eval 'db.dgr.getIndexes()'
+```
+
+Password is whatever you set in `.env` as `MONGODB_PASS`.
 
 ---
 
