@@ -3,16 +3,20 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getContractByNumber } from '@/lib/api/contracts'
+import { getMe } from '@/lib/api/auth'
+import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Pencil } from 'lucide-react'
+import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 import type { ModelColumn, Stakeholder } from '@/types/contract'
+import { getStakeholderRoleLabel } from '@/types/contract'
 
 function BoolCell({ value }: { value?: boolean }) {
   return value ? (
@@ -35,6 +39,7 @@ export default function ContractDetailPage() {
   const { cn } = useParams<{ cn: string }>()
   const router = useRouter()
 
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const { data: contract, isLoading, isError } = useQuery({
     queryKey: ['contract', cn],
     queryFn: () => getContractByNumber(cn),
@@ -80,9 +85,13 @@ export default function ContractDetailPage() {
               {' · '}Versi {metadata?.version}
             </p>
           </div>
-          <Badge variant="secondary" className="capitalize text-sm px-3 py-1">
-            {metadata?.type ?? '-'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="capitalize text-sm px-3 py-1">{metadata?.type ?? '-'}</Badge>
+            <ImportYamlButton context="detail" contractNumber={cn} userRole={user?.group_access as any} />
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/contracts/${cn}/edit`}><Pencil size={14} className="mr-1.5" />Edit</Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -92,6 +101,7 @@ export default function ContractDetailPage() {
           <TabsTrigger value="model">Struktur Data ({model?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="ports">Koneksi ({ports?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="examples">Contoh Data</TabsTrigger>
+          <TabsTrigger value="raw">JSON Raw</TabsTrigger>
         </TabsList>
 
         {/* ── Metadata tab ─────────────────────────────────────────── */}
@@ -106,6 +116,7 @@ export default function ContractDetailPage() {
                 <InfoRow label="Pemilik" value={metadata?.owner} />
                 <InfoRow label="Tipe" value={metadata?.type} />
                 <InfoRow label="Versi" value={metadata?.version} />
+                <InfoRow label="Standar Versi" value={contract.standard_version} />
                 <InfoRow label="Mode Konsumsi" value={metadata?.consumption_mode} />
                 {metadata?.description?.purpose && (
                   <>
@@ -160,7 +171,7 @@ export default function ContractDetailPage() {
                       {metadata.stakeholders.map((s: Stakeholder, i: number) => (
                         <TableRow key={i}>
                           <TableCell className="font-medium">{s.name}</TableCell>
-                          <TableCell>{s.role}</TableCell>
+                          <TableCell>{getStakeholderRoleLabel(s.role)}</TableCell>
                           <TableCell className="text-muted-foreground">{s.email ?? '-'}</TableCell>
                           <TableCell className="text-muted-foreground">{formatDate(s.date_in)}</TableCell>
                         </TableRow>
@@ -290,6 +301,18 @@ export default function ContractDetailPage() {
                   </pre>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── JSON Raw tab ───────────────────────────────────────────── */}
+        <TabsContent value="raw">
+          <Card>
+            <CardHeader className="pb-3"><CardTitle className="text-base">JSON Raw</CardTitle></CardHeader>
+            <CardContent>
+              <pre className="text-xs bg-slate-50 border rounded-lg p-4 overflow-auto max-h-[600px] text-slate-700">
+                {JSON.stringify(contract, null, 2)}
+              </pre>
             </CardContent>
           </Card>
         </TabsContent>
