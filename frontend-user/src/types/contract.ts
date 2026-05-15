@@ -122,6 +122,15 @@ export const CONTRACT_TYPE_LABELS: Record<string, string> = {
   model: 'Model',
 }
 
+export const CONTRACT_TYPES     = ['dataset', 'api', 'stream', 'report', 'model'] as const
+export const CONSUMPTION_MODES  = ['batch', 'streaming', 'real-time', 'on-demand'] as const
+export const RETENTION_UNITS    = ['tahun', 'bulan', 'pekan', 'hari', 'jam'] as const
+export const QUALITY_DIMENSIONS = [
+  { value: 'completeness', label: 'Completeness' },
+  { value: 'validity',     label: 'Validity' },
+  { value: 'accuracy',     label: 'Accuracy' },
+] as const
+
 export interface StakeholderRoleItem { value: string; label: string }
 export interface StakeholderRoleGroup { group: string; items: StakeholderRoleItem[] }
 

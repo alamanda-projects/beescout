@@ -19,14 +19,12 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
-import { Plus, Trash2, Loader2, RefreshCw, ChevronRight, ChevronLeft, Check } from 'lucide-react'
+import { Plus, Trash2, Loader2, RefreshCw, ChevronRight, ChevronLeft, Check, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CONTRACT_TYPE_LABELS, STAKEHOLDER_ROLE_GROUPS } from '@/types/contract'
-
-const CONTRACT_TYPES = Object.keys(CONTRACT_TYPE_LABELS) as string[]
-const CONSUMPTION_MODES = ['batch', 'streaming', 'real-time', 'on-demand']
-const RETENTION_UNITS = ['tahun', 'bulan', 'pekan', 'hari', 'jam']
+import { CONTRACT_TYPE_LABELS, CONTRACT_TYPES, CONSUMPTION_MODES, RETENTION_UNITS, STAKEHOLDER_ROLE_GROUPS } from '@/types/contract'
+import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 const schema = z.object({
@@ -495,37 +493,79 @@ export default function NewContractPage() {
                         <Input placeholder="Nama ramah pengguna" className="h-8 text-xs" {...register(`model.${i}.business_name`)} />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Tipe Data Bisnis</Label>
-                        <Input placeholder="Contoh: Tanggal, Nama, Nilai..." className="h-8 text-xs" {...register(`model.${i}.logical_type`)} />
+                    <TooltipProvider delayDuration={150}>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <Label className="text-xs">Tipe Data Bisnis</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button type="button" aria-label="Penjelasan Tipe Data Bisnis"
+                                  className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                  <Info className="h-3.5 w-3.5" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">{DATA_TYPE_HELP.logical.tooltip}</TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <Input placeholder="Contoh: Tanggal, Nama, Nilai..." className="h-8 text-xs" {...register(`model.${i}.logical_type`)} />
+                          <p className="text-[10px] text-muted-foreground">{DATA_TYPE_HELP.logical.examples}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <Label className="text-xs">Tipe Data Teknis</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button type="button" aria-label="Penjelasan Tipe Data Teknis"
+                                  className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                  <Info className="h-3.5 w-3.5" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">{DATA_TYPE_HELP.physical.tooltip}</TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <Input placeholder="Contoh: VARCHAR(255), INT, DATE..." className="h-8 text-xs font-mono" {...register(`model.${i}.physical_type`)} />
+                          <p className="text-[10px] text-muted-foreground">{DATA_TYPE_HELP.physical.examples}</p>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Tipe Data Teknis</Label>
-                        <Input placeholder="Contoh: VARCHAR(255), INT, DATE..." className="h-8 text-xs font-mono" {...register(`model.${i}.physical_type`)} />
-                      </div>
-                    </div>
+                    </TooltipProvider>
                     <div className="space-y-1">
                       <Label className="text-xs">Deskripsi</Label>
                       <Input placeholder="Penjelasan singkat kolom ini" className="h-8 text-xs" {...register(`model.${i}.description`)} />
                     </div>
-                    <div className="flex gap-6 flex-wrap">
-                      {([
-                        { key: 'is_primary', label: 'Primary Key' },
-                        { key: 'is_nullable', label: 'Nullable' },
-                        { key: 'is_pii', label: 'Data PII' },
-                        { key: 'is_mandatory', label: 'Wajib' },
-                      ] as const).map(({ key, label }) => (
-                        <div key={key} className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${field.id}-${key}`}
-                            checked={!!watch(`model.${i}.${key}`)}
-                            onCheckedChange={(v) => setValue(`model.${i}.${key}`, !!v)}
-                          />
-                          <Label htmlFor={`${field.id}-${key}`} className="text-xs font-normal cursor-pointer">{label}</Label>
-                        </div>
-                      ))}
-                    </div>
+                    <TooltipProvider delayDuration={150}>
+                      <div className="flex gap-6 flex-wrap">
+                        {([
+                          { key: 'is_primary', label: 'Primary Key' },
+                          { key: 'is_nullable', label: 'Nullable' },
+                          { key: 'is_pii', label: 'Data PII' },
+                          { key: 'is_mandatory', label: 'Wajib' },
+                        ] as const).map(({ key, label }) => (
+                          <div key={key} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`${field.id}-${key}`}
+                              checked={!!watch(`model.${i}.${key}`)}
+                              onCheckedChange={(v) => setValue(`model.${i}.${key}`, !!v)}
+                            />
+                            <Label htmlFor={`${field.id}-${key}`} className="text-xs font-normal cursor-pointer">{label}</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  aria-label={`Penjelasan ${label}`}
+                                  className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded"
+                                >
+                                  <Info className="h-3.5 w-3.5" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                {COLUMN_FLAG_HELP[key]?.description ?? label}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        ))}
+                      </div>
+                    </TooltipProvider>
                   </div>
                 ))}
               </CardContent>
@@ -545,8 +585,8 @@ export default function NewContractPage() {
                 })
                 toast.success('Aturan kualitas berhasil diperbarui')
               }}
-              userMode="biz"
-              canSwitchMode={false}
+              userMode={userRole === 'user' ? 'biz' : 'eng'}
+              canSwitchMode={true}
             />
           </div>
         )}
