@@ -2,6 +2,8 @@
 
 Panduan lengkap untuk menjalankan BeeScout dari nol, baik untuk pengembangan lokal maupun deployment produksi.
 
+> 👋 **Bukan developer?** Lihat [docs/quick-start-non-tech.md](docs/quick-start-non-tech.md) — panduan ramah klik-untuk-jalan tanpa terminal.
+
 ---
 
 ## Ringkasan Cepat (3 Langkah)

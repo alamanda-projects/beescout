@@ -345,6 +345,7 @@ echo "127.0.0.1 app.localhost admin.localhost" | sudo tee -a /etc/hosts
 ```
 
 Panduan lengkap → [getting-started.md](getting-started.md)
+Panduan untuk non-developer (klik-untuk-jalan) → [docs/quick-start-non-tech.md](docs/quick-start-non-tech.md)
 
 ---
 
@@ -384,6 +385,7 @@ BeeScout adalah proyek komunitas. Kontribusi diterima dari siapa saja — manusi
 | Dokumen | Untuk siapa |
 |---|---|
 | [Getting Started](getting-started.md) | Setup lokal, troubleshooting infra |
+| [Quick Start (non-tech)](docs/quick-start-non-tech.md) | Panduan klik-untuk-jalan untuk pengguna non-teknis |
 | [CLAUDE.md](CLAUDE.md) | Konvensi kode, guardrails AI, gotchas teknis |
 | [docs/personas.md](docs/personas.md) | 4 persona pengguna BeeScout |
 | [docs/glossary.md](docs/glossary.md) | Kamus istilah teknis ↔ bisnis |
