@@ -191,6 +191,10 @@ export default function NewContractPage() {
   }
 
   const onSubmit = async (data: FormData) => {
+    // Guard: hanya submit dari step terakhir (Tinjauan). Cegah submit
+    // tidak sengaja yang dipicu dari step lain (mis. tombol child yang
+    // bubble ke <form>, atau onSubmit handler yang ke-trigger non-final).
+    if (step !== STEPS.length - 1) return
     setIsSubmitting(true)
     try {
       // Clean empty optional values

@@ -190,6 +190,7 @@ export default function NewContractPage() {
   }
 
   const onSubmit = async (data: FormData) => {
+    if (step !== STEPS.length - 1) return
     setIsSubmitting(true)
     try {
       const slaBase = Object.fromEntries(
