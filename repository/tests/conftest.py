@@ -24,7 +24,18 @@ async def client(mock_collections):
     """
     HTTP test client with MongoDB collections patched.
     Import app inside fixture so env vars are already set when main.py loads.
+
+    Mocks are session-scoped for speed, but per-test side_effect / return_value
+    bleed between tests would cause order-dependent failures (issue #39).
+    Reset both before each test to guarantee a clean slate.
     """
+    for col in mock_collections.values():
+        col.reset_mock()
+        for attr in ("find_one", "find", "insert_one", "insert_many", "update_one", "delete_one", "count_documents"):
+            method = getattr(col, attr, None)
+            if method is not None:
+                method.side_effect = None
+                method.return_value = None
     with (
         patch("app.main.usrcollection", mock_collections["usr"]),
         patch("app.main.dccollection", mock_collections["dgr"]),
