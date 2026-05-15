@@ -4,14 +4,45 @@ Panduan lengkap untuk menjalankan BeeScout dari nol, baik untuk pengembangan lok
 
 ---
 
+## Ringkasan Cepat (3 Langkah)
+
+> Cocok untuk yang ingin langsung coba tanpa membaca semua detail.
+
+```bash
+# 1. Clone repo dan masuk ke folder
+git clone <url-repo> beescout && cd beescout
+
+# 2. Buat file konfigurasi
+make setup       # menyalin .env.example → .env (edit passwordnya dulu!)
+
+# 3. Jalankan semua layanan
+make up
+```
+
+Setelah `make up` selesai, buka browser:
+- **Aplikasi User** → http://app.localhost
+- **Panel Admin** → http://admin.localhost
+
+> Sebelum bisa buka di browser, Anda perlu menambahkan 2 baris ke `/etc/hosts` — lihat [bagian 3](#3-konfigurasi-etchosts-dev-lokal).
+
+---
+
+## Apa itu `make`?
+
+`make` adalah alat bantu perintah yang sudah tersedia di Mac dan Linux (Windows: install via [Chocolatey](https://chocolatey.org/): `choco install make`). Semua perintah BeeScout sudah dibungkus dalam `Makefile` di root repo — cukup ketik `make <nama-perintah>` di terminal.
+
+Contoh: `make up` sama dengan menjalankan `docker compose up --build -d` secara lengkap.
+
+---
+
 ## Prasyarat
 
-| Tools | Versi Minimum |
-|---|---|
-| Docker | 24.x |
-| Docker Compose | v2.x (`docker compose`, bukan `docker-compose`) |
-| Make | opsional, memudahkan perintah |
-| Node.js | 20.x (hanya jika dev frontend tanpa Docker) |
+| Tools | Versi Minimum | Cara Install |
+|---|---|---|
+| Docker | 24.x | [docs.docker.com](https://docs.docker.com/get-docker/) |
+| Docker Compose | v2.x (`docker compose`, bukan `docker-compose`) | Sudah termasuk dalam Docker Desktop |
+| Make | — | Sudah ada di Mac/Linux. Windows: `choco install make` |
+| Node.js | 20.x | Hanya jika dev frontend tanpa Docker |
 
 ---
 
@@ -260,23 +291,43 @@ npm install && npm run dev
 
 ---
 
-## 8. Perintah Berguna
+## 8. Referensi Perintah `make`
 
-```bash
-make setup        # copy .env.example → .env
-make up           # build & jalankan full stack
-make down         # stop semua container
-make restart      # restart semua container
-make logs         # lihat log semua container (real-time)
-make status       # lihat status semua container
-make dev          # jalankan mode development
-make dev-down     # stop dev stack
-make up-be        # jalankan backend + db saja
-make test         # jalankan semua tests (backend + TS typecheck)
-make test-backend # pytest untuk backend saja
-make test-fe-admin # TypeScript check untuk frontend-admin
-make test-fe-user  # TypeScript check untuk frontend-user
-```
+### Setup & Menjalankan
+
+| Perintah | Fungsi |
+|---|---|
+| `make setup` | Salin `.env.example` → `.env` (jalankan sekali di awal) |
+| `make up` | Build dan jalankan semua layanan (nginx, backend, frontend, db) |
+| `make down` | Hentikan semua layanan |
+| `make restart` | Restart semua layanan tanpa rebuild |
+| `make logs` | Lihat log real-time dari semua container |
+| `make status` | Lihat status container (mana yang jalan / mati) |
+
+### Development
+
+| Perintah | Fungsi |
+|---|---|
+| `make dev` | Jalankan mode development (hot reload, port terbuka) |
+| `make dev-down` | Hentikan stack development |
+| `make up-be` | Jalankan backend + database saja (tanpa frontend) |
+
+### Testing
+
+| Perintah | Fungsi |
+|---|---|
+| `make test` | Jalankan semua test (backend + TypeScript check) |
+| `make test-backend` | Pytest untuk backend saja |
+| `make test-fe-admin` | TypeScript check untuk frontend-admin |
+| `make test-fe-user` | TypeScript check untuk frontend-user |
+
+### Utilitas
+
+| Perintah | Fungsi |
+|---|---|
+| `make health` | Cek apakah backend bisa diakses |
+| `make clean` | Hapus Docker image yang tidak terpakai |
+| `make clean-all` | Hapus semua container, volume, dan image lokal (hati-hati: data MongoDB ikut terhapus) |
 
 ---
 

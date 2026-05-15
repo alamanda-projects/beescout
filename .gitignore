@@ -9,9 +9,6 @@ node_modules/
 # claude
 .claude
 
-# Makefile
-Makefile
-
 # Local YAML
 *-local.yml
 
