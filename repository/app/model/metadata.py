@@ -43,7 +43,8 @@ class MetadataQuality(BaseModel):
     code: Optional[str]
     description: Optional[str]
     dimension: Optional[str]
-    impact: Optional[str]
+    impact: Optional[str]    # operational | financial | regulatory | reputational
+    severity: Optional[str] = None  # low | medium | high
     custom_properties: Optional[
         List[MetadataQualityCustom]
     ]  # -> merujuk ke class MetadataQualityCustom

@@ -24,7 +24,8 @@ class ModelQuality(BaseModel):
     code: Optional[str]
     description: Optional[str]
     dimension: Optional[str]
-    impact: Optional[str]
+    impact: Optional[str]    # operational | financial | regulatory | reputational
+    severity: Optional[str] = None  # low | medium | high
     custom_properties: Optional[List[ModelQualityCustom]]  # -> merujuk ke class ModelQualityCustom
 
 

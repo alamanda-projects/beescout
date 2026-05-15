@@ -21,6 +21,7 @@ export interface Quality {
   description?: string
   dimension?: string
   impact?: string
+  severity?: string
   custom_properties?: Record<string, string>
 }
 

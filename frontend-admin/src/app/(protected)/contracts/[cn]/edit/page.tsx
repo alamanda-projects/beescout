@@ -55,6 +55,7 @@ const schema = z.object({
       dimension: z.string().optional(),
       description: z.string().optional(),
       impact: z.string().optional(),
+      severity: z.string().optional(),
     })).optional(),
   }),
   model: z.array(z.object({
@@ -151,6 +152,7 @@ export default function EditContractPage() {
           dimension: q.dimension ?? 'completeness',
           description: q.description ?? '',
           impact: q.impact ?? '',
+          severity: q.severity ?? '',
         })),
       },
       model: (contract.model ?? []).map((col: any) => ({

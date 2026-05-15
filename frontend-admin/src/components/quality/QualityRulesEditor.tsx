@@ -29,8 +29,9 @@ import { toast } from 'sonner'
 import { Plus, Trash2, Code2, User2, ChevronDown, ChevronRight, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  DIMENSION_LABELS, IMPACT_LABELS, IMPACT_BIZ_LABELS, LAYER_LABELS,
-  type RuleCatalogItem, type QualityRule, type QualityCustomProp, type ImpactType,
+  DIMENSION_LABELS, IMPACT_TYPE_LABELS, SEVERITY_LABELS, SEVERITY_BIZ_LABELS, LAYER_LABELS,
+  IMPACT_BIZ_LABELS,
+  type RuleCatalogItem, type QualityRule, type QualityCustomProp, type ImpactType, type SeverityType,
 } from '@/types/rule_catalog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -60,6 +61,7 @@ function buildRuleFromModule(
   module: RuleCatalogItem,
   paramValues: Record<string, string>,
   impact: ImpactType,
+  severity: SeverityType,
   description?: string,
 ): QualityRule {
   return {
@@ -67,6 +69,7 @@ function buildRuleFromModule(
     description: description || module.description || '',
     dimension: module.dimension,
     impact,
+    severity,
     custom_properties: module.params
       .filter(p => paramValues[p.key])
       .map(p => ({ property: p.key, value: paramValues[p.key] })),
@@ -128,6 +131,7 @@ function SentenceRuleBuilder({
   const [selectedCode, setSelectedCode] = useState(layerModules[0]?.code ?? '')
   const [paramValues, setParamValues] = useState<Record<string, string>>({})
   const [impact, setImpact] = useState<ImpactType>('operational')
+  const [severity, setSeverity] = useState<SeverityType>('medium')
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const selectedModule = layerModules.find(m => m.code === selectedCode)
@@ -158,7 +162,7 @@ function SentenceRuleBuilder({
   const handleAdd = () => {
     if (!selectedModule) return
     if (!validateParams()) return
-    const rule = buildRuleFromModule(selectedModule, paramValues, impact)
+    const rule = buildRuleFromModule(selectedModule, paramValues, impact, severity)
     onAdd(rule)
     setParamValues({})
     setValidationErrors({})
@@ -248,25 +252,47 @@ function SentenceRuleBuilder({
         </div>
       ))}
 
-      {/* Impact + add button */}
-      <div className="flex items-center gap-4 text-xs">
-        <span className="text-zinc-500">Dampak jika dilanggar:</span>
-        <div className="flex gap-2">
-          {(Object.entries(IMPACT_BIZ_LABELS) as [ImpactType, string][]).map(([v, l]) => (
-            <label key={v} className={cn(
-              'flex items-center gap-1.5 cursor-pointer rounded border px-2.5 py-1 text-xs transition-all',
-              impact === v ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : 'border-zinc-200 text-zinc-500',
-            )}>
-              <input
-                type="radio"
-                name={`impact-${layer}-${columnName}`}
-                checked={impact === v}
-                onChange={() => setImpact(v)}
-                className="accent-amber-500"
-              />
-              {l}
-            </label>
-          ))}
+      {/* Impact + Severity + add button */}
+      <div className="flex flex-wrap items-center gap-3 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-500 shrink-0">Jenis dampak:</span>
+          <div className="flex gap-1.5">
+            {(Object.entries(IMPACT_TYPE_LABELS) as [ImpactType, string][]).map(([v, l]) => (
+              <label key={v} className={cn(
+                'flex items-center gap-1 cursor-pointer rounded border px-2 py-1 text-xs transition-all',
+                impact === v ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : 'border-zinc-200 text-zinc-500',
+              )}>
+                <input
+                  type="radio"
+                  name={`impact-${layer}-${columnName}`}
+                  checked={impact === v}
+                  onChange={() => setImpact(v)}
+                  className="accent-amber-500"
+                />
+                {l}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-500 shrink-0">Tingkat:</span>
+          <div className="flex gap-1.5">
+            {(Object.entries(SEVERITY_BIZ_LABELS) as [SeverityType, string][]).map(([v, l]) => (
+              <label key={v} className={cn(
+                'flex items-center gap-1 cursor-pointer rounded border px-2 py-1 text-xs transition-all',
+                severity === v ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : 'border-zinc-200 text-zinc-500',
+              )}>
+                <input
+                  type="radio"
+                  name={`severity-${layer}-${columnName}`}
+                  checked={severity === v}
+                  onChange={() => setSeverity(v)}
+                  className="accent-amber-500"
+                />
+                {l}
+              </label>
+            ))}
+          </div>
         </div>
         <Button size="sm" className="ml-auto h-7 gap-1 bg-amber-500 hover:bg-amber-600 text-white" onClick={handleAdd}>
           <Plus size={12} /> Tambahkan
@@ -288,6 +314,7 @@ function EngRuleForm({
   const [code, setCode] = useState(modules[0]?.code ?? '')
   const [dimension, setDimension] = useState<string>('completeness')
   const [impact, setImpact] = useState<string>('operational')
+  const [severity, setSeverity] = useState<string>('medium')
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<QualityCustomProp[]>([{ property: '', value: '' }])
 
@@ -308,6 +335,7 @@ function EngRuleForm({
       description: description || undefined,
       dimension,
       impact,
+      severity: severity || undefined,
       custom_properties: props.filter(p => p.property.trim()),
     })
     setDescription('')
@@ -352,18 +380,32 @@ function EngRuleForm({
           placeholder="ensure column is not null..."
         />
       </div>
-      {/* impact */}
-      <div>
-        <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">impact</div>
-        <select
-          value={impact}
-          onChange={e => setImpact(e.target.value)}
-          className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-sky-500"
-        >
-          {Object.entries(IMPACT_LABELS).map(([v, l]) => (
-            <option key={v} value={v}>{v}</option>
-          ))}
-        </select>
+      {/* impact + severity */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">impact</div>
+          <select
+            value={impact}
+            onChange={e => setImpact(e.target.value)}
+            className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-sky-500"
+          >
+            {Object.entries(IMPACT_TYPE_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">severity</div>
+          <select
+            value={severity}
+            onChange={e => setSeverity(e.target.value)}
+            className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-sky-500"
+          >
+            {Object.entries(SEVERITY_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </div>
       </div>
       {/* custom_properties */}
       <div>
@@ -453,6 +495,16 @@ function RuleList({
                       {IMPACT_BIZ_LABELS[r.impact] ?? r.impact}
                     </span>
                   )}
+                  {r.severity && (
+                    <span className={cn(
+                      'inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold',
+                      r.severity === 'high'   ? 'border-red-200 bg-red-50 text-red-700' :
+                      r.severity === 'medium' ? 'border-amber-200 bg-amber-50 text-amber-700' :
+                                                'border-zinc-200 bg-zinc-50 text-zinc-600',
+                    )}>
+                      {SEVERITY_BIZ_LABELS[r.severity as SeverityType] ?? r.severity}
+                    </span>
+                  )}
                 </div>
               </>
             ) : (
@@ -461,7 +513,13 @@ function RuleList({
                 <span className="text-zinc-600 mx-1">·</span>
                 <span className="text-yellow-300">{r.dimension}</span>
                 <span className="text-zinc-600 mx-1">·</span>
-                <span className="text-zinc-500">{r.impact}</span>
+                <span className="text-zinc-500">{r.impact ?? '—'}</span>
+                {r.severity && (
+                  <>
+                    <span className="text-zinc-600 mx-1">·</span>
+                    <span className="text-purple-400">{r.severity}</span>
+                  </>
+                )}
                 {r.custom_properties?.map((p, j) => (
                   <div key={j} className="ml-3 mt-0.5 text-[11px]">
                     <span className="text-sky-300">{p.property}</span>
