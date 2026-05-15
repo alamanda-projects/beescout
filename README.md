@@ -6,59 +6,137 @@
 
 > **Platform Open Source untuk pengelolaan Data Contract** — terpusat, terstandar, dan kolaboratif. Dibangun dengan filosofi AI-Native: *siapapun bisa berkontribusi, baik yang menulis kode maupun yang merumuskan masalah.*
 
-## Selamat Datang
+**Lompat ke:** [Coba di laptop Anda](#coba-di-laptop-anda) · [Apa yang bisa dilakukan](#apa-yang-bisa-beescout-lakukan) · [Berkontribusi](#berkontribusi) · [Dokumentasi](#dokumentasi) · [Roadmap](ROADMAP.md)
 
-BeeScout adalah jawaban kami untuk pertanyaan: **"Bagaimana organisasi data bisa dikelola lebih jelas, lebih akuntabel, dan lebih mudah dikolaborasikan — tanpa harus jadi unicorn enterprise tool?"**
+---
 
-Saat ini proyek dalam fase **pre-1.0** — sedang divalidasi via tes UX internal dan perancangan format quality rules. Cocok untuk:
+## Apa itu BeeScout?
+
+BeeScout adalah platform manajemen **Data Contract** — pencatatan terpusat untuk metadata, struktur data, SLA, dan aturan kualitas data. Memungkinkan engineer, analis, dan pemilik data berkolaborasi pada definisi data yang sama, **tanpa harus jadi unicorn enterprise tool**.
+
+Cocok untuk:
 
 - **Organisasi yang sedang merapikan data governance**-nya
 - **Engineer yang bekerja dengan banyak data producer/consumer**
-- **Analis bisnis yang butuh tahu "data ini bisa dipercaya tidak?"**
+- **Analis bisnis yang butuh tahu** *"data ini bisa dipercaya tidak?"*
 - **Komunitas yang mengeksplorasi pola standar Data Contract** (mengikuti spec [ODCS](https://github.com/bitol-io/open-data-contract-standard))
 
-## Ingin Berkontribusi?
+> Status proyek: **pre-1.0** — sedang divalidasi via tes UX internal dan perancangan format quality rules.
 
-Baik Anda **PM, Business Owner, Developer, atau pengguna AI** — ada jalur yang cocok:
+---
+
+## Lihat dulu
+
+> 📸 *Screenshot UI sedang dipersiapkan — akan ditambahkan di PR berikutnya (tracked di [Issue #21](https://github.com/alamanda-projects/beescout/issues/21)).*
+>
+> Sementara ini, [docs/quick-start-non-tech.md](docs/quick-start-non-tech.md) menjelaskan tiap halaman secara visual (form multi-step, tabel kontrak, tab detail, dll).
+
+---
+
+## Coba di laptop Anda
+
+### 👋 Anda bukan developer?
+
+Klik wizard — tidak perlu paham terminal. Wizard akan otomatis cek Docker, generate secret, jalankan layanan, dan pandu Anda update file `hosts`.
+
+| OS | File yang diklik |
+|---|---|
+| **Mac** | `scripts/install/setup-mac.command` |
+| **Windows** | `scripts/install/setup.bat` |
+| **Linux** | jalankan `bash scripts/install/setup.sh` di terminal |
+
+Panduan lengkap dengan langkah install Docker & troubleshooting: [**docs/quick-start-non-tech.md**](docs/quick-start-non-tech.md).
+
+### 🛠 Anda developer?
+
+```bash
+# 1. Clone dan setup env
+git clone <url-repo> beescout && cd beescout
+cp .env.example .env   # edit domain, password, dan JWT secrets
+
+# 2. Jalankan semua container
+make up
+
+# 3. Tambahkan ke /etc/hosts
+echo "127.0.0.1 app.localhost admin.localhost" | sudo tee -a /etc/hosts
+
+# 4. Buka browser
+#    User app    → http://app.localhost
+#    Admin panel → http://admin.localhost
+```
+
+Panduan lengkap → [getting-started.md](getting-started.md)
+
+---
+
+## Apa yang bisa BeeScout lakukan
+
+- **Kelola Data Contract** — multi-step form untuk metadata, schema, SLA, port koneksi, contoh data
+- **Alur Persetujuan (Approval Workflow)** — perubahan kontrak masuk antrean approval lintas steward → [docs/approval_workflow.md](docs/approval_workflow.md)
+- **Katalog Aturan Kualitas (Rule Catalog)** — aturan reusable lintas kontrak → [docs/rule_catalog.md](docs/rule_catalog.md)
+- **Import & Validasi YAML** — bulk import format ODCS standar dengan validasi skema → [docs/yaml_import.md](docs/yaml_import.md)
+- **RBAC + Multi-tenancy** — 4 role, akses kontrak per tim (consumer/producer)
+- **Service Account Keys** — token long-lived untuk integrasi pipeline CI/CD
+- **Dua frontend terpisah** — User App (lensa bisnis) dan Admin Panel (lensa steward)
+
+---
+
+## Filosofi AI-Native OSS
+
+BeeScout dikembangkan dengan pendekatan yang unik di dunia Open Source:
+
+1. **AI-Assisted Development** — kode dibangun & dipelihara dengan asistensi AI agent (Claude Code) yang dipandu oleh [`CLAUDE.md`](CLAUDE.md) sebagai guardrail proyek.
+2. **Product-First Contribution** — non-coder pun bisa kontribusi: ahli domain mendefinisikan masalah, AI mengeksekusi jadi kode.
+3. **Persona-Driven Design** — setiap fitur dirancang untuk persona spesifik (**Pak Bambang, Bu Retno, Mas Dimas, Mbak Indah**). Lihat [docs/personas.md](docs/personas.md).
+
+Penggunaan AI **disambut, bukan dilarang**. Kontributor cukup *disclose* level penggunaan di tiap PR (Manual / AI-assisted / AI-driven). Detail: [CONTRIBUTING.md — Cara Berkolaborasi dengan AI](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai).
+
+---
+
+## Berkontribusi
+
+BeeScout adalah proyek komunitas. Kontribusi diterima dari siapa saja — manusia maupun AI yang dijalankan kontributor manusia. Pilih jalur sesuai profil Anda:
 
 | Profil Anda | Mulai dari |
 |---|---|
 | **Punya ide tapi bukan coder** (PM/Bisnis) | [Buka issue "Ide Bisnis"](.github/ISSUE_TEMPLATE/business-idea.yml) — bahasa natural, tidak perlu install apa-apa |
 | **Developer / engineer** | [Onboarding Kontributor 30 menit](docs/contributor-onboarding.md) → fork → `make dev` |
-| **Pakai AI (Claude Code dsb)** | Sama seperti developer, tapi biarkan AI yang menulis kode. Lihat [AI Usage Policy](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai) |
+| **Pakai AI (Claude Code dsb)** | Sama seperti developer, tapi biarkan AI menulis kode. [AI Usage Policy](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai) |
 | **Ketemu bug** | [Bug Report template](.github/ISSUE_TEMPLATE/bug-report.yml) |
-| **Lapor kerentanan** | Jangan publik — gunakan [SECURITY.md](SECURITY.md) |
+| **Lapor kerentanan** | Jangan publik — [SECURITY.md](SECURITY.md) |
 
 > **Baru pertama kali kontribusi OSS?** Mulai di [docs/contributor-onboarding.md](docs/contributor-onboarding.md) — disusun agar Anda bisa selesaikan kontribusi pertama dalam 30 menit.
 
----
+### Referensi tata kelola
 
-## Executive Summary
-
-BeeScout adalah platform manajemen **Data Contract** — pencatatan metadata, struktur data, SLA, dan aturan kualitas data secara terpusat. Dibangun dengan konsep Data Contract dan dimodifikasi untuk kemudahan penggunaan, BeeScout menjadi landasan interoperabilitas, konsistensi, dan integritas data lintas domain.
-
-Platform ini hadir dengan arsitektur modular penuh: backend API terpusat, dua frontend terpisah (user & admin), reverse proxy berbasis Nginx, dan seluruhnya dapat dijalankan dengan satu perintah Docker Compose.
-
----
-
-## Filosofi & Metodologi (AI-Native OSS)
-
-BeeScout dikembangkan dengan pendekatan yang unik di dunia Open Source:
-
-1.  **AI-Assisted Development**: Kode sumber proyek ini dibangun dan dipelihara dengan asistensi agentic AI (**Claude Code**) yang dipandu oleh [`CLAUDE.md`](CLAUDE.md) — guardrail proyek.
-2.  **Product-First Contribution**: Kami mendesain proyek ini agar inklusif bagi **non-coder**. Ahli domain (Product/UX) bisa berkontribusi dengan mendefinisikan masalah dan instruksi logis, sementara AI membantu mengeksekusinya menjadi kode.
-3.  **Persona-Driven Design**: Setiap fitur dirancang untuk melayani persona spesifik (**Pak Bambang, Bu Retno, Mas Dimas, Mbak Indah**) untuk memastikan BeeScout benar-benar menyelesaikan masalah nyata di lapangan. Lihat [docs/personas.md](docs/personas.md).
-
-### Penggunaan AI di proyek ini,
-
-Penggunaan AI **disambut, bukan dilarang**. Kontributor cukup **disclose** level penggunaan AI di setiap PR (Manual / AI-assisted / AI-driven). Lebih lengkap: [CONTRIBUTING.md — Cara Berkolaborasi dengan AI](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai).
-
-Bagi yang ingin paham *bagaimana* AI menulis kode benar di repo ini: baca [CLAUDE.md](CLAUDE.md) — file itu adalah panduan untuk AI agent, sekaligus rujukan konvensi untuk developer manusia.
+| Tujuan | Pergi ke |
+|---|---|
+| Alur lengkap issue → release (SDLC) | [docs/sdlc.md](docs/sdlc.md) |
+| Etika & jalur kontribusi lengkap | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Tata kelola proyek (siapa decide apa) | [GOVERNANCE.md](GOVERNANCE.md) |
+| Roadmap (Now / Next / Later) | [ROADMAP.md](ROADMAP.md) |
+| Catatan keputusan arsitektur | [docs/adr/](docs/adr/) |
+| Etika komunitas | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Riwayat perubahan | [CHANGELOG.md](CHANGELOG.md) |
 
 ---
 
+## Roles & Hak Akses
 
-## Arsitektur Sistem
+Empat role menentukan **apa yang bisa dilihat & dilakukan** seseorang di BeeScout. Akses kontrak ditentukan oleh **tim**: kontrak terlihat oleh user yang timnya tercantum sebagai *consumer* (atau *producer*) di kontrak tersebut.
+
+| Role | Frontend | Cakupan akses kontrak | Kemampuan tambahan |
+|---|---|---|---|
+| `root` | Admin Panel | Semua kontrak | CRUD user (termasuk root), konfigurasi global |
+| `admin` | Admin Panel | Semua kontrak | Steward — kelola kontrak & rule catalog lintas tim |
+| `developer` | User App | Hanya kontrak yang timnya jadi consumer/producer | Generate Service Account Key untuk integrasi pipeline |
+| `user` | User App | Hanya kontrak yang timnya jadi consumer/producer | Read-only dengan kacamata bisnis |
+
+> **Penting**: `developer` dan `user` punya **cakupan akses yang sama** — keduanya hanya melihat kontrak yang timnya tercantum sebagai consumer/producer. Bedanya bukan luas akses, tapi *kacamata*: developer membaca dengan lensa teknis (schema, physical type, SA Key), user membaca dengan lensa bisnis (deskripsi, SLA, makna kolom). Visi cross-team adalah tanggung jawab `admin` (steward), bukan `developer`. Detail di [docs/personas.md](docs/personas.md).
+
+---
+
+## Arsitektur
 
 ```mermaid
 graph TD
@@ -78,7 +156,7 @@ graph TD
 
     subgraph Backend ["Backend Layer (FastAPI)"]
         API["BeeScout Repository API<br/>(Port 8888)"]
-        
+
         subgraph Logic ["Internal Services"]
             Auth["JWT Auth & RBAC"]
             ContractSvc["Contract Management"]
@@ -94,14 +172,14 @@ graph TD
 
     User -->|"app.domain.com"| Nginx
     Admin -->|"admin.domain.com"| Nginx
-    
+
     Nginx --> FEUser
     Nginx --> FEAdmin
     Nginx -->|"/api/*"| API
 
     FEUser --> API
     FEAdmin --> API
-    
+
     API --> Logic
     Logic --> DB
 ```
@@ -246,47 +324,15 @@ graph TD
 
 ---
 
-## Fitur Lanjutan
+## Stack Teknologi
 
-BeeScout dilengkapi dengan fitur tata kelola data yang canggih untuk mendukung skala enterprise:
-
-### Alur Persetujuan (Approval Workflow)
-Pengguna dengan role `user` atau `developer` dapat mengajukan perubahan pada Data Contract. Perubahan tersebut tidak langsung diterapkan, melainkan masuk ke antrean **Pending Approval**.
-- Admin/Root akan menerima notifikasi di dashboard.
-- Admin/Root dapat meninjau (diff), memberikan komentar/alasan, dan melakukan voting (Approve/Reject).
-- Perubahan hanya akan diterapkan secara otomatis jika semua approver memberikan suara setuju.
-
-Panduan lengkap → [**Alur Persetujuan**](docs/approval_workflow.md)
-
-### Katalog Aturan (Rule Catalog)
-Pusat pengelolaan aturan kualitas data (Data Quality Rules) yang dapat digunakan kembali di berbagai kontrak.
-- Mendukung aturan bawaan (built-in) dan aturan kustom.
-- Memastikan konsistensi definisi kualitas data di seluruh organisasi.
-- Dapat diakses via API untuk integrasi dengan pipeline CI/CD.
-
-Panduan lengkap → [**Katalog Aturan**](docs/rule_catalog.md)
-
-### Import & Validasi YAML
-Mendukung import Data Contract dalam jumlah besar menggunakan format YAML standar ODCS.
-- Validasi skema berlapis (YAML syntax & ODCS compliance).
-- Deteksi dini kesalahan tipe data atau field wajib sebelum data masuk ke database.
-
-Panduan lengkap → [**Import & Validasi YAML**](docs/yaml_import.md)
-
----
-
-## Roles & Hak Akses
-
-Empat role menentukan **apa yang bisa dilihat & dilakukan** seseorang di BeeScout. Akses kontrak ditentukan oleh **tim**: kontrak terlihat oleh user yang timnya tercantum sebagai *consumer* (atau *producer*) di kontrak tersebut.
-
-| Role | Frontend | Cakupan akses kontrak | Kemampuan tambahan |
-|---|---|---|---|
-| `root` | Admin Panel | Semua kontrak | CRUD user (termasuk root), konfigurasi global |
-| `admin` | Admin Panel | Semua kontrak | Steward — kelola kontrak & rule catalog lintas tim |
-| `developer` | User App | Hanya kontrak yang timnya jadi consumer/producer | Generate Service Account Key untuk integrasi pipeline |
-| `user` | User App | Hanya kontrak yang timnya jadi consumer/producer | Read-only dengan kacamata bisnis |
-
-> **Penting**: `developer` dan `user` punya **cakupan akses yang sama** — keduanya hanya melihat kontrak yang timnya tercantum sebagai consumer/producer. Bedanya bukan luas akses, tapi *kacamata*: developer membaca dengan lensa teknis (schema, physical type, SA Key), user membaca dengan lensa bisnis (deskripsi, SLA, makna kolom). Visi cross-team adalah tanggung jawab `admin` (steward), bukan `developer`. Detail di [docs/personas.md](docs/personas.md).
+| Komponen | Stack |
+|---|---|
+| Backend | Python · FastAPI · MongoDB · PyJWT · slowapi |
+| Frontend | Next.js 15 · TypeScript · Tailwind CSS · shadcn/ui |
+| State & Data | TanStack Query · Axios · React Hook Form · Zod |
+| Gateway | Nginx (Alpine) |
+| Containerisasi | Docker · Docker Compose v2 |
 
 ---
 
@@ -316,6 +362,7 @@ beescout/
 ├── nginx/                ← Reverse proxy (env-variable driven)
 │   └── templates/        ← nginx.conf template
 │
+├── scripts/install/      ← Wizard klik-untuk-jalan (Mac/Win/Linux)
 ├── docker-compose.yml    ← Production orchestrator
 ├── docker-compose.dev.yml← Development overrides
 ├── Makefile              ← Shortcut commands
@@ -326,89 +373,48 @@ beescout/
 
 ---
 
-## Quick Start
+## Dokumentasi
 
-```bash
-# 1. Clone dan setup env
-git clone <url-repo> beescout && cd beescout
-cp .env.example .env   # edit domain, password, dan JWT secrets
-
-# 2. Jalankan semua container
-make up
-
-# 3. Tambahkan ke /etc/hosts
-echo "127.0.0.1 app.localhost admin.localhost" | sudo tee -a /etc/hosts
-
-# 4. Buka browser
-#    User app   → http://app.localhost
-#    Admin panel → http://admin.localhost
-```
-
-Panduan lengkap → [getting-started.md](getting-started.md)
-Panduan untuk non-developer (klik-untuk-jalan) → [docs/quick-start-non-tech.md](docs/quick-start-non-tech.md)
-
----
-
-## Stack Teknologi
-
-| Komponen | Stack |
-|---|---|
-| Backend | Python · FastAPI · MongoDB · PyJWT · slowapi |
-| Frontend | Next.js 15 · TypeScript · Tailwind CSS · shadcn/ui |
-| State & Data | TanStack Query · Axios · React Hook Form · Zod |
-| Gateway | Nginx (Alpine) |
-| Containerisasi | Docker · Docker Compose v2 |
-
----
-
-## Berkontribusi & Komunitas
-
-BeeScout adalah proyek komunitas. Kontribusi diterima dari siapa saja — manusia maupun AI yang dijalankan kontributor manusia.
-
-| Tujuan | Pergi ke |
-|---|---|
-| Kontribusi pertama dalam 30 menit | [docs/contributor-onboarding.md](docs/contributor-onboarding.md) |
-| Alur lengkap dari issue → release (SDLC) | [docs/sdlc.md](docs/sdlc.md) |
-| Etika & jalur kontribusi lengkap | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Kebijakan AI Usage | [CONTRIBUTING.md — Cara Berkolaborasi dengan AI](CONTRIBUTING.md#cara-berkolaborasi-dengan-ai) |
-| Tata kelola proyek (siapa decide apa) | [GOVERNANCE.md](GOVERNANCE.md) |
-| Roadmap (Now / Next / Later) | [ROADMAP.md](ROADMAP.md) |
-| Catatan keputusan arsitektur | [docs/adr/](docs/adr/) |
-| Lapor kerentanan keamanan | [SECURITY.md](SECURITY.md) |
-| Etika komunitas | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
-| Riwayat perubahan | [CHANGELOG.md](CHANGELOG.md) |
-
----
-
-## Dokumentasi Teknis
+### Panduan setup & onboarding
 
 | Dokumen | Untuk siapa |
 |---|---|
-| [Getting Started](getting-started.md) | Setup lokal, troubleshooting infra |
 | [Quick Start (non-tech)](docs/quick-start-non-tech.md) | Panduan klik-untuk-jalan untuk pengguna non-teknis |
+| [Getting Started](getting-started.md) | Setup lokal lengkap untuk developer, troubleshooting infra |
+| [Contributor Onboarding](docs/contributor-onboarding.md) | Kontribusi pertama dalam 30 menit |
+
+### Referensi konvensi & konsep
+
+| Dokumen | Isi |
+|---|---|
 | [CLAUDE.md](CLAUDE.md) | Konvensi kode, guardrails AI, gotchas teknis |
 | [docs/personas.md](docs/personas.md) | 4 persona pengguna BeeScout |
 | [docs/glossary.md](docs/glossary.md) | Kamus istilah teknis ↔ bisnis |
-| [docs/approval_workflow.md](docs/approval_workflow.md) | Alur persetujuan perubahan kontrak |
-| [docs/rule_catalog.md](docs/rule_catalog.md) | Katalog aturan kualitas |
-| [docs/yaml_import.md](docs/yaml_import.md) | Import YAML & validasi schema |
+| [docs/sdlc.md](docs/sdlc.md) | Alur lengkap issue → release |
+| [docs/form-buttons.md](docs/form-buttons.md) | Konvensi `type` di tombol form |
 | [docs/credentials.md](docs/credentials.md) | Akun default untuk dev |
 | [docs/ci_cd.md](docs/ci_cd.md) | Alur pengujian otomatis |
 
----
+### Fitur
 
-## API Reference
+| Dokumen | Isi |
+|---|---|
+| [docs/approval_workflow.md](docs/approval_workflow.md) | Alur persetujuan perubahan kontrak |
+| [docs/rule_catalog.md](docs/rule_catalog.md) | Katalog aturan kualitas |
+| [docs/yaml_import.md](docs/yaml_import.md) | Import YAML & validasi schema |
 
-Dokumentasi API interaktif tersedia saat aplikasi berjalan di mode development:
+### API Reference
+
+Dokumentasi API interaktif tersedia saat aplikasi berjalan:
 
 - **Swagger UI**: [http://app.localhost/api/docs](http://app.localhost/api/docs)
 - **ReDoc**: [http://app.localhost/api/redoc](http://app.localhost/api/redoc)
 
-## References
+### Referensi eksternal
 
-- https://github.com/bitol-io/open-data-contract-standard
-- https://datacontract.com
-- https://www.datamesh-architecture.com/
+- [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)
+- [datacontract.com](https://datacontract.com)
+- [Data Mesh Architecture](https://www.datamesh-architecture.com/)
 
 ---
 
@@ -417,15 +423,16 @@ Dokumentasi API interaktif tersedia saat aplikasi berjalan di mode development:
 BeeScout dirilis di bawah **GNU Affero General Public License v3.0 (AGPL-3.0)** — lihat [LICENSE](LICENSE).
 
 **Singkatnya**:
+
 - **✅ Boleh**: pakai bebas (self-host, modifikasi, komersial)
 - **⚠️ Wajib bagi**: yang mendeploy versi modifikasi sebagai layanan ke pengguna lain (web/API) — source code modifikasi wajib disediakan kepada komunitas.
-- **Tidak ada kewajiban tambahan**: untuk modifikasi internal yang tidak dideploy ke pengguna lain
+- **Tidak ada kewajiban tambahan** untuk modifikasi internal yang tidak dideploy ke pengguna lain.
 
 Alasan memilih AGPL ada di [docs/adr/0002-agpl-3-license.md](docs/adr/0002-agpl-3-license.md).
 
 ---
 
-## Bergabung??
+## Bergabung di Komunitas
 
 > *"Data governance terbaik bukan yang paling mahal tools-nya, tapi yang paling banyak orang mau ikut menjaga."*
 
