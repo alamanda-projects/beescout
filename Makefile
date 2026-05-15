@@ -16,6 +16,10 @@
 #   make up-be          — start backend + db only
 # =======================
 
+# ⚠️ PLACEHOLDER — WAJIB diganti di production!
+# Nilai default ini hanya untuk target build standalone (build-db-*).
+# Untuk pemakaian normal via docker compose, kredensial dibaca dari .env.
+# Override saat build: make build-db-amd64 MONGODB_USER=xxx MONGODB_PASS=yyy
 MONGODB_USER ?= admin
 MONGODB_PASS ?= changeme
 

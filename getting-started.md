@@ -131,6 +131,7 @@ curl http://app.localhost/api/setup/status
 # {"setup_complete": false}  ← belum ada root, lanjutkan
 
 # Buat akun root pertama
+# ⚠️  PLACEHOLDER — WAJIB ganti username & password di production!
 curl -X POST http://app.localhost/api/setup \
   -H "Content-Type: application/json" \
   -d '{
