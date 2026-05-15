@@ -39,6 +39,7 @@ from app.core.verificator import (
     token_verification,
     grplvlroot,
     grplvladmin,
+    grplvldev,
     grplvlall,
 )
 from app.info.app_info import *
@@ -422,10 +423,10 @@ async def create_sakey(current_user: dict = Depends(token_verification)):
     user_level = current_user["lvl"]
     user_status = current_user["sts"]
     user_team = current_user["tim"]
-    await access_verification(user_level, user_status, grplvlall)
+    await access_verification(user_level, user_status, grplvldev)
     # # checking access level
 
-    if user_level not in grplvlall or user_status == False:
+    if user_level not in grplvldev or user_status == False:
         raise HTTPException(status_code=403, detail=random.choice(usrnotallowed))
 
     clientid = cn_generator()
