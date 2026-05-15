@@ -5,7 +5,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { login } from '@/lib/api/auth'
+import Link from 'next/link'
+import { useQuery } from '@tanstack/react-query'
+import { getSetupStatus, login } from '@/lib/api/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +25,11 @@ export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { data: setupStatus } = useQuery({
+    queryKey: ['setup-status'],
+    queryFn: getSetupStatus,
+    retry: 1,
+  })
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
@@ -48,6 +55,12 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-white">BeeScout Admin</h1>
           <p className="text-slate-400 text-sm mt-1">Portal Administrasi — Akses Terbatas</p>
         </div>
+
+        {setupStatus?.setup_complete === false && (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Super Admin belum dibuat. Buka <Link href="/setup" className="font-semibold underline">setup awal</Link>.
+          </div>
+        )}
 
         <Card className="border-slate-700 bg-slate-800 text-white shadow-xl">
           <CardHeader className="pb-4">

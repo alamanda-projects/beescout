@@ -15,10 +15,14 @@ from slowapi.errors import RateLimitExceeded
 from typing import Dict
 from app.model.users import UserCreate
 from app.core.connection import database, col_usr, col_dgr, col_apr
-from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate, BUILTIN_RULES
+from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate
 from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
 from app.core.hasher import Hasher
+from app.core.addon_loader import (
+    load_catalog_rules_addon,
+    load_sample_contracts_addon,
+)
 from app.core.generator import (
     cn_generator,
     create_jwt_token,
@@ -132,9 +136,9 @@ async def setup_status():
 @app.post("/setup", tags=["system"])
 async def bootstrap_setup(user_form: UserCreate):
     """
-    One-time setup endpoint to create the first root account.
+    Internal bootstrap endpoint used by the web setup flow to create the first root account.
     Returns 409 if a root account already exists.
-    This endpoint is disabled once setup is complete.
+    The web setup page is disabled once setup is complete.
     """
     existing_root = await usrcollection.find_one({"group_access": "root", "is_active": True})
     if existing_root:
@@ -167,13 +171,34 @@ async def bootstrap_setup(user_form: UserCreate):
         "created_at": datetime.now(),
     }
     await usrcollection.insert_one(user_data)
-    return {"message": "Root account created. Please log in and disable this endpoint in production."}
 
+    sample_contracts_imported = 0
+    if user_form.import_sample_contracts:
+        sample_contracts = load_sample_contracts_addon()
+        for contract in sample_contracts:
+            contract_doc = {**contract, "created_by": user_form.username}
+            try:
+                await dccollection.insert_one(contract_doc)
+                sample_contracts_imported += 1
+            except DuplicateKeyError:
+                continue
 
-@app.on_event("startup")
-async def seed_catalog():
-    if await catalogcollection.count_documents({}) == 0:
-        await catalogcollection.insert_many(BUILTIN_RULES)
+    catalog_rules_imported = False
+    catalog_rules_count = 0
+    if user_form.import_catalog_rules:
+        catalog_rules = load_catalog_rules_addon()
+        if catalog_rules and await catalogcollection.count_documents({}) == 0:
+            await catalogcollection.insert_many(catalog_rules)
+            catalog_rules_imported = True
+            catalog_rules_count = len(catalog_rules)
+
+    return {
+        "message": "Root account created. Please log in.",
+        "sample_contracts_imported": sample_contracts_imported > 0,
+        "sample_contracts_count": sample_contracts_imported,
+        "catalog_rules_imported": catalog_rules_imported,
+        "catalog_rules_count": catalog_rules_count,
+    }
 
 
 @app.on_event("startup")
@@ -952,8 +977,9 @@ async def seed_builtin_rules(user=Depends(require_root)):
     existing = await catalogcollection.count_documents({})
     if existing > 0:
         raise HTTPException(status_code=409, detail="Katalog sudah memiliki data.")
-    await catalogcollection.insert_many(BUILTIN_RULES)
-    return {"message": f"{len(BUILTIN_RULES)} modul bawaan berhasil ditambahkan."}
+    catalog_rules = load_catalog_rules_addon()
+    await catalogcollection.insert_many(catalog_rules)
+    return {"message": f"{len(catalog_rules)} modul bawaan berhasil ditambahkan."}
 
 
 @app.get("/catalog/rules", tags=["catalog"])

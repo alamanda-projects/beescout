@@ -22,3 +22,5 @@ class UserCreate(BaseModel):
     group_access: str
     data_domain: str
     is_active: bool
+    import_sample_contracts: bool = False
+    import_catalog_rules: bool = False

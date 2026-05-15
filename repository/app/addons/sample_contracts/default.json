@@ -1,0 +1,107 @@
+[
+  {
+    "standard_version": "0.1.0",
+    "contract_number": "sampleCustomer001",
+    "metadata": {
+      "version": "1.0.0",
+      "type": "CSV",
+      "name": "customer profile sample",
+      "owner": "data governance",
+      "consumption_mode": "Analytical",
+      "description": {
+        "purpose": "Contoh data contract untuk eksplorasi awal BeeScout.",
+        "usage": "demo"
+      },
+      "consumer": [
+        {
+          "name": "analytics",
+          "use_case": "Melihat struktur kontrak data sederhana."
+        }
+      ],
+      "stakeholders": [
+        {
+          "name": "Data Governance",
+          "email": "governance@example.com",
+          "role": "owner",
+          "date_in": "2026-01-01T00:00:00.000Z",
+          "date_out": null
+        }
+      ],
+      "quality": [
+        {
+          "code": "null_check",
+          "description": "Kolom wajib tidak boleh kosong.",
+          "dimension": "completeness",
+          "impact": "operational",
+          "severity": "medium",
+          "custom_properties": [
+            { "property": "field_condition", "value": "is_mandatory=true" }
+          ]
+        }
+      ],
+      "sla": {
+        "availability_start": 8,
+        "availability_end": 18,
+        "availability_unit": "h",
+        "frequency": 1,
+        "frequency_unit": "d",
+        "frequency_cron": "0 8 * * *",
+        "retention": 1,
+        "retention_unit": "y",
+        "effective_date": "2026-01-01T00:00:00.000Z",
+        "end_of_contract": null
+      }
+    },
+    "model": [
+      {
+        "column": "customer_id",
+        "business_name": "Customer ID",
+        "logical_type": "string",
+        "physical_type": "varchar(64)",
+        "is_primary": true,
+        "is_nullable": false,
+        "is_partition": false,
+        "is_clustered": false,
+        "is_pii": false,
+        "is_audit": false,
+        "is_mandatory": true,
+        "description": "Identifier unik pelanggan.",
+        "quality": [],
+        "sample_value": ["CUST-001"],
+        "tags": ["sample"]
+      },
+      {
+        "column": "email",
+        "business_name": "Email",
+        "logical_type": "string",
+        "physical_type": "varchar(255)",
+        "is_primary": false,
+        "is_nullable": false,
+        "is_partition": false,
+        "is_clustered": false,
+        "is_pii": true,
+        "is_audit": false,
+        "is_mandatory": true,
+        "description": "Alamat email pelanggan.",
+        "quality": [],
+        "sample_value": ["customer@example.com"],
+        "tags": ["sample", "pii"]
+      }
+    ],
+    "ports": [
+      {
+        "object": "source",
+        "properties": [
+          { "property": "type", "value": "csv" },
+          { "property": "location", "value": "s3://example/customer.csv" }
+        ]
+      }
+    ],
+    "examples": {
+      "type": "csv",
+      "data": "customer_id,email\nCUST-001,customer@example.com"
+    },
+    "created_by": "system",
+    "approval_status": "approved"
+  }
+]

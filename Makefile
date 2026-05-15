@@ -4,7 +4,7 @@
 # Function: Build, run, and manage all components
 #
 # Quick start (full stack):
-#   make setup          — copy .env.example → .env (edit before first run)
+#   cp .env.example .env
 #   make up             — build & start all services
 #   make down           — stop all services
 #
@@ -22,17 +22,6 @@
 # Override saat build: make build-db-amd64 MONGODB_USER=xxx MONGODB_PASS=yyy
 MONGODB_USER ?= admin
 MONGODB_PASS ?= changeme
-
-
-# ── Environment setup ──────────────────────────────────────────────────────────
-
-setup:
-	@if [ -f .env ]; then \
-		echo ".env already exists, skipping."; \
-	else \
-		cp .env.example .env; \
-		echo ".env created — edit it with your values before running 'make up'"; \
-	fi
 
 
 # ── Full stack (production) ────────────────────────────────────────────────────
@@ -160,4 +149,3 @@ docker_build_db_amd64:  build-db-amd64
 docker_compose_up:      up
 docker_remove_dangling_images: clean
 service_stop:           down-be
-copy_env_file:          setup

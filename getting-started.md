@@ -15,7 +15,7 @@ Panduan lengkap untuk menjalankan BeeScout dari nol, baik untuk pengembangan lok
 git clone <url-repo> beescout && cd beescout
 
 # 2. Buat file konfigurasi
-make setup       # menyalin .env.example → .env (edit passwordnya dulu!)
+cp .env.example .env
 
 # 3. Jalankan semua layanan
 make up
@@ -125,31 +125,15 @@ Kemudian buka di browser:
 
 ## 4. Buat Akun Pertama (Super Admin)
 
-Gunakan endpoint `/setup` yang hanya aktif saat belum ada akun root:
+Gunakan halaman setup web yang hanya aktif saat belum ada akun root:
 
-```bash
-# Cek apakah setup sudah dilakukan
-curl http://app.localhost/api/setup/status
-# {"setup_complete": false}  ← belum ada root, lanjutkan
-
-# Buat akun root pertama
-# ⚠️  PLACEHOLDER — WAJIB ganti username & password di production!
-curl -X POST http://app.localhost/api/setup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "superadmin",
-    "password": "Admin@1234!",
-    "name": "Super Administrator",
-    "group_access": "root",
-    "data_domain": "all",
-    "is_active": true
-  }'
+```text
+http://admin.localhost/setup
 ```
 
-Setelah berhasil, endpoint `/setup` akan mengembalikan `409` jika dipanggil lagi — akun root sudah terlindungi. Login via Admin Panel, lalu buat user tambahan dari menu **Manajemen User**.
+Isi username, nama, domain data, dan password Super Admin. Pada form ini Anda juga bisa memilih apakah ingin mengimpor katalog aturan kualitas bawaan dan contoh Data Contract. Untuk instalasi kontrak kosong, biarkan opsi import contoh Data Contract tidak dicentang.
 
-> [!IMPORTANT]
-> Daftar kredensial bawaan (default) lainnya untuk keperluan pengembangan dapat dilihat di: [**docs/credentials.md**](docs/credentials.md)
+Setelah berhasil, halaman setup akan tertutup otomatis untuk instalasi tersebut karena akun root sudah dibuat. Login via Admin Panel, lalu buat user tambahan dari menu **Manajemen User**.
 
 > Password harus mengandung huruf besar, kecil, angka, dan karakter khusus (minimal 8 karakter).
 
@@ -300,7 +284,6 @@ npm install && npm run dev
 
 | Perintah | Fungsi |
 |---|---|
-| `make setup` | Salin `.env.example` → `.env` (jalankan sekali di awal) |
 | `make up` | Build dan jalankan semua layanan (nginx, backend, frontend, db) |
 | `make down` | Hentikan semua layanan |
 | `make restart` | Restart semua layanan tanpa rebuild |
