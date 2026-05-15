@@ -36,6 +36,7 @@ metadata:
       description: ensure the dataset is in accordance with the agreed volume range
       dimension: completeness
       impact: operational
+      severity: medium
       custom_properties:
         - property: field_condition
           value: is_nullable=false
@@ -45,6 +46,7 @@ metadata:
       description: ensure there is no duplicate data
       dimension: completeness
       impact: operational
+      severity: medium
       custom_properties:
         - property: field_name
           value: uid
@@ -56,6 +58,7 @@ metadata:
       description: ensure PII was masking
       dimension: completeness
       impact: operational
+      severity: medium
       custom_properties:
         - property: field_name
           value: name
@@ -95,6 +98,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -104,6 +108,7 @@ model:
         description: ensure the value does not exceed the agreed nomenclature limits
         dimension: validity
         impact: operational
+        severity: medium
         custom_properties:
           - property: length
             value: 36
@@ -130,6 +135,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -139,6 +145,7 @@ model:
         description: ensure column values only contain strings
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: contains only
             value: alphabet
@@ -166,6 +173,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -175,6 +183,7 @@ model:
         description: ensure the value does not exceed the agreed limit
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: min_date
             value: 1940-01-01
@@ -203,6 +212,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -212,6 +222,7 @@ model:
         description: ensure the value does not exceed the agreed limit
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: max_date
             value: today
@@ -237,6 +248,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -246,6 +258,7 @@ model:
         description: ensure column values only contain strings
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: contains only
             value: alphabet
@@ -273,6 +286,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -282,6 +296,7 @@ model:
         description: ensure the value does not exceed the agreed limit
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: min_date
             value: 1970-01-01T00:00:00+07:00
@@ -307,6 +322,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -316,6 +332,7 @@ model:
         description: ensure column values only contain strings
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: contains only
             value: alphabet
@@ -343,6 +360,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -352,6 +370,7 @@ model:
         description: ensure the value does not exceed the agreed limit
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: min_date
             value: 1970-01-01T00:00:00+07:00
@@ -377,6 +396,7 @@ model:
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
+        severity: medium
         custom_properties:
           - property: compare_to
             value: total dataset row
@@ -386,6 +406,7 @@ model:
         description: ensure column values only contain strings
         dimension: accuracy
         impact: operational
+        severity: medium
         custom_properties:
           - property: contains only
             value: alphabet

@@ -3,7 +3,8 @@
 export type ParamType   = 'text' | 'number' | 'select' | 'multi' | 'date'
 export type LayerType   = 'dataset' | 'column' | 'both'
 export type DimensionType = 'completeness' | 'validity' | 'accuracy' | 'security'
-export type ImpactType  = 'operational' | 'high' | 'low'
+export type ImpactType   = 'operational' | 'financial' | 'regulatory' | 'reputational'
+export type SeverityType = 'low' | 'medium' | 'high'
 
 export interface RuleParamOption {
   value: string
@@ -54,7 +55,8 @@ export interface QualityRule {
   code: string
   description?: string
   dimension?: string
-  impact?: string
+  impact?: string    // operational | financial | regulatory | reputational
+  severity?: string  // low | medium | high
   custom_properties?: QualityCustomProp[]
 }
 
@@ -98,16 +100,32 @@ export const DIMENSION_LABELS: Record<DimensionType, string> = {
   security:     'Keamanan',
 }
 
-export const IMPACT_LABELS: Record<ImpactType, string> = {
-  operational: 'Operasional',
-  high:        'Tinggi',
-  low:         'Rendah',
+export const IMPACT_TYPE_LABELS: Record<ImpactType, string> = {
+  operational:  'Operasional',
+  financial:    'Finansial',
+  regulatory:   'Regulasi',
+  reputational: 'Reputasi',
 }
 
+export const SEVERITY_LABELS: Record<SeverityType, string> = {
+  low:    'Rendah',
+  medium: 'Sedang',
+  high:   'Tinggi',
+}
+
+export const SEVERITY_BIZ_LABELS: Record<SeverityType, string> = {
+  low:    'Tidak terlalu kritis',
+  medium: 'Cukup penting',
+  high:   'Sangat penting',
+}
+
+export const IMPACT_LABELS = IMPACT_TYPE_LABELS
 export const IMPACT_BIZ_LABELS: Record<string, string> = {
-  operational: 'Cukup penting',
-  high:        'Penting sekali',
-  low:         'Rendah',
+  ...SEVERITY_BIZ_LABELS,
+  operational:  'Operasional',
+  financial:    'Finansial',
+  regulatory:   'Regulasi',
+  reputational: 'Reputasi',
 }
 
 export const LAYER_LABELS: Record<LayerType, string> = {

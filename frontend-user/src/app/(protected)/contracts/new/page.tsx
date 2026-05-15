@@ -58,6 +58,7 @@ const schema = z.object({
       dimension: z.string().optional(),
       description: z.string().optional(),
       impact: z.string().optional(),
+      severity: z.string().optional(),
       custom_properties: z.array(z.object({
         property: z.string(),
         value: z.string(),
@@ -79,6 +80,7 @@ const schema = z.object({
       dimension: z.string().optional(),
       description: z.string().optional(),
       impact: z.string().optional(),
+      severity: z.string().optional(),
       custom_properties: z.array(z.object({
         property: z.string(),
         value: z.string(),
