@@ -96,6 +96,12 @@ docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "^beescout|^alamanda
 done
 print_ok "Image dihapus"
 
+echo "  Membersihkan dangling resource & build cache Docker..."
+# Mencegah error "No space left on device" saat MongoDB start di disk VM Docker yang penuh.
+docker system prune -f >/dev/null 2>&1 || true
+docker builder prune -f >/dev/null 2>&1 || true
+print_ok "Docker VM disk dirapikan"
+
 echo "  Menghapus .env..."
 rm -f .env
 print_ok ".env dihapus"
