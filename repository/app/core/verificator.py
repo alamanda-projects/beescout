@@ -28,6 +28,7 @@ usr_401_cnvc = config("USR_401_CNVC")
 # access level config
 grplvlroot = ["root"]
 grplvladmin = ["root", "admin"]
+grplvldev = ["root", "admin", "developer"]
 grplvlall = ["root", "admin", "user", "developer"]
 
 
