@@ -12,11 +12,17 @@ Setiap aturan dalam katalog mendefinisikan:
 
 ## 🚀 Memulai
 
-### Inisialisasi Katalog
-Gunakan endpoint berikut (hanya Role Root) untuk mengisi katalog dengan modul bawaan:
-```bash
-curl -X POST http://app.localhost/api/catalog/seed
+### Add-on Katalog Bawaan
+
+Katalog aturan bawaan disimpan sebagai add-on data terpisah di:
+
+```text
+repository/app/addons/catalog_rules/default.json
 ```
+
+Pada setup awal via web, centang **Import add-on katalog aturan kualitas bawaan** untuk memasukkan add-on ini ke database. Jika organisasi ingin memelihara aturan sendiri, edit atau ganti add-on tersebut sebelum menjalankan setup fresh.
+
+Endpoint internal `/catalog/seed` masih tersedia untuk root sebagai fallback operasional saat database sudah berjalan, tetapi jalur utama instalasi adalah setup web.
 
 ## 🛠️ Endpoints Terkait
 

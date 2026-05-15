@@ -15,6 +15,8 @@ Kami mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Web Setup Page**: Halaman `/setup` di admin panel menggantikan `curl POST /setup` manual. Form memvalidasi password policy + memberi opsi import add-on katalog aturan & contoh kontrak.
+- **Add-on Sample Contracts**: Contoh kontrak instalasi awal dipindah ke `repository/app/addons/sample_contracts/default.json`. Organisasi dapat mengganti file ini sebelum fresh install untuk membawa contoh kontrak versi internal.
 - **Edit page di user panel** (#25): Halaman edit data contract kini tersedia di user panel (`/contracts/{cn}/edit`). Perubahan yang diajukan oleh `developer` / `user` otomatis masuk approval workflow — tidak langsung tersimpan.
 - **Tab JSON Raw di user panel** (#25): Detail kontrak user panel kini punya tab ke-5 "JSON Raw" identik dengan admin panel.
 - **Tooltip field-help di user panel** (#25, #19): Step "Struktur Data" pada form tambah/edit kontrak user panel kini punya tooltip penjelasan untuk Tipe Data Bisnis, Tipe Data Teknis, dan 4 column flags (PK, Nullable, PII, Wajib).
@@ -22,9 +24,14 @@ Kami mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Import YAML + Edit button di detail page user panel** (#25): Header halaman detail kontrak user panel kini punya tombol Edit dan Import YAML.
 
 ### Changed
+- **Add-on Loader generalisasi**: `app/core/catalog_addon.py` di-rename ke `app/core/addon_loader.py` dan kini meng-handle dua jenis add-on (catalog rules + sample contracts) dengan helper bersama. Sample contract tidak lagi hardcoded inline di `main.py`.
 - **QualityRulesEditor di user panel** (#25): Mode switch biz/eng kini aktif untuk semua user panel — `developer` default eng, `user` default biz, keduanya bisa switch. Sebelumnya locked ke biz mode.
 - **Stakeholder role label di user panel** (#25, #19): Kolom Peran di halaman detail kontrak user panel kini menampilkan label cantik ("Data Owner") bukan value mentah (`owner`).
 - **Constants di user panel** (#19): `CONTRACT_TYPES`, `CONSUMPTION_MODES`, `RETENTION_UNITS`, `QUALITY_DIMENSIONS` dipindah dari hardcoded inline ke export `frontend-user/src/types/contract.ts` agar sinkron dengan admin panel.
+
+### Removed
+- **Seed data legacy**: `mongo init/data-contract.js` dan `init/user.js` jadi no-op. Setup awal dilakukan via web setup page, bukan pre-seeded di volume MongoDB.
+- **Setup scripts terpisah**: `scripts/install/setup.sh`, `setup.bat`, `setup-mac.command` dihapus — fungsi auto-generate `.env` dipindah ke `start.sh`/`start.bat` saat first run.
 
 ### Fixed
 - **Enter key auto-submit** (#11): Form wizard Data Contract (admin + user panel) kini memblokir Enter key agar tidak men-trigger submit sebelum waktunya. Textarea dikecualikan agar navigasi multi-baris tetap berjalan normal.

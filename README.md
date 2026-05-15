@@ -37,20 +37,20 @@ Cocok untuk:
 
 ### 👋 Anda bukan developer?
 
-Klik wizard — tidak perlu paham terminal. Wizard akan otomatis cek Docker, generate secret, jalankan layanan, dan pandu Anda update file `hosts`.
+Klik start — tidak perlu paham terminal. Pada first run, script start akan membuat konfigurasi lokal, generate secret, dan menjalankan layanan.
 
 | OS | File yang diklik |
 |---|---|
-| **Mac** | `scripts/install/setup-mac.command` |
-| **Windows** | `scripts/install/setup.bat` |
-| **Linux** | jalankan `bash scripts/install/setup.sh` di terminal |
+| **Mac** | `scripts/install/start-mac.command` |
+| **Windows** | `scripts/install/start.bat` |
+| **Linux** | jalankan `bash scripts/install/start.sh` di terminal |
 
 Panduan lengkap dengan langkah install Docker & troubleshooting: [**docs/quick-start-non-tech.md**](docs/quick-start-non-tech.md).
 
 ### 🛠 Anda developer?
 
 ```bash
-# 1. Clone dan setup env
+# 1. Clone dan buat env
 git clone <url-repo> beescout && cd beescout
 cp .env.example .env   # edit domain, password, dan JWT secrets
 

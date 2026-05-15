@@ -67,66 +67,49 @@ git clone <url-repo> beescout
 
 ---
 
-## Langkah 3 — Klik Setup Wizard
+## Langkah 3 — Jalankan BeeScout
 
 Buka folder BeeScout di File Explorer / Finder, masuk ke folder `scripts` → `install`. Lalu **klik dua kali** file berikut sesuai sistem operasi Anda:
 
 | Sistem Operasi | File |
 |---|---|
-| **Mac** | `setup-mac.command` |
-| **Windows** | `setup.bat` |
-| **Linux** | Buka Terminal di folder repo, ketik: `bash scripts/install/setup.sh` |
+| **Mac** | `start-mac.command` |
+| **Windows** | `start.bat` |
+| **Linux** | Buka Terminal di folder repo, ketik: `bash scripts/install/start.sh` |
 
 > **Catatan Mac**: Saat pertama kali klik `.command`, mungkin muncul peringatan keamanan macOS. Solusinya: klik kanan file → **Open** → klik **Open** di dialog yang muncul.
 >
 > **Catatan Windows**: Mungkin muncul peringatan "Windows protected your PC". Klik **More info** → **Run anyway**.
 
-Wizard akan otomatis:
+Pada first run, script start akan otomatis:
 
 1. ✅ Mengecek Docker terinstall dan jalan
 2. ✅ Membuat file konfigurasi `.env` (lengkap dengan password yang di-generate otomatis)
 3. ✅ Download dan menjalankan semua komponen (5-15 menit di first run — sambil nunggu, boleh minum kopi ☕)
-4. ✅ Memandu Anda mengupdate file `hosts`
 
-Setelah wizard selesai, Anda akan melihat pesan:
+Setelah selesai, Anda akan melihat pesan:
 
 ```
-Selesai! 🎉
 Buka browser:
   Aplikasi User  → http://app.localhost
   Panel Admin    → http://admin.localhost
+  Setup Awal     → http://admin.localhost/setup
 ```
 
 ---
 
 ## Langkah 4 — Buat Akun Super Admin Pertama
 
-Saat pertama kali buka http://admin.localhost, **belum ada akun**. Buat akun Super Admin dengan langkah berikut:
+Saat pertama kali buka http://admin.localhost, **belum ada akun**. Buka halaman setup awal:
 
-### Cara mudah (via Terminal/Command Prompt)
-
-Buka Terminal (Mac/Linux) atau Command Prompt (Windows), copy-paste perintah ini, **ganti `password` dengan password kuat pilihan Anda**:
-
-**Mac / Linux:**
-```bash
-curl -X POST http://app.localhost/api/setup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "superadmin",
-    "password": "Ganti_Password_Kuat_123!",
-    "name": "Super Administrator",
-    "group_access": "root",
-    "data_domain": "all",
-    "is_active": true
-  }'
+```text
+http://admin.localhost/setup
 ```
 
-**Windows (PowerShell):**
-```powershell
-curl -Method POST -Uri http://app.localhost/api/setup `
-  -ContentType "application/json" `
-  -Body '{"username":"superadmin","password":"Ganti_Password_Kuat_123!","name":"Super Administrator","group_access":"root","data_domain":"all","is_active":true}'
-```
+Isi form Super Admin, pilih apakah ingin mengimpor add-on katalog aturan kualitas bawaan dan contoh Data Contract, lalu klik **Buat Super Admin**.
+
+Untuk instalasi bersih, biarkan opsi **Import contoh data contract** tidak dicentang. Database kontrak akan mulai kosong.
+Opsi **Import add-on katalog aturan kualitas bawaan** disarankan tetap aktif agar form kualitas data langsung punya modul aturan siap pakai.
 
 > **Aturan password**: minimal 8 karakter, harus mengandung huruf besar, huruf kecil, angka, dan karakter khusus.
 
@@ -161,10 +144,9 @@ Setelah setup selesai, untuk pemakaian harian Anda hanya butuh 2 file:
 ### "Docker belum jalan"
 - Buka aplikasi **Docker Desktop**
 - Tunggu sampai ikon whale di status bar berhenti berkedip (Mac) atau status "Engine running" (Windows)
-- Klik script setup/start lagi
+- Klik script start lagi
 
 ### Browser bilang "This site can't be reached"
-- Pastikan file `hosts` sudah diupdate (lihat Langkah 4 wizard)
 - Pastikan layanan jalan — cek dengan klik kanan ikon Docker → Dashboard, lihat ada 5 container berstatus **running**:
   - `beescout-nginx-1`
   - `beescout-backend-1`
@@ -172,10 +154,10 @@ Setelah setup selesai, untuk pemakaian harian Anda hanya butuh 2 file:
   - `beescout-frontend-admin-1`
   - `beescout-db-1`
 
-### Setup gagal di tengah jalan
+### Start gagal di tengah jalan
 - Buka Terminal/Command Prompt, masuk ke folder beescout, jalankan: `docker compose down`
 - Hapus file `.env` (jika dibuat)
-- Klik wizard setup lagi dari awal
+- Klik script start lagi dari awal
 
 ### Disk hampir penuh
 - Buka Docker Desktop → Settings → Resources → Disk image size — cek pemakaian
@@ -186,7 +168,7 @@ Setelah setup selesai, untuk pemakaian harian Anda hanya butuh 2 file:
   ```bash
   docker compose down -v   # ⚠️ menghapus SEMUA data kontrak!
   ```
-  Lalu jalankan wizard setup lagi.
+  Lalu jalankan script start lagi dan buka `http://admin.localhost/setup`.
 
 ---
 

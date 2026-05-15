@@ -6,6 +6,27 @@ export async function login(username: string, password: string) {
   return res.data
 }
 
+export async function getSetupStatus(): Promise<{ setup_complete: boolean }> {
+  const res = await apiClient.get('/setup/status')
+  return res.data
+}
+
+export async function createRootAccount(data: {
+  username: string
+  password: string
+  name: string
+  data_domain: string
+  import_sample_contracts: boolean
+  import_catalog_rules: boolean
+}) {
+  const res = await apiClient.post('/setup', {
+    ...data,
+    group_access: 'root',
+    is_active: true,
+  })
+  return res.data
+}
+
 export async function logout() {
   await apiClient.post('/logout')
 }
