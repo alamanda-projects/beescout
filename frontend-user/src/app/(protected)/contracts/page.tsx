@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
-import { getMyContracts } from '@/lib/api/contracts'
+import { getContracts } from '@/lib/api/contracts'
 import { getMe } from '@/lib/api/auth'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,8 +44,8 @@ export default function ContractsPage() {
   const [search, setSearch] = useState('')
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const { data: contracts = [], isLoading, refetch } = useQuery({
-    queryKey: ['my-contracts'],
-    queryFn: getMyContracts,
+    queryKey: ['contracts'],
+    queryFn: () => getContracts(),
   })
 
   const filtered = useMemo(() => {
@@ -66,7 +66,7 @@ export default function ContractsPage() {
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Data Contract</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Kontrak data yang Anda buat atau kelola
+            Kontrak data yang dapat diakses oleh tim Anda
           </p>
         </div>
         <div className="flex items-center gap-2">
