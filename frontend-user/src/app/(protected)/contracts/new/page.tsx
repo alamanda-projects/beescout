@@ -190,6 +190,10 @@ export default function NewContractPage() {
   }
 
   const onSubmit = async (data: FormData) => {
+    // Safety net: form hanya boleh disubmit dari step terakhir (Tinjauan).
+    // Root cause sudah diperbaiki di tombol navigasi (key + preventDefault),
+    // guard ini tetap dipertahankan sebagai lapisan terakhir.
+    if (step !== STEPS.length - 1) return
     setIsSubmitting(true)
     try {
       const slaBase = Object.fromEntries(
@@ -638,12 +642,18 @@ export default function NewContractPage() {
             {step === 0 ? 'Batal' : 'Sebelumnya'}
           </Button>
 
+          {/* key wajib berbeda: tanpa key React pakai ulang DOM node tombol
+              yang sama untuk kedua cabang ternary. nextStep async → setStep
+              resolve di microtask SELAMA event klik, menambal atribut type
+              dari button ke submit sebelum browser proses default action →
+              form ter-submit. key terpisah memaksa DOM node berbeda;
+              preventDefault menetralkan default action bila timing lolos. */}
           {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={nextStep}>
+            <Button key="nav-next" type="button" onClick={(e) => { e.preventDefault(); nextStep() }}>
               Selanjutnya <ChevronRight size={16} className="ml-1" />
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting}>
+            <Button key="nav-submit" type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? 'Menyimpan...' : 'Simpan Kontrak'}
             </Button>
