@@ -190,6 +190,17 @@ export default function NewContractPage() {
   }
 
   const onSubmit = async (data: FormData) => {
+    if (step !== STEPS.length - 1) {
+      const active = typeof document !== 'undefined' ? document.activeElement : null
+      // eslint-disable-next-line no-console
+      console.warn('[contract-form] premature submit blocked', {
+        step,
+        activeElement: active ? `${active.tagName}#${(active as HTMLElement).id || ''}.${active.className || ''}` : null,
+        activeText: active?.textContent?.slice(0, 60) ?? null,
+        stack: new Error('premature submit trigger').stack,
+      })
+      return
+    }
     setIsSubmitting(true)
     try {
       const slaBase = Object.fromEntries(
