@@ -11,6 +11,16 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
+# ── Dev stage: hot-reload server (targeted by docker-compose.dev.yml) ─────────
+# Punya node_modules lengkap (termasuk `next` CLI) — runner stage tidak.
+FROM node:20-alpine AS dev
+WORKDIR /app
+ENV NODE_ENV=development
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+
 # ── Stage 2: Build application ────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app

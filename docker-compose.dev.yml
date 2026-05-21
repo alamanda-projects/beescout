@@ -35,6 +35,8 @@ services:
       COOKIE_SECURE: "false"
 
   frontend-user:
+    build:
+      target: dev
     command: npm run dev
     ports:
       - "3000:3000"
@@ -49,6 +51,8 @@ services:
       - ./frontend-user/public:/app/public
 
   frontend-admin:
+    build:
+      target: dev
     command: npm run dev
     ports:
       - "3001:3001"
