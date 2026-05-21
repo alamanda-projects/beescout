@@ -20,7 +20,10 @@ apiClient.interceptors.response.use(
       !window.location.pathname.includes('/login')
     ) {
       isRedirecting = true
-      await fetch('/api/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
+      // Pakai apiBase yang sama dgn axios client — relatif '/api/logout' hanya
+      // benar di prod (nginx). Di dev (tanpa nginx) URL relatif nyasar ke Next.js
+      // server → 404 → cookie tak terhapus → infinite redirect loop.
+      await fetch(`${apiBase}/logout`, { method: 'POST', credentials: 'include' }).catch(() => {})
       window.location.href = '/login'
     }
     return Promise.reject(error)
