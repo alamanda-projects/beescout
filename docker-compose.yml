@@ -14,6 +14,16 @@
 
 name: beescout
 
+# ── Shared log rotation ──────────────────────────────────────────────────────
+# Batasi ukuran log per container agar disk tidak penuh diam-diam (Issue #36
+# bagian 8; terkait disk bloat #20). Tiap service memakai anchor ini via
+# `logging: *default-logging`.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
 
   # ── Reverse Proxy & Security Gateway ──────────────────────────────────────
@@ -21,6 +31,7 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
+    logging: *default-logging
     ports:
       - "80:80"
       # Uncomment to enable HTTPS (mount your certs and extend nginx config):
@@ -46,6 +57,7 @@ services:
     build:
       context: .
       dockerfile: repository/infra/python/Dockerfile
+    logging: *default-logging
     env_file:
       - .env
     environment:
@@ -63,6 +75,7 @@ services:
     build:
       context: ./frontend-user
       dockerfile: Dockerfile
+    logging: *default-logging
     environment:
       # Browser-side API calls go to /api/* (same subdomain, routed by nginx)
       NEXT_PUBLIC_API_BASE: /api
@@ -80,6 +93,7 @@ services:
     build:
       context: ./frontend-admin
       dockerfile: Dockerfile
+    logging: *default-logging
     environment:
       NEXT_PUBLIC_API_BASE: /api
       API_INTERNAL_BASE: http://backend:8888
@@ -97,6 +111,7 @@ services:
       args:
         MONGODB_USER: ${MONGODB_USER}
         MONGODB_PASS: ${MONGODB_PASS}
+    logging: *default-logging
     volumes:
       - beescout-data:/data/db
     networks:

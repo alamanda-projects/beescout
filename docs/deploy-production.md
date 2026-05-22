@@ -163,12 +163,9 @@ lihat [credentials.md → Rotasi Secret](credentials.md#rotasi-secret-production
 ## 8. Logging & observability
 
 - Backend log level production: `INFO` (bukan `DEBUG`).
-- Rotasi log — set Docker log driver di `docker-compose.yml`:
-  ```yaml
-  logging:
-    driver: json-file
-    options: { max-size: "10m", max-file: "3" }
-  ```
+- Rotasi log — **sudah dikonfigurasi** di `docker-compose.yml` lewat anchor
+  `x-logging` (`json-file`, `max-size: 10m`, `max-file: 3`) pada semua service.
+  Tidak perlu setup manual; cegah disk bloat (#20).
 - Healthcheck: `GET /health` → `{"status":"ok","version":"..."}` (sudah ada).
 - Pasang monitoring uptime (UptimeRobot / Healthchecks.io) yang men-poll
   `/health`, alert ke email operator instance.
@@ -176,9 +173,16 @@ lihat [credentials.md → Rotasi Secret](credentials.md#rotasi-secret-production
 ## 9. Audit codebase sebelum go-live
 
 ```bash
-make test                       # backend pytest + 2 typecheck — semua hijau
+make test                            # backend pytest + 2 typecheck — semua hijau
 for s in scripts/qa-*.sh; do bash "$s"; done   # tiap script exit 0
+bash scripts/qa-prod-readiness.sh    # cek statis checklist go-live (lihat catatan)
 ```
+
+> `qa-prod-readiness.sh` mengotomasi item checklist yang bisa diverifikasi
+> statis: `.env` tidak ter-commit, MongoDB tidak di-expose, rotasi log aktif,
+> dan — bila dijalankan di server yang punya `.env` — tidak ada placeholder
+> `changeme`, `COOKIE_SECURE` bukan `false`, `ALLOWED_ORIGINS` tanpa wildcard /
+> `http://`. Jalankan **di server production** agar check `.env` ikut tereksekusi.
 
 - Jalankan skill `/security-review` pada branch yang akan di-deploy.
 - Pastikan tidak ada `console.log` / `print()` yang membocorkan data sensitif.
@@ -271,6 +275,7 @@ applicable untuk lingkungan Anda wajib diberi justifikasi tertulis.
 - [ ] Backup MongoDB terjadwal; prosedur restore diuji ≥ 1×
 - [ ] Rotasi log aktif; monitoring uptime + alert email terpasang
 - [ ] `make test` hijau; semua `scripts/qa-*.sh` exit 0
+- [ ] `bash scripts/qa-prod-readiness.sh` exit 0 (dijalankan di server, `.env` ada)
 - [ ] `/security-review` dijalankan pada branch deploy
 
 ### Verifikasi akhir
