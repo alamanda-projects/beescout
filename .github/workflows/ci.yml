@@ -133,6 +133,17 @@ jobs:
       - name: Run form button safety check
         run: bash scripts/qa-form-buttons.sh
 
+  # ── QA: production readiness static checks (Issue #36) ────────────────────
+  # Tanpa .env di CI — check secret/CORS otomatis di-SKIP, hanya verifikasi
+  # statis (.env tak ter-commit, MongoDB tak di-expose, rotasi log aktif).
+  qa-prod-readiness:
+    name: QA — production readiness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run production readiness check
+        run: bash scripts/qa-prod-readiness.sh
+
   # ── Docker build check ─────────────────────────────────────────────────────
   docker-build:
     name: Docker build — ${{ matrix.service }}

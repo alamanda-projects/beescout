@@ -35,7 +35,7 @@ The maintainer (single, [@haninp](https://github.com/haninp)) operates **brainst
 ### Definition of Done (before opening a PR)
 
 1. **Tests pass locally**: `make test` (backend + both frontend typechecks).
-2. **QA scripts pass**: every `scripts/qa-*.sh` relevant to the change exits 0. The form button safety check (`scripts/qa-form-buttons.sh`) runs on every PR via CI — keep it green.
+2. **QA scripts pass**: every `scripts/qa-*.sh` relevant to the change exits 0. Two run on every PR via CI — keep them green: `scripts/qa-form-buttons.sh` (form button safety) and `scripts/qa-prod-readiness.sh` (production-readiness static checks; `.env`-dependent checks auto-skip when no `.env` is present).
 3. **New convention discovered? Document it.** Add a section to this file (and a longer write-up under `docs/` if it deserves one). Future you / future agent will need it.
 4. **PR description** includes: short summary, "Closes #N" trailer, test plan checklist.
 5. **Branch naming**: `<type>/<issue#>-<slug>` where `type` ∈ `fix | feat | chore | docs | refactor`. Example: `fix/12-unique-contract-number`.
