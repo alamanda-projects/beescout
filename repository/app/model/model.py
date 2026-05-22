@@ -16,17 +16,17 @@ from typing import List, Optional, Union
 
 
 class ModelQualityCustom(BaseModel):
-    property: Optional[str]
-    value: Optional[Union[str, int]]
+    property: Optional[str] = None
+    value: Optional[Union[str, int]] = None
 
 
 class ModelQuality(BaseModel):
-    code: Optional[str]
-    description: Optional[str]
-    dimension: Optional[str]
-    impact: Optional[str]    # operational | financial | regulatory | reputational
+    code: Optional[str] = None
+    description: Optional[str] = None
+    dimension: Optional[str] = None
+    impact: Optional[str] = None    # operational | financial | regulatory | reputational
     severity: Optional[str] = None  # low | medium | high
-    custom_properties: Optional[List[ModelQualityCustom]]  # -> merujuk ke class ModelQualityCustom
+    custom_properties: Optional[List[ModelQualityCustom]] = None  # -> merujuk ke class ModelQualityCustom
 
 
 class Model(BaseModel):
