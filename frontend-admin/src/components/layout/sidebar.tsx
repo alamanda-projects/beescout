@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { LayoutDashboard, FileText, Users, User, Puzzle, ClipboardCheck } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, User, Puzzle, ClipboardCheck, Boxes } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getPendingApprovals } from '@/lib/api/admin'
 
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/catalog',      label: 'Katalog Aturan',  icon: Puzzle },
   { href: '/approvals',    label: 'Persetujuan',     icon: ClipboardCheck, badge: true },
   { href: '/users',        label: 'Manajemen User',  icon: Users },
+  { href: '/domains',      label: 'Domain Data',     icon: Boxes },
   { href: '/profile',      label: 'Profil Saya',     icon: User },
 ]
 

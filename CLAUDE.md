@@ -53,7 +53,8 @@ Use the plan mode (Claude Code) or write a plan file to `.github/` / comment on 
 - **Pydantic models in `repository/app/model/`** — always check these before adding fields to the frontend form. Frontend types in `frontend-admin/src/types/` (and mirrored in `frontend-user/`) must stay in sync.
 - **`retention`** is stored as `int` + separate `retention_unit: str` (values: `tahun | bulan | pekan | hari | jam`). Never combine into one string.
 - **JWT tokens** live in httpOnly cookies — never localStorage. Default access token expiry: 180 minutes (3 hours).
-- **MongoDB collections** are configured via env (`MONGODB_COL_*`). Common ones: `dgr` (contracts), `dgrusr` (users), approvals collection (see `core/connection.py`).
+- **MongoDB collections** are configured via env (`MONGODB_COL_*`). Common ones: `dgr` (contracts), `dgrusr` (users), `approvals`, `domains` (standardised team domains — see below). See `core/connection.py`.
+- **`data_domain` is an access key** — it must match contract `metadata.consumer[].name` via exact string. The `domains` collection (managed via `/domain/*`, admin only) is the curated source of valid slugs. New user create/edit validates `data_domain` against it through `validate_data_domain()` in `main.py` — but validation is **skipped while the `domains` collection is empty** (backward compatible). Slugs are lowercase, hyphenated (`slugify_domain()`); domains are soft-deleted (`is_active: false`), never hard-deleted.
 - **Role gating dependencies**: use the helpers in `main.py` — `require_root`, `require_admin`, `require_any`. Don't re-implement role checks inline.
 - **Endpoint naming**: lowercase + slash-separated noun + verb (e.g., `/datacontract/lists`, `/user/create`, `/approval/{id}/vote`).
 

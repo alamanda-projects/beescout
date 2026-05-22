@@ -16,7 +16,8 @@ def mock_collections():
     """Returns mock MongoDB collection objects shared across the session."""
     usr = AsyncMock()
     dgr = AsyncMock()
-    return {"usr": usr, "dgr": dgr}
+    dom = AsyncMock()
+    return {"usr": usr, "dgr": dgr, "dom": dom}
 
 
 @pytest_asyncio.fixture
@@ -39,6 +40,7 @@ async def client(mock_collections):
     with (
         patch("app.main.usrcollection", mock_collections["usr"]),
         patch("app.main.dccollection", mock_collections["dgr"]),
+        patch("app.main.domcollection", mock_collections["dom"]),
         patch("app.core.verificator.usrcollection", mock_collections["usr"]),
         patch("app.core.verificator.dccollection", mock_collections["dgr"]),
     ):

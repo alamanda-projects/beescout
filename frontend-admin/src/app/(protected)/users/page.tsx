@@ -6,8 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getMe } from '@/lib/api/auth'
-import { createUser, getUsers, updateUser, deleteUser } from '@/lib/api/admin'
-import type { UserRecord } from '@/lib/api/admin'
+import { createUser, getUsers, updateUser, deleteUser, getDomains } from '@/lib/api/admin'
+import type { UserRecord, DomainRecord } from '@/lib/api/admin'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,10 +55,12 @@ const ROLE_BADGE: Record<string, string> = {
 // ─── Edit Panel ───────────────────────────────────────────────────────────────
 function EditPanel({
   user,
+  domains,
   onClose,
   onSaved,
 }: {
   user: UserRecord
+  domains: DomainRecord[]
   onClose: () => void
   onSaved: () => void
 }) {
@@ -126,7 +128,21 @@ function EditPanel({
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Domain Data *</Label>
-                <Input className="h-8 text-xs" {...register('data_domain')} />
+                {domains.length > 0 ? (
+                  <Select value={watch('data_domain') || ''} onValueChange={(v) => setValue('data_domain', v)}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih domain" /></SelectTrigger>
+                    <SelectContent>
+                      {domains.map((d) => (
+                        <SelectItem key={d.name} value={d.name}>{d.label}</SelectItem>
+                      ))}
+                      {user.data_domain && !domains.some((d) => d.name === user.data_domain) && (
+                        <SelectItem value={user.data_domain}>{user.data_domain} (lama)</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input className="h-8 text-xs" {...register('data_domain')} />
+                )}
                 {errors.data_domain && <p className="text-[10px] text-destructive">{errors.data_domain.message}</p>}
               </div>
               <div className="space-y-1">
@@ -206,6 +222,10 @@ export default function UsersPage() {
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
     queryFn: getUsers,
+  })
+  const { data: domains = [] } = useQuery({
+    queryKey: ['domains'],
+    queryFn: () => getDomains(false),
   })
 
   const isRoot = currentUser?.group_access === 'root'
@@ -406,7 +426,7 @@ export default function UsersPage() {
 
                     if (editTarget === u.username) {
                       rows.push(
-                        <EditPanel key={`edit-${u.username}`} user={u} onClose={handleEditClose} onSaved={handleSaved} />
+                        <EditPanel key={`edit-${u.username}`} user={u} domains={domains} onClose={handleEditClose} onSaved={handleSaved} />
                       )
                     }
                     if (deleteTarget === u.username) {
@@ -507,8 +527,24 @@ export default function UsersPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Domain Data *</Label>
-                    <Input placeholder="Contoh: penjualan, inventory" {...register('data_domain')} />
+                    {domains.length > 0 ? (
+                      <Select value={watch('data_domain') || ''} onValueChange={(v) => setValue('data_domain', v)}>
+                        <SelectTrigger><SelectValue placeholder="Pilih domain" /></SelectTrigger>
+                        <SelectContent>
+                          {domains.map((d) => (
+                            <SelectItem key={d.name} value={d.name}>{d.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input placeholder="Contoh: penjualan, inventory" {...register('data_domain')} />
+                    )}
                     {errors.data_domain && <p className="text-xs text-destructive">{errors.data_domain.message}</p>}
+                    {domains.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Belum ada domain terstandarisasi — buat di menu <span className="font-medium">Domain Data</span>.
+                      </p>
+                    )}
                   </div>
                 </div>
 

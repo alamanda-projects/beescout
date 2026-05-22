@@ -16,6 +16,7 @@ db = config("MONGODB_DB", default="dgrdb")
 col_dgr = config("MONGODB_COLLECTION_DGR", default="dgr")
 col_usr = config("MONGODB_COLLECTION_USR", default="dgrusr")
 col_apr = config("MONGODB_COLLECTION_APR", default="approvals")
+col_dom = config("MONGODB_COLLECTION_DOM", default="domains")
 # db_usr = config("MONGODB_DB_USR")
 
 string_connection = f"mongodb://{user}:{password}@{host}:{port}/"
