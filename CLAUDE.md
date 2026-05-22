@@ -37,9 +37,10 @@ The maintainer (single, [@haninp](https://github.com/haninp)) operates **brainst
 1. **Tests pass locally**: `make test` (backend + both frontend typechecks).
 2. **QA scripts pass**: every `scripts/qa-*.sh` relevant to the change exits 0. Two run on every PR via CI — keep them green: `scripts/qa-form-buttons.sh` (form button safety) and `scripts/qa-prod-readiness.sh` (production-readiness static checks; `.env`-dependent checks auto-skip when no `.env` is present).
 3. **New convention discovered? Document it.** Add a section to this file (and a longer write-up under `docs/` if it deserves one). Future you / future agent will need it.
-4. **PR description** includes: short summary, "Closes #N" trailer, test plan checklist.
-5. **Branch naming**: `<type>/<issue#>-<slug>` where `type` ∈ `fix | feat | chore | docs | refactor`. Example: `fix/12-unique-contract-number`.
-6. **Squash-merge only** (project default). The branch is deleted on merge.
+4. **API changed? Update the Postman docs.** Any change to a backend endpoint (new endpoint, changed path/method, changed request/response body, removed endpoint) in `repository/app/main.py` or the Pydantic models in `repository/app/model/` **must** include an update to the Postman Collection under `docs/api/` (and the environment file if needed). Treat it like keeping frontend types in sync — the collection goes stale fast otherwise. Mention the Postman update in the PR's test plan checklist.
+5. **PR description** includes: short summary, "Closes #N" trailer, test plan checklist.
+6. **Branch naming**: `<type>/<issue#>-<slug>` where `type` ∈ `fix | feat | chore | docs | refactor`. Example: `fix/12-unique-contract-number`.
+7. **Squash-merge only** (project default). The branch is deleted on merge.
 
 ### When the task is non-trivial
 
