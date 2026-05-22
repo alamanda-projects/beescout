@@ -353,9 +353,15 @@ export default function NewContractPage() {
               .filter((q: any) => q.code)
               .map((q: any) => ({ ...q, custom_properties: (q.custom_properties ?? []).filter((p: any) => p.property) })),
           })),
+        // Backend (PortsProperties) memakai field `property`, bukan `name`.
         ports: (data.ports ?? [])
           .filter(p => p.object)
-          .map(p => ({ ...p, properties: (p.properties ?? []).filter(pr => pr.name) })),
+          .map(p => ({
+            object: p.object,
+            properties: (p.properties ?? [])
+              .filter(pr => pr.name)
+              .map(pr => ({ property: pr.name, value: pr.value })),
+          })),
         examples: { type: null, data: null },
       }
       await addContract(payload)
