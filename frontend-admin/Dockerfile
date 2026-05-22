@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # =======================
 # Project : BeeScout — Frontend Admin
 # File    : frontend-admin/Dockerfile
@@ -6,7 +7,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+# Cache mount: simpan cache npm lintas build → npm ci tidak re-download
+# seluruh package tiap kali lockfile berubah (lihat issue #20).
+RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline
 
 # ── Dev stage: hot-reload server (targeted by docker-compose.dev.yml) ─────────
 # Punya node_modules lengkap (termasuk `next` CLI) — runner stage tidak.
