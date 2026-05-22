@@ -85,11 +85,13 @@ const schema = z.object({
       })).optional(),
     })).optional(),
   })).optional(),
+  // Koneksi opsional — field lenient supaya port/properti kosong tidak
+  // memblokir submit; baris kosong dibuang di onSubmit.
   ports: z.array(z.object({
-    object: z.string().min(1, 'Nama objek wajib diisi'),
+    object: z.string().optional(),
     properties: z.array(z.object({
-      name: z.string().min(1),
-      value: z.string().min(1),
+      name: z.string().optional(),
+      value: z.string().optional(),
     })).optional(),
   })).optional(),
 })
@@ -97,7 +99,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
-const STEPS = ['Informasi Dasar', 'SLA & Pemangku', 'Struktur Data', 'Tinjauan']
+const STEPS = ['Informasi Dasar', 'SLA', 'Pemangku', 'Struktur Data', 'Koneksi', 'Tinjauan']
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -122,6 +124,126 @@ function StepIndicator({ current }: { current: number }) {
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+// ─── Review (Tinjauan) ────────────────────────────────────────────────────────
+function ReviewRow({ label, value }: { label: string; value?: React.ReactNode }) {
+  const empty = value === undefined || value === null || value === '' ||
+    (Array.isArray(value) && value.length === 0)
+  return (
+    <div className="flex gap-3">
+      <span className="text-sm text-muted-foreground w-40 shrink-0">{label}</span>
+      <span className="text-sm font-medium">
+        {empty ? <span className="text-muted-foreground italic font-normal">—</span> : value}
+      </span>
+    </div>
+  )
+}
+
+function ReviewSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 border-b pb-1">{title}</h4>
+      <div className="space-y-1 pt-0.5">{children}</div>
+    </div>
+  )
+}
+
+// Render seluruh isi kontrak — dipakai di step Tinjauan agar user
+// melihat data utuh sebelum menyimpan.
+function ContractReview({ data, retentionValue, retentionUnit }: {
+  data: FormData
+  retentionValue: string
+  retentionUnit: string
+}) {
+  const stakeholders = data.metadata?.stakeholders ?? []
+  const model = data.model ?? []
+  const ports = data.ports ?? []
+  const dsQuality = data.metadata?.quality ?? []
+
+  return (
+    <div className="space-y-5">
+      <ReviewSection title="Informasi Dasar">
+        <ReviewRow label="Nama Kontrak" value={data.metadata?.name} />
+        <ReviewRow label="Pemilik" value={data.metadata?.owner} />
+        <ReviewRow label="Nomor Kontrak" value={data.contract_number} />
+        <ReviewRow label="Tipe" value={data.metadata?.type} />
+        <ReviewRow label="Versi" value={data.metadata?.version} />
+        <ReviewRow label="Standar" value={data.standard_version} />
+        <ReviewRow label="Mode Konsumsi" value={data.metadata?.consumption_mode} />
+        <ReviewRow label="Tujuan" value={data.metadata?.description?.purpose} />
+        <ReviewRow label="Cara Penggunaan" value={data.metadata?.description?.usage} />
+      </ReviewSection>
+
+      <ReviewSection title="SLA">
+        <ReviewRow label="Ketersediaan" value={data.metadata?.sla?.availability} />
+        <ReviewRow label="Frekuensi Update" value={data.metadata?.sla?.frequency} />
+        <ReviewRow label="Retensi Data" value={retentionValue ? `${retentionValue} ${retentionUnit}` : ''} />
+        <ReviewRow label="Jadwal Cron" value={data.metadata?.sla?.cron} />
+      </ReviewSection>
+
+      <ReviewSection title={`Pemangku Kepentingan (${stakeholders.length})`}>
+        {stakeholders.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Belum ada pemangku kepentingan.</p>
+        ) : stakeholders.map((s, i) => (
+          <div key={i} className="text-sm">
+            <span className="font-medium">{s.name || '—'}</span>
+            {s.role && <span className="text-muted-foreground"> · {s.role}</span>}
+            {s.email && <span className="text-muted-foreground"> · {s.email}</span>}
+          </div>
+        ))}
+      </ReviewSection>
+
+      <ReviewSection title={`Struktur Data — Kolom (${model.length})`}>
+        {model.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Belum ada kolom.</p>
+        ) : model.map((c, i) => {
+          const flags = [
+            c.is_primary && 'PK', c.is_nullable && 'nullable',
+            c.is_pii && 'PII', c.is_mandatory && 'wajib',
+          ].filter(Boolean) as string[]
+          const qn = (c.quality ?? []).length
+          return (
+            <div key={i} className="text-sm">
+              <span className="font-medium font-mono">{c.column || '—'}</span>
+              {(c.logical_type || c.physical_type) && (
+                <span className="text-muted-foreground"> · {[c.logical_type, c.physical_type].filter(Boolean).join(' / ')}</span>
+              )}
+              {flags.length > 0 && <span className="text-muted-foreground"> · {flags.join(', ')}</span>}
+              {qn > 0 && <span className="text-muted-foreground"> · {qn} aturan kualitas</span>}
+            </div>
+          )
+        })}
+      </ReviewSection>
+
+      {dsQuality.length > 0 && (
+        <ReviewSection title={`Aturan Kualitas Dataset (${dsQuality.length})`}>
+          {dsQuality.map((q, i) => (
+            <div key={i} className="text-sm">
+              <span className="font-medium">{q.code}</span>
+              {q.dimension && <span className="text-muted-foreground"> · {q.dimension}</span>}
+            </div>
+          ))}
+        </ReviewSection>
+      )}
+
+      <ReviewSection title={`Koneksi (${ports.length})`}>
+        {ports.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Tidak ada koneksi.</p>
+        ) : ports.map((p, i) => {
+          const props = (p.properties ?? []).filter(pr => pr.name)
+          return (
+            <div key={i} className="text-sm">
+              <span className="font-medium font-mono">{p.object || '—'}</span>
+              {props.length > 0 && (
+                <span className="text-muted-foreground"> · {props.map(pr => `${pr.name}=${pr.value}`).join(', ')}</span>
+              )}
+            </div>
+          )
+        })}
+      </ReviewSection>
     </div>
   )
 }
@@ -160,6 +282,7 @@ export default function NewContractPage() {
 
   const { fields: stakeholders, append: addStakeholder, remove: removeStakeholder } = useFieldArray({ control: form.control, name: 'metadata.stakeholders' })
   const { fields: columns, append: addColumn, remove: removeColumn } = useFieldArray({ control: form.control, name: 'model' })
+  const { fields: ports, append: addPort, remove: removePort } = useFieldArray({ control: form.control, name: 'ports' })
 
   const [retentionValue, setRetentionValue] = useState('')
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
@@ -180,12 +303,13 @@ export default function NewContractPage() {
   useEffect(() => { generateCN() }, [])
 
   const nextStep = async () => {
+    // Index = step. Hanya step 0 (Informasi Dasar) punya field wajib;
+    // SLA/Pemangku/Struktur Data/Koneksi semuanya opsional.
     const fieldsPerStep: (keyof FormData | string)[][] = [
       ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner'],
-      [],
-      [],
+      [], [], [], [],
     ]
-    const valid = await form.trigger(fieldsPerStep[step] as any)
+    const valid = await form.trigger((fieldsPerStep[step] ?? []) as any)
     if (valid) setStep(s => Math.min(s + 1, STEPS.length - 1))
   }
 
@@ -229,7 +353,15 @@ export default function NewContractPage() {
               .filter((q: any) => q.code)
               .map((q: any) => ({ ...q, custom_properties: (q.custom_properties ?? []).filter((p: any) => p.property) })),
           })),
-        ports: data.ports?.filter(p => p.object) ?? [],
+        // Backend (PortsProperties) memakai field `property`, bukan `name`.
+        ports: (data.ports ?? [])
+          .filter(p => p.object)
+          .map(p => ({
+            object: p.object,
+            properties: (p.properties ?? [])
+              .filter(pr => pr.name)
+              .map(pr => ({ property: pr.name, value: pr.value })),
+          })),
         examples: { type: null, data: null },
       }
       await addContract(payload)
@@ -355,9 +487,8 @@ export default function NewContractPage() {
           </Card>
         )}
 
-        {/* ── Step 1: SLA & Stakeholders ───────────────────────────── */}
+        {/* ── Step 1: SLA ──────────────────────────────────────────── */}
         {step === 1 && (
-          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">SLA (Tingkat Layanan)</CardTitle>
@@ -397,7 +528,10 @@ export default function NewContractPage() {
                 </div>
               </CardContent>
             </Card>
+        )}
 
+        {/* ── Step 2: Pemangku Kepentingan ─────────────────────────── */}
+        {step === 2 && (
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -454,11 +588,10 @@ export default function NewContractPage() {
                 ))}
               </CardContent>
             </Card>
-          </div>
         )}
 
-        {/* ── Step 2: Model / Struktur Data ────────────────────────── */}
-        {step === 2 && (
+        {/* ── Step 3: Model / Struktur Data ────────────────────────── */}
+        {step === 3 && (
           <div className="space-y-4">
             <Card>
               <CardHeader>
@@ -595,37 +728,85 @@ export default function NewContractPage() {
           </div>
         )}
 
-        {/* ── Step 3: Review ───────────────────────────────────────── */}
-        {step === 3 && (
+        {/* ── Step 4: Koneksi (Port) ───────────────────────────────── */}
+        {step === 4 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Koneksi (Port)</CardTitle>
+                  <CardDescription>Sumber atau tujuan data contract — opsional</CardDescription>
+                </div>
+                <Button type="button" variant="outline" size="sm"
+                  onClick={() => addPort({ object: '', properties: [] })}>
+                  <Plus size={14} className="mr-1" />Tambah Port
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {ports.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Belum ada koneksi. Opsional — klik &quot;Tambah Port&quot; bila kontrak punya sumber/tujuan data.
+                </p>
+              )}
+              {ports.map((portField, i) => {
+                // properties (nested array) dikelola via watch+setValue —
+                // useFieldArray dengan nama dinamis dilarang (lihat CLAUDE.md).
+                const props = watch(`ports.${i}.properties`) ?? []
+                return (
+                  <div key={portField.id} className="p-4 border rounded-lg space-y-3 bg-slate-50">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1 flex-1 mr-4">
+                        <Label className="text-xs">Nama Objek *</Label>
+                        <Input placeholder="Contoh: schema.table_name" className="h-8 text-xs font-mono"
+                          {...register(`ports.${i}.object`)} />
+                      </div>
+                      <Button type="button" variant="ghost" size="icon"
+                        className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50 mt-5"
+                        onClick={() => removePort(i)}>
+                        <Trash2 size={13} />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Properties</Label>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 text-xs"
+                          onClick={() => setValue(`ports.${i}.properties`, [...props, { name: '', value: '' }])}>
+                          <Plus size={11} className="mr-1" />Tambah
+                        </Button>
+                      </div>
+                      {props.length === 0 && (
+                        <p className="text-[11px] text-muted-foreground">Belum ada properti.</p>
+                      )}
+                      {props.map((_, j) => (
+                        <div key={j} className="flex gap-2">
+                          <Input placeholder="nama" className="h-7 text-xs"
+                            {...register(`ports.${i}.properties.${j}.name`)} />
+                          <Input placeholder="nilai" className="h-7 text-xs"
+                            {...register(`ports.${i}.properties.${j}.value`)} />
+                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 shrink-0"
+                            onClick={() => setValue(`ports.${i}.properties`, props.filter((_, k) => k !== j))}>
+                            <Trash2 size={11} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Step 5: Review ───────────────────────────────────────── */}
+        {step === 5 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Tinjauan Sebelum Simpan</CardTitle>
-              <CardDescription>Periksa kembali data sebelum menyimpan</CardDescription>
+              <CardDescription>Periksa seluruh isi kontrak di bawah sebelum menyimpan</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { label: 'Nama Kontrak', value: watch('metadata.name') },
-                { label: 'Pemilik', value: watch('metadata.owner') },
-                { label: 'Nomor Kontrak', value: watch('contract_number') },
-                { label: 'Tipe', value: watch('metadata.type') },
-                { label: 'Versi', value: watch('metadata.version') },
-                { label: 'Standar', value: watch('standard_version') },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex gap-3">
-                  <span className="text-sm text-muted-foreground w-36 shrink-0">{label}</span>
-                  <span className="text-sm font-medium">{value || <span className="text-muted-foreground italic">Kosong</span>}</span>
-                </div>
-              ))}
-              <Separator />
-              <div className="flex gap-3">
-                <span className="text-sm text-muted-foreground w-36 shrink-0">Kolom</span>
-                <span className="text-sm font-medium">{watch('model')?.length ?? 0} kolom didefinisikan</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-sm text-muted-foreground w-36 shrink-0">Pemangku</span>
-                <span className="text-sm font-medium">{watch('metadata.stakeholders')?.length ?? 0} orang</span>
-              </div>
-              <Separator />
+            <CardContent className="space-y-5">
+              <ContractReview data={watch()} retentionValue={retentionValue} retentionUnit={retentionUnit} />
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-sm text-amber-800">
                   Pastikan semua informasi sudah benar sebelum menyimpan. Perubahan setelah kontrak disimpan akan memerlukan persetujuan pengelola.
