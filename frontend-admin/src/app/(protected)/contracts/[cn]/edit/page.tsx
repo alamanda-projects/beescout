@@ -69,11 +69,13 @@ const schema = z.object({
     is_pii: z.boolean().optional(),
     is_mandatory: z.boolean().optional(),
   })).optional(),
+  // Koneksi opsional — field lenient supaya baris kosong tidak memblokir
+  // submit; dibersihkan di onSubmit.
   ports: z.array(z.object({
-    object: z.string().min(1, 'Nama objek wajib diisi'),
+    object: z.string().optional(),
     properties: z.array(z.object({
-      name: z.string().min(1),
-      value: z.string().min(1),
+      name: z.string().optional(),
+      value: z.string().optional(),
     })).optional(),
   })).optional(),
 })
@@ -169,7 +171,8 @@ export default function EditContractPage() {
       ports: (contract.ports ?? []).map((p: any) => ({
         object: p.object ?? '',
         properties: (p.properties ?? []).map((prop: any) => ({
-          name: prop.name ?? '',
+          // backend menyimpan `property`; `name` fallback utk data lama
+          name: prop.property ?? prop.name ?? '',
           value: prop.value ?? '',
         })),
       })),
@@ -206,7 +209,15 @@ export default function EditContractPage() {
           ),
         },
         model: data.model?.filter(c => c.column) ?? [],
-        ports: data.ports?.filter(p => p.object) ?? [],
+        // Backend (PortsProperties) memakai field `property`, bukan `name`.
+        ports: (data.ports ?? [])
+          .filter(p => p.object)
+          .map(p => ({
+            object: p.object,
+            properties: (p.properties ?? [])
+              .filter(pr => pr.name)
+              .map(pr => ({ property: pr.name, value: pr.value })),
+          })),
         examples: (contract as any)?.examples ?? { type: null, data: null },
       }
       await updateContract(cn, payload)
@@ -662,24 +673,25 @@ export default function EditContractPage() {
 }
 
 function PortProperties({ portIndex, form }: { portIndex: number; form: any }) {
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: `ports.${portIndex}.properties`,
-  })
+  // properties (nested array) dikelola via watch+setValue — useFieldArray
+  // dengan nama dinamis dilarang (crash saat index parent bergeser, CLAUDE.md).
+  const props: { name?: string; value?: string }[] = form.watch(`ports.${portIndex}.properties`) ?? []
+  const setProps = (next: typeof props) => form.setValue(`ports.${portIndex}.properties`, next)
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-xs text-muted-foreground">Properties</Label>
         <Button type="button" variant="ghost" size="sm" className="h-6 text-xs"
-          onClick={() => append({ name: '', value: '' })}>
+          onClick={() => setProps([...props, { name: '', value: '' }])}>
           <Plus size={11} className="mr-1" />Tambah
         </Button>
       </div>
-      {fields.map((f, j) => (
-        <div key={f.id} className="flex gap-2">
+      {props.map((_, j) => (
+        <div key={j} className="flex gap-2">
           <Input placeholder="nama" className="h-7 text-xs" {...form.register(`ports.${portIndex}.properties.${j}.name`)} />
           <Input placeholder="nilai" className="h-7 text-xs" {...form.register(`ports.${portIndex}.properties.${j}.value`)} />
-          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 shrink-0" onClick={() => remove(j)}>
+          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 shrink-0"
+            onClick={() => setProps(props.filter((_, k) => k !== j))}>
             <Trash2 size={11} />
           </Button>
         </div>
