@@ -16,6 +16,9 @@
 #   make reset-db       — wipe production DB volume & re-init (DESTRUCTIVE)
 #   make dev-reset-db   — wipe dev DB volume & re-init (DESTRUCTIVE)
 #
+# Housekeeping:
+#   make prune          — hapus dangling image + build cache (free disk)
+#
 # Backend only (standalone):
 #   make up-be          — start backend + db only
 # =======================
@@ -155,6 +158,15 @@ test: test-backend test-fe-admin test-fe-user
 
 clean:
 	docker image prune -f
+
+# Housekeeping disk: hapus dangling image + build cache yang tak terpakai.
+# Aman — hanya menghapus yang tidak direferensikan container/image aktif.
+# Jalankan berkala bila `docker system df` menunjukkan akumulasi (issue #20).
+prune:
+	docker image prune -f
+	docker builder prune -f
+	@echo "── docker system df ──"
+	@docker system df
 
 clean-all:
 	docker compose down -v --rmi local

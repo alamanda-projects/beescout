@@ -215,6 +215,21 @@ Tests use `httpx.AsyncClient` + `unittest.mock` — no real MongoDB needed. All 
 
 ---
 
+## Development Workflow — `make dev` vs `docker compose build`
+
+Pilih tool sesuai fase kerja. Salah pilih = disk bloat (lihat issue #20).
+
+| Fase | Pakai | Alasan |
+|---|---|---|
+| Iterasi UI / bug fix / coding harian | `make dev` | `next dev` hot reload — edit file langsung kelihatan, **tidak** bikin image baru |
+| Verifikasi sebelum buka PR | `docker compose build` (1×) | Pastikan image production benar-benar build |
+| CI / release | `docker compose build` | Build artefak final |
+| Disk menumpuk | `make prune` | Hapus dangling image + build cache |
+
+**Jangan** `docker compose build` tiap perubahan kecil — tiap build menambah image ~0.5–1 GB yang lama jadi dangling. Untuk iterasi, `make dev` saja. Build hanya untuk verifikasi/rilis. Jalankan `make prune` berkala.
+
+---
+
 ## Common Troubleshooting
 
 ### MongoDB won't start (WiredTiger crash)

@@ -1,0 +1,25 @@
+# =======================
+# Root build context — dipakai image `backend` & `db`
+# (docker-compose.yml: kedua service build dengan context ".").
+#
+# Keduanya HANYA butuh direktori repository/:
+#   backend → repository/app/ + repository/infra/python/
+#   db      → repository/infra/mongodb/init/
+#
+# Strategi whitelist: kecualikan semua, lalu re-include yang dipakai saja.
+# Tanpa ini, COPY mengirim frontend/, docs/, .git/, node_modules/ dll ke
+# build context — bikin context & cache layer bengkak (lihat issue #20).
+# =======================
+
+# Kecualikan semuanya...
+*
+
+# ...lalu re-include hanya direktori yang dibutuhkan build backend & db
+!repository
+
+# Trim artefak di dalam repository/ yang tidak perlu masuk context
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+**/.env
+**/.env.*

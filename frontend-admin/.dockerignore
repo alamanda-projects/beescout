@@ -1,8 +1,12 @@
+# Build context untuk image Next.js — kecualikan yang tidak perlu di-COPY.
+# node_modules di-restore dari stage `deps`; sisanya hanya membengkakkan
+# context & cache layer (lihat issue #20).
 node_modules
 .next
 .git
 .gitignore
 Dockerfile
 .dockerignore
-npm-debug.log*
-.env*.local
+*.log
+.DS_Store
+.env*
