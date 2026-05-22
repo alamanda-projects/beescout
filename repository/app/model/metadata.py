@@ -35,32 +35,32 @@ class MetadataSla(BaseModel):
 
 
 class MetadataQualityCustom(BaseModel):
-    property: Optional[str]
-    value: Optional[Union[str, int]]
+    property: Optional[str] = None
+    value: Optional[Union[str, int]] = None
 
 
 class MetadataQuality(BaseModel):
-    code: Optional[str]
-    description: Optional[str]
-    dimension: Optional[str]
-    impact: Optional[str]    # operational | financial | regulatory | reputational
+    code: Optional[str] = None
+    description: Optional[str] = None
+    dimension: Optional[str] = None
+    impact: Optional[str] = None    # operational | financial | regulatory | reputational
     severity: Optional[str] = None  # low | medium | high
     custom_properties: Optional[
         List[MetadataQualityCustom]
-    ]  # -> merujuk ke class MetadataQualityCustom
+    ] = None  # -> merujuk ke class MetadataQualityCustom
 
 
 class MetadataStakeholders(BaseModel):
     name: str
-    email: Optional[str]
+    email: Optional[str] = None
     role: str
-    date_in: Optional[str]
-    date_out: Optional[str]
+    date_in: Optional[str] = None
+    date_out: Optional[str] = None
 
 
 class MetadataConsumer(BaseModel):
-    name: Optional[str]
-    use_case: Optional[str]
+    name: Optional[str] = None
+    use_case: Optional[str] = None
 
 
 class MetadataDescription(BaseModel):
