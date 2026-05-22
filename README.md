@@ -37,15 +37,27 @@ Cocok untuk:
 
 ### 👋 Anda bukan developer?
 
-Klik start — tidak perlu paham terminal. Pada first run, script start akan membuat konfigurasi lokal, generate secret, dan menjalankan layanan.
+Tidak perlu paham terminal. Ada tiga langkah sampai Anda berhasil masuk.
 
-| OS | File yang diklik |
+**Langkah 1 — Jalankan aplikasi.** Klik dua kali file start sesuai sistem operasi Anda. BeeScout akan menyiapkan aplikasi secara otomatis (langkah ini bisa 5–15 menit saat pertama kali).
+
+| OS | File yang diklik dua kali |
 |---|---|
 | **Mac** | `scripts/install/start-mac.command` |
 | **Windows** | `scripts/install/start.bat` |
-| **Linux** | jalankan `bash scripts/install/start.sh` di terminal |
+| **Linux** | `scripts/install/start.sh` |
 
-Panduan lengkap dengan langkah install Docker & troubleshooting: [**docs/quick-start-non-tech.md**](docs/quick-start-non-tech.md).
+**Langkah 2 — Buka halaman setup.** Setelah aplikasi siap, buka browser ke alamat berikut — ini halaman setup di panel admin:
+
+```text
+http://admin.localhost/setup
+```
+
+Anda akan melihat form pembuatan akun admin pertama.
+
+**Langkah 3 — Buat akun pertama.** Isi form di halaman setup, lalu klik **Buat Super Admin**. Akun admin pertama Anda langsung jadi — setelah itu halaman `/setup` otomatis non-aktif. Login ke `http://admin.localhost` dengan akun tadi dan Anda siap memakai BeeScout.
+
+Langkah install Docker, panduan rinci tiap langkah, dan troubleshooting: [**docs/quick-start-non-tech.md**](docs/quick-start-non-tech.md).
 
 ### 🛠 Anda developer?
 
