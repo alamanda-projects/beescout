@@ -1,8 +1,14 @@
-# Deploy ke Production — Runbook & Checklist
+# Self-Hosting BeeScout di Production — Runbook & Checklist
 
-> Dokumen ini adalah **panduan deploy production** sekaligus **checklist go-live**.
-> Tidak ada instance yang boleh diumumkan publik sebelum seluruh checklist di
-> bagian [Checklist Go-Live](#checklist-go-live) ter-tick (atau dijustifikasi).
+> BeeScout adalah proyek **open-source**. Siapa pun boleh meng-clone repo ini
+> dan men-deploy instance-nya **sendiri**. Dokumen ini panduan untuk **operator**
+> mana pun yang melakukannya — bukan untuk satu instance kanonik tertentu.
+>
+> "Operator" = orang/tim yang men-deploy & mengelola instance. Setiap deployment
+> berdiri sendiri: domain sendiri, secret sendiri, akun root sendiri.
+>
+> Jangan umumkan instance ke publik sebelum seluruh [Checklist Go-Live](#checklist-go-live)
+> ter-tick (atau dijustifikasi mengapa tidak applicable untuk lingkungan Anda).
 >
 > Untuk setup development lokal lihat [getting-started.md](../getting-started.md).
 > Untuk rotasi & penyimpanan secret lihat [credentials.md](credentials.md).
@@ -165,7 +171,7 @@ lihat [credentials.md → Rotasi Secret](credentials.md#rotasi-secret-production
   ```
 - Healthcheck: `GET /health` → `{"status":"ok","version":"..."}` (sudah ada).
 - Pasang monitoring uptime (UptimeRobot / Healthchecks.io) yang men-poll
-  `/health`, alert ke email maintainer.
+  `/health`, alert ke email operator instance.
 
 ## 9. Audit codebase sebelum go-live
 
@@ -226,16 +232,20 @@ make up                          # rebuild dari kode lama
 | Service down | `docker compose ps` & `docker compose logs -f <service>`; cek disk (`docker system df`) |
 | MongoDB crash-loop | Lihat troubleshooting WiredTiger / DuplicateKeyError di [CLAUDE.md](../CLAUDE.md) |
 
-- **Kontak:** maintainer ([@haninp](https://github.com/haninp)).
+- **Kontak operasional:** operator/admin instance Anda sendiri — tentukan &
+  catat di runbook internal organisasi Anda (BeeScout tidak menyediakan
+  dukungan operasional untuk instance self-hosted).
 - **Lokasi log:** `docker compose logs` (driver json-file, ter-rotate).
-- **Pelaporan kerentanan:** lihat [SECURITY.md](../SECURITY.md).
+- **Kerentanan pada software BeeScout** (bukan masalah operasional instance
+  Anda): laporkan ke proyek lewat [SECURITY.md](../SECURITY.md).
 
 ---
 
 ## Checklist Go-Live
 
-Salin daftar ini ke issue rilis dan tick satu per satu. Item yang tidak
-applicable wajib diberi justifikasi tertulis.
+Checklist ini untuk **operator** yang men-deploy instance BeeScout sendiri.
+Salin ke catatan rilis internal Anda dan tick satu per satu. Item yang tidak
+applicable untuk lingkungan Anda wajib diberi justifikasi tertulis.
 
 ### Domain & TLS
 - [ ] Domain user & admin dibeli, DNS A/AAAA mengarah ke server
@@ -264,5 +274,5 @@ applicable wajib diberi justifikasi tertulis.
 - [ ] `/security-review` dijalankan pada branch deploy
 
 ### Verifikasi akhir
-- [ ] `https://app.example.com` & `https://admin.example.com` — HTTPS, login normal
-- [ ] Maintainer memverifikasi langsung di server production
+- [ ] Kedua subdomain Anda (`https://app...` & `https://admin...`) — HTTPS, login normal
+- [ ] Operator memverifikasi langsung di server production
