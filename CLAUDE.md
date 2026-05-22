@@ -76,6 +76,8 @@ Use the plan mode (Claude Code) or write a plan file to `.github/` / comment on 
 
 `/setup` (POST) creates the first root account when no root user exists. Returns `409` immediately after — effectively self-disabling. `/setup/status` (GET) shows whether setup is done. Never call `/user/create` for the first root account.
 
+There is exactly **one active root** at a time. `/setup` disables any stale root documents before creating the new one, and stays locked (`409`) while an active root exists. If the root credentials are lost, recovery is **out-of-band only** — there is deliberately no HTTP endpoint for it. Use the break-glass CLI script (see Troubleshooting below).
+
 ---
 
 ## Frontend Conventions
@@ -299,6 +301,24 @@ docker exec beescout-db-1 mongosh \
 ```
 
 Password is whatever you set in `.env` as `MONGODB_PASS`.
+
+### Lost / forgotten root account
+
+`/setup` locks itself once an active root exists, so there is no web way back in if the root credentials are lost. Recovery is **out-of-band by design** — an HTTP recovery endpoint would be an account-takeover backdoor. The trust boundary is shell access to the server.
+
+Use the break-glass CLI script [`repository/scripts/recover_root.py`](repository/scripts/recover_root.py). It resets an existing root's password (recovery mode) or creates a fresh root (create mode), and always enforces the single-active-root invariant by disabling every other root document. Dry-run by default; `--apply` to execute.
+
+```bash
+# Dry-run — shows the plan, writes nothing
+docker compose run --rm backend python -m scripts.recover_root \
+  --username root --name "Root User"
+
+# Execute — prompts for the new password without echo
+docker compose run --rm backend python -m scripts.recover_root \
+  --username root --name "Root User" --apply
+```
+
+It stamps `recovered_at` / `recovery_note` on the root document for audit. Avoid `--password` (it lands in shell history) — let the script prompt instead.
 
 ---
 
