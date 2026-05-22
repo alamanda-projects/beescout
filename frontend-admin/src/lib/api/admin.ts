@@ -89,3 +89,39 @@ export async function castVote(approvalId: string, vote: 'approved' | 'rejected'
   const res = await apiClient.post(`/approval/${approvalId}/vote`, { vote, reason: reason || null })
   return res.data
 }
+
+// ── Domain management ─────────────────────────────────────────────────────────
+
+export interface DomainRecord {
+  name: string
+  label: string
+  description?: string
+  is_active: boolean
+  user_count?: number
+  created_at?: string
+}
+
+export async function getDomains(includeInactive = false): Promise<DomainRecord[]> {
+  const res = await apiClient.get('/domain/lists', {
+    params: includeInactive ? { include_inactive: true } : {},
+  })
+  return Array.isArray(res.data) ? res.data : []
+}
+
+export async function createDomain(data: { name: string; label: string; description?: string }) {
+  const res = await apiClient.post('/domain/create', data)
+  return res.data
+}
+
+export async function updateDomain(
+  name: string,
+  data: { label?: string; description?: string; is_active?: boolean },
+) {
+  const res = await apiClient.patch(`/domain/${name}`, data)
+  return res.data
+}
+
+export async function deactivateDomain(name: string) {
+  const res = await apiClient.delete(`/domain/${name}`)
+  return res.data
+}

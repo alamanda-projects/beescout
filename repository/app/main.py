@@ -14,7 +14,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import Dict
 from app.model.users import UserCreate
-from app.core.connection import database, col_usr, col_dgr, col_apr
+from app.model.domains import DomainCreate, DomainUpdate
+from app.core.connection import database, col_usr, col_dgr, col_apr, col_dom
 from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate
 from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
@@ -64,6 +65,7 @@ usrcollection = database[col_usr]
 dccollection = database[col_dgr]
 catalogcollection = database["catalog_rules"]
 aprcollection = database[col_apr]
+domcollection = database[col_dom]
 
 # Error response
 usrnotallowed = [usr_403, usr_403_elders, usr_403_guardian]
@@ -120,6 +122,31 @@ async def require_admin(current_user: dict = Depends(token_verification)):
 async def require_any(current_user: dict = Depends(token_verification)):
     await access_verification(current_user["lvl"], current_user["sts"], grplvlall)
     return current_user
+
+
+# ── Domain helpers ────────────────────────────────────────────────────────────
+
+def slugify_domain(raw: str) -> str:
+    """Normalise a domain name into a lowercase slug — the matching key."""
+    return "-".join((raw or "").strip().lower().split())
+
+
+async def validate_data_domain(domain: str):
+    """Ensure `data_domain` refers to an active, registered domain.
+
+    Skipped while the `domains` collection is still empty — keeps free-text
+    domains valid until an admin starts curating the catalog (backward compat,
+    see issue #34). Once any domain exists, the value must match a known slug.
+    """
+    if not await domcollection.count_documents({}):
+        return
+    match = await domcollection.find_one({"name": domain, "is_active": True})
+    if not match:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Domain '{domain}' tidak terdaftar atau tidak aktif. "
+                   "Pilih dari katalog Domain Data.",
+        )
 
 
 @app.get("/health", tags=["system"])
@@ -205,6 +232,7 @@ async def bootstrap_setup(user_form: UserCreate):
 @app.on_event("startup")
 async def ensure_indexes():
     await dccollection.create_index("contract_number", unique=True)
+    await domcollection.create_index("name", unique=True)
 
 
 @app.get("/", response_class=RedirectResponse, status_code=302)
@@ -392,6 +420,9 @@ async def create_user(
     if not any(c in valid_chars for c in user_form.password if not c.isalnum()):
         raise HTTPException(status_code=422, detail=pwd_422_spc)
 
+    # data_domain harus terdaftar di katalog domain (jika katalog sudah dipakai)
+    await validate_data_domain(user_form.data_domain)
+
     # hashing password
     hashed_password = Hasher.get_password_hash(user_form.password)
 
@@ -535,6 +566,9 @@ async def update_user(username: str, payload: dict = Body(...), current_user: di
     if "group_access" in update_data and update_data["group_access"] in grplvlroot:
         raise HTTPException(status_code=403, detail="Tidak dapat mengubah peran menjadi root.")
 
+    if "data_domain" in update_data:
+        await validate_data_domain(update_data["data_domain"])
+
     await usrcollection.update_one({"username": username}, {"$set": update_data})
     return {"message": f"User '{username}' berhasil diperbarui."}
 
@@ -555,6 +589,93 @@ async def delete_user(username: str, current_user: dict = Depends(require_root))
 
     await usrcollection.delete_one({"username": username})
     return {"message": f"User '{username}' berhasil dihapus."}
+
+
+# ── Domain management ─────────────────────────────────────────────────────────
+# `data_domain` adalah kunci akses kontrak (exact-string match di
+# /datacontract/filter). Katalog domain terstandarisasi mencegah typo /
+# inkonsistensi kapitalisasi yang membuat user kehilangan akses. Lihat #34.
+
+
+@app.get("/domain/lists", tags=["domain"])
+async def list_domains(
+    include_inactive: bool = False,
+    current_user: dict = Depends(require_admin),
+):
+    """Daftar domain. Default hanya domain aktif — `include_inactive=true`
+    untuk menyertakan domain yang sudah dinonaktifkan (halaman manajemen)."""
+    query = {} if include_inactive else {"is_active": True}
+    cursor = domcollection.find(query, {"_id": 0})
+    domains = await cursor.to_list(length=500)
+    for d in domains:
+        d["user_count"] = await usrcollection.count_documents(
+            {"data_domain": d["name"], "type": "user"}
+        )
+    domains.sort(key=lambda d: (d.get("label") or d.get("name") or "").lower())
+    return domains
+
+
+@app.post("/domain/create", tags=["domain"], status_code=201)
+async def create_domain(
+    payload: DomainCreate, current_user: dict = Depends(require_admin)
+):
+    """Buat domain baru. `name` di-slugify jadi kunci matching lowercase."""
+    name = slugify_domain(payload.name)
+    if not name:
+        raise HTTPException(status_code=412, detail="Nama domain wajib diisi.")
+    label = (payload.label or "").strip()
+    if not label:
+        raise HTTPException(status_code=412, detail="Label domain wajib diisi.")
+    if await domcollection.find_one({"name": name}):
+        raise HTTPException(status_code=409, detail=f"Domain '{name}' sudah ada.")
+    await domcollection.insert_one({
+        "name": name,
+        "label": label,
+        "description": (payload.description or "").strip(),
+        "is_active": True,
+        "created_at": datetime.now(),
+    })
+    return {"message": f"Domain '{label}' berhasil dibuat.", "name": name}
+
+
+@app.patch("/domain/{name}", tags=["domain"])
+async def update_domain(
+    name: str, payload: DomainUpdate, current_user: dict = Depends(require_admin)
+):
+    """Edit label / deskripsi / status aktif. `name` tidak bisa diubah."""
+    target = await domcollection.find_one({"name": name})
+    if not target:
+        raise HTTPException(status_code=404, detail="Domain tidak ditemukan.")
+
+    update_data: dict = {}
+    if payload.label is not None:
+        label = payload.label.strip()
+        if not label:
+            raise HTTPException(status_code=412, detail="Label domain wajib diisi.")
+        update_data["label"] = label
+    if payload.description is not None:
+        update_data["description"] = payload.description.strip()
+    if payload.is_active is not None:
+        update_data["is_active"] = payload.is_active
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Tidak ada field yang valid untuk diupdate.")
+
+    await domcollection.update_one({"name": name}, {"$set": update_data})
+    return {"message": f"Domain '{name}' berhasil diperbarui."}
+
+
+@app.delete("/domain/{name}", tags=["domain"])
+async def deactivate_domain(
+    name: str, current_user: dict = Depends(require_admin)
+):
+    """Nonaktifkan domain (soft delete). Dokumen tetap disimpan karena
+    user existing mungkin masih memakai domain ini sebagai `data_domain`."""
+    target = await domcollection.find_one({"name": name})
+    if not target:
+        raise HTTPException(status_code=404, detail="Domain tidak ditemukan.")
+    await domcollection.update_one({"name": name}, {"$set": {"is_active": False}})
+    return {"message": f"Domain '{name}' dinonaktifkan."}
 
 
 # Example route to get user data
