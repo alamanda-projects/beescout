@@ -78,24 +78,25 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-5xl">
       {/* Welcome */}
       <div>
-        <h2 className="text-xl font-semibold text-slate-900">
-          {userLoading ? (
-            <Skeleton className="h-7 w-48 inline-block" />
-          ) : (
-            <>Selamat datang, {user?.client_id} 👋</>
-          )}
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          {userLoading ? (
-            <Skeleton className="h-4 w-64 mt-1" />
-          ) : (
-            <>
+        {/* ternary di luar <h2>/<p>: Skeleton render <div> — invalid jika
+            jadi child elemen phrasing-only seperti <p>/<h2> (hydration error). */}
+        {userLoading ? (
+          <>
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-64 mt-2" />
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-semibold text-slate-900">
+              Selamat datang, {user?.client_id} 👋
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Domain: <span className="font-medium text-slate-700">{user?.data_domain}</span>
               {' · '}
               Peran: <span className="font-medium text-slate-700">{ROLE_LABELS[user?.group_access ?? ''] ?? user?.group_access}</span>
-            </>
-          )}
-        </p>
+            </p>
+          </>
+        )}
       </div>
 
       {/* Stats */}
