@@ -10,6 +10,7 @@
 |---|---|
 | What BeeScout does, stack, repo layout | [README.md](README.md) |
 | Local setup & environment variables | [getting-started.md](getting-started.md), [.env.example](.env.example) |
+| Deploy ke production + checklist go-live | [docs/deploy-production.md](docs/deploy-production.md) |
 | Who BeeScout is built for (4 personas) | [docs/personas.md](docs/personas.md) |
 | Business ↔ technical term mapping | [docs/glossary.md](docs/glossary.md) |
 | How to contribute (incl. AI usage policy) | [CONTRIBUTING.md](CONTRIBUTING.md) |
