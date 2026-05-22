@@ -12,6 +12,10 @@
 #   make dev            — start in dev mode (ports exposed, hot reload)
 #   make dev-down       — stop dev stack
 #
+# Database:
+#   make reset-db       — wipe production DB volume & re-init (DESTRUCTIVE)
+#   make dev-reset-db   — wipe dev DB volume & re-init (DESTRUCTIVE)
+#
 # Backend only (standalone):
 #   make up-be          — start backend + db only
 # =======================
@@ -41,6 +45,16 @@ logs:
 status:
 	docker compose ps
 
+# Wipe production DB: hapus volume data, MongoDB re-init dari awal saat start.
+reset-db:
+	@echo "⚠️  Ini MENGHAPUS SEMUA DATA database produksi (volume beescout_beescout-data)."
+	@read -p "Lanjutkan? [y/N] " ans; [ "$$ans" = "y" ] || { echo "Dibatalkan."; exit 1; }
+	docker compose stop db
+	docker compose rm -f db
+	docker volume rm -f beescout_beescout-data
+	docker compose up -d db
+	@echo "✓ Database produksi di-reset. MongoDB re-init dari awal."
+
 
 # ── Development mode ───────────────────────────────────────────────────────────
 
@@ -52,6 +66,16 @@ dev-down:
 
 dev-logs:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+
+# Wipe dev DB: hapus volume data dev, MongoDB re-init dari awal saat start.
+dev-reset-db:
+	@echo "⚠️  Ini MENGHAPUS SEMUA DATA database dev (volume beescout_beescout-dev-data)."
+	@read -p "Lanjutkan? [y/N] " ans; [ "$$ans" = "y" ] || { echo "Dibatalkan."; exit 1; }
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml stop db
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml rm -f db
+	docker volume rm -f beescout_beescout-dev-data
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+	@echo "✓ Database dev di-reset. MongoDB re-init dari awal."
 
 
 # ── Backend standalone (no frontend, no nginx) ────────────────────────────────
