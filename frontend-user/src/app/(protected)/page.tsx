@@ -78,8 +78,8 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-5xl">
       {/* Welcome */}
       <div>
-        {/* ternary di luar <h2>/<p>: Skeleton render <div> — invalid jika
-            jadi child elemen phrasing-only seperti <p>/<h2> (hydration error). */}
+        {/* ternary di luar heading/paragraf: Skeleton render elemen div —
+            invalid jika jadi child elemen phrasing-only (hydration error). */}
         {userLoading ? (
           <>
             <Skeleton className="h-7 w-48" />
