@@ -128,6 +128,126 @@ function StepIndicator({ current }: { current: number }) {
   )
 }
 
+// ─── Review (Tinjauan) ────────────────────────────────────────────────────────
+function ReviewRow({ label, value }: { label: string; value?: React.ReactNode }) {
+  const empty = value === undefined || value === null || value === '' ||
+    (Array.isArray(value) && value.length === 0)
+  return (
+    <div className="flex gap-3">
+      <span className="text-sm text-muted-foreground w-40 shrink-0">{label}</span>
+      <span className="text-sm font-medium">
+        {empty ? <span className="text-muted-foreground italic font-normal">—</span> : value}
+      </span>
+    </div>
+  )
+}
+
+function ReviewSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 border-b pb-1">{title}</h4>
+      <div className="space-y-1 pt-0.5">{children}</div>
+    </div>
+  )
+}
+
+// Render seluruh isi kontrak — dipakai di step Tinjauan agar user
+// melihat data utuh sebelum menyimpan.
+function ContractReview({ data, retentionValue, retentionUnit }: {
+  data: FormData
+  retentionValue: string
+  retentionUnit: string
+}) {
+  const stakeholders = data.metadata?.stakeholders ?? []
+  const model = data.model ?? []
+  const ports = data.ports ?? []
+  const dsQuality = data.metadata?.quality ?? []
+
+  return (
+    <div className="space-y-5">
+      <ReviewSection title="Informasi Dasar">
+        <ReviewRow label="Nama Kontrak" value={data.metadata?.name} />
+        <ReviewRow label="Pemilik" value={data.metadata?.owner} />
+        <ReviewRow label="Nomor Kontrak" value={data.contract_number} />
+        <ReviewRow label="Tipe" value={data.metadata?.type} />
+        <ReviewRow label="Versi" value={data.metadata?.version} />
+        <ReviewRow label="Standar" value={data.standard_version} />
+        <ReviewRow label="Mode Konsumsi" value={data.metadata?.consumption_mode} />
+        <ReviewRow label="Tujuan" value={data.metadata?.description?.purpose} />
+        <ReviewRow label="Cara Penggunaan" value={data.metadata?.description?.usage} />
+      </ReviewSection>
+
+      <ReviewSection title="SLA">
+        <ReviewRow label="Ketersediaan" value={data.metadata?.sla?.availability} />
+        <ReviewRow label="Frekuensi Update" value={data.metadata?.sla?.frequency} />
+        <ReviewRow label="Retensi Data" value={retentionValue ? `${retentionValue} ${retentionUnit}` : ''} />
+        <ReviewRow label="Jadwal Cron" value={data.metadata?.sla?.cron} />
+      </ReviewSection>
+
+      <ReviewSection title={`Pemangku Kepentingan (${stakeholders.length})`}>
+        {stakeholders.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Belum ada pemangku kepentingan.</p>
+        ) : stakeholders.map((s, i) => (
+          <div key={i} className="text-sm">
+            <span className="font-medium">{s.name || '—'}</span>
+            {s.role && <span className="text-muted-foreground"> · {s.role}</span>}
+            {s.email && <span className="text-muted-foreground"> · {s.email}</span>}
+          </div>
+        ))}
+      </ReviewSection>
+
+      <ReviewSection title={`Struktur Data — Kolom (${model.length})`}>
+        {model.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Belum ada kolom.</p>
+        ) : model.map((c, i) => {
+          const flags = [
+            c.is_primary && 'PK', c.is_nullable && 'nullable',
+            c.is_pii && 'PII', c.is_mandatory && 'wajib',
+          ].filter(Boolean) as string[]
+          const qn = (c.quality ?? []).length
+          return (
+            <div key={i} className="text-sm">
+              <span className="font-medium font-mono">{c.column || '—'}</span>
+              {(c.logical_type || c.physical_type) && (
+                <span className="text-muted-foreground"> · {[c.logical_type, c.physical_type].filter(Boolean).join(' / ')}</span>
+              )}
+              {flags.length > 0 && <span className="text-muted-foreground"> · {flags.join(', ')}</span>}
+              {qn > 0 && <span className="text-muted-foreground"> · {qn} aturan kualitas</span>}
+            </div>
+          )
+        })}
+      </ReviewSection>
+
+      {dsQuality.length > 0 && (
+        <ReviewSection title={`Aturan Kualitas Dataset (${dsQuality.length})`}>
+          {dsQuality.map((q, i) => (
+            <div key={i} className="text-sm">
+              <span className="font-medium">{q.code}</span>
+              {q.dimension && <span className="text-muted-foreground"> · {q.dimension}</span>}
+            </div>
+          ))}
+        </ReviewSection>
+      )}
+
+      <ReviewSection title={`Koneksi (${ports.length})`}>
+        {ports.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Tidak ada koneksi.</p>
+        ) : ports.map((p, i) => {
+          const props = (p.properties ?? []).filter(pr => pr.name)
+          return (
+            <div key={i} className="text-sm">
+              <span className="font-medium font-mono">{p.object || '—'}</span>
+              {props.length > 0 && (
+                <span className="text-muted-foreground"> · {props.map(pr => `${pr.name}=${pr.value}`).join(', ')}</span>
+              )}
+            </div>
+          )
+        })}
+      </ReviewSection>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function NewContractPage() {
   const router = useRouter()
@@ -677,36 +797,10 @@ export default function NewContractPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Tinjauan Sebelum Simpan</CardTitle>
-              <CardDescription>Periksa kembali data sebelum menyimpan</CardDescription>
+              <CardDescription>Periksa seluruh isi kontrak di bawah sebelum menyimpan</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { label: 'Nama Kontrak', value: watch('metadata.name') },
-                { label: 'Pemilik', value: watch('metadata.owner') },
-                { label: 'Nomor Kontrak', value: watch('contract_number') },
-                { label: 'Tipe', value: watch('metadata.type') },
-                { label: 'Versi', value: watch('metadata.version') },
-                { label: 'Standar', value: watch('standard_version') },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex gap-3">
-                  <span className="text-sm text-muted-foreground w-36 shrink-0">{label}</span>
-                  <span className="text-sm font-medium">{value || <span className="text-muted-foreground italic">Kosong</span>}</span>
-                </div>
-              ))}
-              <Separator />
-              <div className="flex gap-3">
-                <span className="text-sm text-muted-foreground w-36 shrink-0">Kolom</span>
-                <span className="text-sm font-medium">{watch('model')?.length ?? 0} kolom didefinisikan</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-sm text-muted-foreground w-36 shrink-0">Pemangku</span>
-                <span className="text-sm font-medium">{watch('metadata.stakeholders')?.length ?? 0} orang</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-sm text-muted-foreground w-36 shrink-0">Koneksi</span>
-                <span className="text-sm font-medium">{watch('ports')?.length ?? 0} objek port</span>
-              </div>
-              <Separator />
+            <CardContent className="space-y-5">
+              <ContractReview data={watch()} retentionValue={retentionValue} retentionUnit={retentionUnit} />
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-sm text-amber-800">
                   Pastikan semua informasi sudah benar sebelum menyimpan. Perubahan setelah kontrak disimpan akan memerlukan persetujuan pengelola.
