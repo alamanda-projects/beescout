@@ -85,11 +85,13 @@ const schema = z.object({
       })).optional(),
     })).optional(),
   })).optional(),
+  // Koneksi opsional — field lenient supaya port/properti kosong tidak
+  // memblokir submit; baris kosong dibuang di onSubmit.
   ports: z.array(z.object({
-    object: z.string().min(1, 'Nama objek wajib diisi'),
+    object: z.string().optional(),
     properties: z.array(z.object({
-      name: z.string().min(1),
-      value: z.string().min(1),
+      name: z.string().optional(),
+      value: z.string().optional(),
     })).optional(),
   })).optional(),
 })
@@ -97,7 +99,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
-const STEPS = ['Informasi Dasar', 'SLA & Pemangku', 'Struktur Data', 'Tinjauan']
+const STEPS = ['Informasi Dasar', 'SLA', 'Pemangku', 'Struktur Data', 'Koneksi', 'Tinjauan']
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -181,12 +183,13 @@ export default function NewContractPage() {
   useEffect(() => { generateCN() }, [])
 
   const nextStep = async () => {
+    // Index = step. Hanya step 0 (Informasi Dasar) punya field wajib;
+    // SLA/Pemangku/Struktur Data/Koneksi semuanya opsional.
     const fieldsPerStep: (keyof FormData | string)[][] = [
       ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner'],
-      [],
-      [],
+      [], [], [], [],
     ]
-    const valid = await form.trigger(fieldsPerStep[step] as any)
+    const valid = await form.trigger((fieldsPerStep[step] ?? []) as any)
     if (valid) setStep(s => Math.min(s + 1, STEPS.length - 1))
   }
 
@@ -232,7 +235,9 @@ export default function NewContractPage() {
               .filter((q: any) => q.code)
               .map((q: any) => ({ ...q, custom_properties: (q.custom_properties ?? []).filter((p: any) => p.property) })),
           })),
-        ports: data.ports?.filter(p => p.object) ?? [],
+        ports: (data.ports ?? [])
+          .filter(p => p.object)
+          .map(p => ({ ...p, properties: (p.properties ?? []).filter(pr => pr.name) })),
         examples: { type: null, data: null },
       }
       await addContract(payload)
@@ -358,9 +363,8 @@ export default function NewContractPage() {
           </Card>
         )}
 
-        {/* ── Step 1: SLA & Stakeholders ───────────────────────────── */}
+        {/* ── Step 1: SLA ──────────────────────────────────────────── */}
         {step === 1 && (
-          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">SLA (Tingkat Layanan)</CardTitle>
@@ -400,7 +404,10 @@ export default function NewContractPage() {
                 </div>
               </CardContent>
             </Card>
+        )}
 
+        {/* ── Step 2: Pemangku Kepentingan ─────────────────────────── */}
+        {step === 2 && (
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -457,11 +464,10 @@ export default function NewContractPage() {
                 ))}
               </CardContent>
             </Card>
-          </div>
         )}
 
-        {/* ── Step 2: Model / Struktur Data ────────────────────────── */}
-        {step === 2 && (
+        {/* ── Step 3: Model / Struktur Data ────────────────────────── */}
+        {step === 3 && (
           <div className="space-y-4">
           <Card>
             <CardHeader>
@@ -598,8 +604,78 @@ export default function NewContractPage() {
           </div>
         )}
 
-        {/* ── Step 3: Review ───────────────────────────────────────── */}
-        {step === 3 && (
+        {/* ── Step 4: Koneksi (Port) ───────────────────────────────── */}
+        {step === 4 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Koneksi (Port)</CardTitle>
+                  <CardDescription>Sumber atau tujuan data contract — opsional</CardDescription>
+                </div>
+                <Button type="button" variant="outline" size="sm"
+                  onClick={() => addPort({ object: '', properties: [] })}>
+                  <Plus size={14} className="mr-1" />Tambah Port
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {ports.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Belum ada koneksi. Opsional — klik &quot;Tambah Port&quot; bila kontrak punya sumber/tujuan data.
+                </p>
+              )}
+              {ports.map((portField, i) => {
+                // properties (nested array) dikelola via watch+setValue —
+                // useFieldArray dengan nama dinamis dilarang (lihat CLAUDE.md).
+                const props = watch(`ports.${i}.properties`) ?? []
+                return (
+                  <div key={portField.id} className="p-4 border rounded-lg space-y-3 bg-slate-50">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1 flex-1 mr-4">
+                        <Label className="text-xs">Nama Objek *</Label>
+                        <Input placeholder="Contoh: schema.table_name" className="h-8 text-xs font-mono"
+                          {...register(`ports.${i}.object`)} />
+                      </div>
+                      <Button type="button" variant="ghost" size="icon"
+                        className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50 mt-5"
+                        onClick={() => removePort(i)}>
+                        <Trash2 size={13} />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Properties</Label>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 text-xs"
+                          onClick={() => setValue(`ports.${i}.properties`, [...props, { name: '', value: '' }])}>
+                          <Plus size={11} className="mr-1" />Tambah
+                        </Button>
+                      </div>
+                      {props.length === 0 && (
+                        <p className="text-[11px] text-muted-foreground">Belum ada properti.</p>
+                      )}
+                      {props.map((_, j) => (
+                        <div key={j} className="flex gap-2">
+                          <Input placeholder="nama" className="h-7 text-xs"
+                            {...register(`ports.${i}.properties.${j}.name`)} />
+                          <Input placeholder="nilai" className="h-7 text-xs"
+                            {...register(`ports.${i}.properties.${j}.value`)} />
+                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 shrink-0"
+                            onClick={() => setValue(`ports.${i}.properties`, props.filter((_, k) => k !== j))}>
+                            <Trash2 size={11} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Step 5: Review ───────────────────────────────────────── */}
+        {step === 5 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Tinjauan Sebelum Simpan</CardTitle>
@@ -627,6 +703,10 @@ export default function NewContractPage() {
               <div className="flex gap-3">
                 <span className="text-sm text-muted-foreground w-36 shrink-0">Pemangku</span>
                 <span className="text-sm font-medium">{watch('metadata.stakeholders')?.length ?? 0} orang</span>
+              </div>
+              <div className="flex gap-3">
+                <span className="text-sm text-muted-foreground w-36 shrink-0">Koneksi</span>
+                <span className="text-sm font-medium">{watch('ports')?.length ?? 0} objek port</span>
               </div>
 
               <Separator />
