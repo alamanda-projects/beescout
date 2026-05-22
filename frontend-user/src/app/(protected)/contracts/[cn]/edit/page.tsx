@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
@@ -69,11 +69,13 @@ const schema = z.object({
     is_pii: z.boolean().optional(),
     is_mandatory: z.boolean().optional(),
   })).optional(),
+  // Koneksi opsional — field lenient supaya baris kosong tidak memblokir
+  // submit; dibersihkan di onSubmit.
   ports: z.array(z.object({
-    object: z.string().min(1, 'Nama objek wajib diisi'),
+    object: z.string().optional(),
     properties: z.array(z.object({
-      name: z.string().min(1),
-      value: z.string().min(1),
+      name: z.string().optional(),
+      value: z.string().optional(),
     })).optional(),
   })).optional(),
 })
@@ -111,6 +113,7 @@ export default function EditContractPage() {
   useEffect(() => {
     if (!contract) return
     const m = contract.metadata ?? {}
+
 
     // Parse retention string e.g. "2 tahun" → value + unit
     const retentionStr = String((m.sla as any)?.retention ?? '')
@@ -168,7 +171,8 @@ export default function EditContractPage() {
       ports: (contract.ports ?? []).map((p: any) => ({
         object: p.object ?? '',
         properties: (p.properties ?? []).map((prop: any) => ({
-          name: prop.name ?? '',
+          // backend menyimpan `property`; `name` fallback utk data lama
+          name: prop.property ?? prop.name ?? '',
           value: prop.value ?? '',
         })),
       })),
@@ -204,7 +208,15 @@ export default function EditContractPage() {
           ),
         },
         model: data.model?.filter(c => c.column) ?? [],
-        ports: data.ports?.filter(p => p.object) ?? [],
+        // Backend (PortsProperties) memakai field `property`, bukan `name`.
+        ports: (data.ports ?? [])
+          .filter(p => p.object)
+          .map(p => ({
+            object: p.object,
+            properties: (p.properties ?? [])
+              .filter(pr => pr.name)
+              .map(pr => ({ property: pr.name, value: pr.value })),
+          })),
         examples: (contract as any)?.examples ?? { type: null, data: null },
       }
       await updateContract(cn, payload)
@@ -281,7 +293,10 @@ export default function EditContractPage() {
       </div>
 
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, () => {
+          // Jangan biarkan tombol Simpan "diam" saat validasi gagal.
+          toast.error('Ada field wajib yang belum terisi. Periksa kembali tiap bagian form.')
+        })}
         className="space-y-4"
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
       >
@@ -322,12 +337,20 @@ export default function EditContractPage() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label>Tipe Kontrak *</Label>
-                  <Select value={watch('metadata.type')} onValueChange={(v) => setValue('metadata.type', v)}>
-                    <SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger>
-                    <SelectContent>
-                      {CONTRACT_TYPES.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {/* Controller: integrasi Select terkontrol dgn RHF — nilai
+                      dari form.reset (data kontrak) ter-load benar ke Select. */}
+                  <Controller
+                    control={form.control}
+                    name="metadata.type"
+                    render={({ field }) => (
+                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger>
+                        <SelectContent>
+                          {CONTRACT_TYPES.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                   {errors.metadata?.type && <p className="text-xs text-destructive">{errors.metadata.type.message}</p>}
                 </div>
                 <div className="space-y-1.5">
@@ -337,12 +360,18 @@ export default function EditContractPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Mode Konsumsi</Label>
-                  <Select value={watch('metadata.consumption_mode') ?? ''} onValueChange={(v) => setValue('metadata.consumption_mode', v)}>
-                    <SelectTrigger><SelectValue placeholder="Pilih mode" /></SelectTrigger>
-                    <SelectContent>
-                      {CONSUMPTION_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    control={form.control}
+                    name="metadata.consumption_mode"
+                    render={({ field }) => (
+                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue placeholder="Pilih mode" /></SelectTrigger>
+                        <SelectContent>
+                          {CONSUMPTION_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
               <Separator />
@@ -663,24 +692,25 @@ export default function EditContractPage() {
 }
 
 function PortProperties({ portIndex, form }: { portIndex: number; form: any }) {
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: `ports.${portIndex}.properties`,
-  })
+  // properties (nested array) dikelola via watch+setValue — useFieldArray
+  // dengan nama dinamis dilarang (crash saat index parent bergeser, CLAUDE.md).
+  const props: { name?: string; value?: string }[] = form.watch(`ports.${portIndex}.properties`) ?? []
+  const setProps = (next: typeof props) => form.setValue(`ports.${portIndex}.properties`, next)
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-xs text-muted-foreground">Properties</Label>
         <Button type="button" variant="ghost" size="sm" className="h-6 text-xs"
-          onClick={() => append({ name: '', value: '' })}>
+          onClick={() => setProps([...props, { name: '', value: '' }])}>
           <Plus size={11} className="mr-1" />Tambah
         </Button>
       </div>
-      {fields.map((f, j) => (
-        <div key={f.id} className="flex gap-2">
+      {props.map((_, j) => (
+        <div key={j} className="flex gap-2">
           <Input placeholder="nama" className="h-7 text-xs" {...form.register(`ports.${portIndex}.properties.${j}.name`)} />
           <Input placeholder="nilai" className="h-7 text-xs" {...form.register(`ports.${portIndex}.properties.${j}.value`)} />
-          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 shrink-0" onClick={() => remove(j)}>
+          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 shrink-0"
+            onClick={() => setProps(props.filter((_, k) => k !== j))}>
             <Trash2 size={11} />
           </Button>
         </div>
