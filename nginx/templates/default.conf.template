@@ -21,6 +21,16 @@ limit_req_zone $binary_remote_addr zone=api_limit:10m   rate=${BEESCOUT_RATE_API
 server_tokens off;
 
 
+# ── Default server — tolak Host header tidak valid / kosong ────────────────────
+# Permintaan yang tidak cocok dengan BEESCOUT_USER_DOMAIN / BEESCOUT_ADMIN_DOMAIN
+# (scan langsung ke IP, Host palsu, vhost fuzzing) ditutup tanpa respons (444).
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # USER FRONTEND — ${BEESCOUT_USER_DOMAIN}
 # Roles: user, developer
@@ -38,6 +48,9 @@ server {
     add_header Referrer-Policy             "strict-origin-when-cross-origin"          always;
     add_header Permissions-Policy          "camera=(), microphone=(), geolocation=()" always;
     add_header Content-Security-Policy     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self';" always;
+    # HSTS — hanya dihormati browser di atas HTTPS; aman dikirim walau via :80.
+    # Aktif setelah TLS terpasang (lihat docs/deploy-production.md).
+    add_header Strict-Transport-Security   "max-age=31536000; includeSubDomains"      always;
 
     # ── Login endpoint — strict rate limiting ───────────────────────────────
     location = /api/login {
@@ -112,6 +125,9 @@ server {
     add_header Referrer-Policy             "strict-origin-when-cross-origin"          always;
     add_header Permissions-Policy          "camera=(), microphone=(), geolocation=()" always;
     add_header Content-Security-Policy     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self';" always;
+    # HSTS — hanya dihormati browser di atas HTTPS; aman dikirim walau via :80.
+    # Aktif setelah TLS terpasang (lihat docs/deploy-production.md).
+    add_header Strict-Transport-Security   "max-age=31536000; includeSubDomains"      always;
 
     # ── Login endpoint — stricter rate limiting for admin ───────────────────
     location = /api/login {

@@ -51,7 +51,7 @@ export function Header() {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            {/* span (bukan div/p): <button> hanya boleh berisi phrasing
+            {/* span (bukan div/p): elemen button hanya boleh berisi phrasing
                 content — block element memicu hydration mismatch. */}
             <span className="text-left hidden sm:block">
               <span className="block text-sm font-medium leading-none">{user?.client_id ?? '...'}</span>
