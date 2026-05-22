@@ -115,6 +115,13 @@ export default function EditContractPage() {
     if (!contract) return
     const m = contract.metadata ?? {}
 
+    // `type` & `consumption_mode` adalah Select yang dikontrol via watch/
+    // setValue tanpa register. Tanpa register, form.reset tidak mengisinya
+    // → type kosong (Select balik ke placeholder, validasi gagal). Daftarkan
+    // dulu agar reset di bawah mengisi nilainya.
+    form.register('metadata.type')
+    form.register('metadata.consumption_mode')
+
     // Parse retention string e.g. "2 tahun" → value + unit
     const retentionStr = String((m.sla as any)?.retention ?? '')
     const retentionMatch = retentionStr.match(/^(\d+)\s+(tahun|bulan|pekan|hari|jam)$/)
@@ -291,7 +298,10 @@ export default function EditContractPage() {
       </div>
 
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, () => {
+          // Jangan biarkan tombol Simpan "diam" saat validasi gagal.
+          toast.error('Ada field wajib yang belum terisi. Periksa kembali tiap bagian form.')
+        })}
         className="space-y-4"
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
       >
