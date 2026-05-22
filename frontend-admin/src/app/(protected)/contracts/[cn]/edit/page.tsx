@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
@@ -114,13 +114,6 @@ export default function EditContractPage() {
   useEffect(() => {
     if (!contract) return
     const m = contract.metadata ?? {}
-
-    // `type` & `consumption_mode` adalah Select yang dikontrol via watch/
-    // setValue tanpa register. Tanpa register, form.reset tidak mengisinya
-    // → type kosong (Select balik ke placeholder, validasi gagal). Daftarkan
-    // dulu agar reset di bawah mengisi nilainya.
-    form.register('metadata.type')
-    form.register('metadata.consumption_mode')
 
     // Parse retention string e.g. "2 tahun" → value + unit
     const retentionStr = String((m.sla as any)?.retention ?? '')
@@ -342,12 +335,20 @@ export default function EditContractPage() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label>Tipe Kontrak *</Label>
-                  <Select value={watch('metadata.type')} onValueChange={(v) => setValue('metadata.type', v)}>
-                    <SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger>
-                    <SelectContent>
-                      {CONTRACT_TYPES.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {/* Controller: integrasi Select terkontrol dgn RHF — nilai
+                      dari form.reset (data kontrak) ter-load benar ke Select. */}
+                  <Controller
+                    control={form.control}
+                    name="metadata.type"
+                    render={({ field }) => (
+                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger>
+                        <SelectContent>
+                          {CONTRACT_TYPES.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                   {errors.metadata?.type && <p className="text-xs text-destructive">{errors.metadata.type.message}</p>}
                 </div>
                 <div className="space-y-1.5">
@@ -357,12 +358,18 @@ export default function EditContractPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Mode Konsumsi</Label>
-                  <Select value={watch('metadata.consumption_mode') ?? ''} onValueChange={(v) => setValue('metadata.consumption_mode', v)}>
-                    <SelectTrigger><SelectValue placeholder="Pilih mode" /></SelectTrigger>
-                    <SelectContent>
-                      {CONSUMPTION_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    control={form.control}
+                    name="metadata.consumption_mode"
+                    render={({ field }) => (
+                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue placeholder="Pilih mode" /></SelectTrigger>
+                        <SelectContent>
+                          {CONSUMPTION_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
               <Separator />
