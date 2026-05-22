@@ -51,12 +51,14 @@ export function Header() {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="text-left hidden sm:block">
-              <p className="text-sm font-medium leading-none">{user?.client_id ?? '...'}</p>
+            {/* span (bukan div/p): <button> hanya boleh berisi phrasing
+                content — block element memicu hydration mismatch. */}
+            <span className="text-left hidden sm:block">
+              <span className="block text-sm font-medium leading-none">{user?.client_id ?? '...'}</span>
               {roleLabel && (
-                <p className="text-xs text-muted-foreground mt-0.5">{roleLabel}</p>
+                <span className="block text-xs text-muted-foreground mt-0.5">{roleLabel}</span>
               )}
-            </div>
+            </span>
             <ChevronDown size={15} className="text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>

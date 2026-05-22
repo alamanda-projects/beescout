@@ -20,10 +20,12 @@ const badgeVariants = cva(
   }
 )
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
+// <span> (bukan <div>): Badge bersifat inline (inline-flex) dan kerap
+// dipakai di dalam <p>/<h2> — <div> di sana = invalid HTML & hydration error.
 function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  return <span className={cn(badgeVariants({ variant }), className)} {...props} />
 }
 
 export { Badge, badgeVariants }
