@@ -188,6 +188,17 @@ async def bootstrap_setup(user_form: UserCreate):
         raise HTTPException(status_code=422, detail=pwd_422_spc)
 
     hashed_password = Hasher.get_password_hash(user_form.password)
+
+    # Jaga invariant "tepat satu root aktif": non-aktifkan semua dokumen root
+    # lama yang masih tersisa sebelum membuat root baru. Kode hanya sampai sini
+    # bila tidak ada root AKTIF (cek 409 di atas) — jadi yang ter-disable hanya
+    # root non-aktif yang menggantung; defensif terhadap dokumen tanpa field
+    # `is_active`.
+    await usrcollection.update_many(
+        {"group_access": "root"},
+        {"$set": {"is_active": False}},
+    )
+
     user_data = {
         "username": user_form.username,
         "password": hashed_password,

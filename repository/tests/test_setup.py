@@ -46,6 +46,30 @@ async def test_setup_returns_409_when_root_exists(client):
 
 
 @pytest.mark.asyncio
+async def test_setup_disables_stale_root_before_creating_new(client):
+    """Saat /setup berjalan (tidak ada root aktif), semua dokumen root lama
+    di-disable lebih dulu agar hanya ada satu root aktif."""
+    ac, mocks = client
+    mocks["usr"].find_one.return_value = None  # tidak ada root aktif
+    mocks["usr"].update_many.reset_mock()
+    mocks["usr"].insert_one.return_value = None
+
+    response = await ac.post("/setup", json=VALID_PAYLOAD)
+    assert response.status_code == 200
+
+    # root lama yang menggantung di-non-aktifkan sebelum root baru dibuat
+    mocks["usr"].update_many.assert_called_once()
+    query, update = mocks["usr"].update_many.call_args.args
+    assert query == {"group_access": "root"}
+    assert update == {"$set": {"is_active": False}}
+
+    # root baru tetap dibuat sebagai aktif
+    inserted = mocks["usr"].insert_one.call_args.args[0]
+    assert inserted["group_access"] == "root"
+    assert inserted["is_active"] is True
+
+
+@pytest.mark.asyncio
 async def test_setup_rejects_weak_password(client):
     ac, mocks = client
     mocks["usr"].find_one.return_value = None
