@@ -101,7 +101,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    # PATCH/PUT/DELETE wajib ada — tanpa ini browser memblokir preflight
+    # untuk edit/nonaktifkan user, edit domain, update kontrak (issue #58).
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
 
