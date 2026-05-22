@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -109,9 +109,13 @@ export default function EditContractPage() {
     },
   })
 
-  // Pre-fill form ketika data kontrak sudah dimuat
+  // Pre-fill form HANYA SEKALI saat kontrak pertama dimuat. Tanpa guard ini,
+  // refetch react-query (referensi `contract` berubah) memicu form.reset ulang
+  // → menimpa form & menghapus field non-register (issue: type kembali kosong).
+  const hydratedRef = useRef(false)
   useEffect(() => {
-    if (!contract) return
+    if (!contract || hydratedRef.current) return
+    hydratedRef.current = true
     const m = contract.metadata ?? {}
 
 
@@ -343,7 +347,9 @@ export default function EditContractPage() {
                     control={form.control}
                     name="metadata.type"
                     render={({ field }) => (
-                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                      // `if (v)`: abaikan onValueChange("") spurious dari
+                      // SelectBubbleInput Radix yang menghapus nilai saat load.
+                      <Select value={field.value || ''} onValueChange={(v) => { if (v) field.onChange(v) }}>
                         <SelectTrigger><SelectValue placeholder="Pilih tipe" /></SelectTrigger>
                         <SelectContent>
                           {CONTRACT_TYPES.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
@@ -364,7 +370,7 @@ export default function EditContractPage() {
                     control={form.control}
                     name="metadata.consumption_mode"
                     render={({ field }) => (
-                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                      <Select value={field.value || ''} onValueChange={(v) => { if (v) field.onChange(v) }}>
                         <SelectTrigger><SelectValue placeholder="Pilih mode" /></SelectTrigger>
                         <SelectContent>
                           {CONSUMPTION_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
