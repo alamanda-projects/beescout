@@ -305,6 +305,63 @@ async def ensure_indexes():
     await domcollection.create_index("name", unique=True)
 
 
+# Auto-seed root account dari env vars saat startup (issue #32).
+# Pola serupa Grafana (GF_SECURITY_ADMIN_PASSWORD) — memudahkan automated
+# deployment yang tidak bisa curl /setup interaktif. Idempoten: kalau
+# root aktif sudah ada, skip diam-diam. Password lemah → startup gagal
+# dengan RuntimeError jelas (lebih baik fail-fast daripada akun lemah).
+async def _seed_root_from_env() -> None:
+    username = config("SEED_ROOT_USERNAME", default="")
+    password = config("SEED_ROOT_PASSWORD", default="")
+    if not username or not password:
+        return  # env tidak di-set → tidak ada aksi
+
+    # Validasi policy yang sama dengan /setup
+    valid_special_chars = set(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+={}[]<>,./?;:'\""
+    )
+    checks = [
+        (len(password) < 8,                                                    pwd_422_long),
+        (not any(c.isupper() for c in password),                               pwd_422_upcase),
+        (not any(c.islower() for c in password),                               pwd_422_locase),
+        (not any(c.isdigit() for c in password),                               pwd_422_num),
+        (not any(c in valid_special_chars for c in password if not c.isalnum()), pwd_422_spc),
+    ]
+    for failed, message in checks:
+        if failed:
+            raise RuntimeError(f"SEED_ROOT_PASSWORD invalid: {message}")
+
+    existing_root = await usrcollection.find_one(
+        {"group_access": "root", "is_active": True}
+    )
+    if existing_root:
+        return  # idempotent — root aktif sudah ada
+
+    # Jaga invariant "tepat satu root aktif" sama seperti /setup
+    await usrcollection.update_many(
+        {"group_access": "root"},
+        {"$set": {"is_active": False}},
+    )
+
+    hashed = Hasher.get_password_hash(password)
+    await usrcollection.insert_one({
+        "username":     username,
+        "password":     hashed,
+        "name":         config("SEED_ROOT_NAME",   default=username),
+        "group_access": "root",
+        "data_domain":  config("SEED_ROOT_DOMAIN", default="root"),
+        "is_active":    True,
+        "type":         "user",
+        "created_at":   datetime.now(),
+    })
+    print(f"[seed] Root account '{username}' created from SEED_ROOT_* env.")
+
+
+@app.on_event("startup")
+async def auto_seed_root():
+    await _seed_root_from_env()
+
+
 @app.get("/", response_class=RedirectResponse, status_code=302)
 async def default_page():
     return "/welcome"
