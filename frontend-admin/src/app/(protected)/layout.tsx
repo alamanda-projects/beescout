@@ -55,8 +55,14 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
     )
   }
 
+  // Border merah tebal mengelilingi viewport admin sebagai visual cue —
+  // mencegah operator salah mengira sedang berada di user panel saat
+  // multitasking antar tab (issue #48).
+  // Pakai box-shadow inset (ring) selain border tebal supaya tetap kelihatan
+  // walau viewport browser memotong sebagian edge — lebih bulletproof
+  // dibanding border saja.
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden border-8 border-red-600 shadow-[inset_0_0_0_2px_#7f1d1d]">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0">
         <Header />
