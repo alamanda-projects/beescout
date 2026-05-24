@@ -125,6 +125,10 @@ Kemudian buka di browser:
 
 ## 4. Buat Akun Pertama (Super Admin)
 
+Dua jalur. Pilih salah satu.
+
+### Jalur A — Web (interaktif)
+
 Gunakan halaman setup web yang hanya aktif saat belum ada akun root:
 
 ```text
@@ -135,7 +139,22 @@ Isi username, nama, domain data, dan password Super Admin. Pada form ini Anda ju
 
 Setelah berhasil, halaman setup akan tertutup otomatis untuk instalasi tersebut karena akun root sudah dibuat. Login via Admin Panel, lalu buat user tambahan dari menu **Manajemen User**.
 
-> Password harus mengandung huruf besar, kecil, angka, dan karakter khusus (minimal 8 karakter).
+### Jalur B — Env var (automated deploy)
+
+Set di `.env` (atau env CI/Docker secret) sebelum `docker compose up`:
+
+```env
+SEED_ROOT_USERNAME=admin
+SEED_ROOT_PASSWORD=Sandi!Aman123
+SEED_ROOT_NAME=Super Admin
+SEED_ROOT_DOMAIN=root
+```
+
+Backend akan otomatis membuat akun root pada startup pertama kali. Idempoten — kalau root aktif sudah ada, env diabaikan. Halaman `/setup` tetap tersedia bila Anda ingin tetap pakai jalur web (akan menampilkan 409 kalau root sudah dibuat oleh env).
+
+> Password harus mengandung huruf besar, kecil, angka, dan karakter khusus (minimal 8 karakter). Startup gagal dengan pesan jelas kalau password lemah.
+
+> ⚠️ **Production**: simpan `SEED_ROOT_PASSWORD` di secret manager (Docker secret, K8s secret, atau env var dari CI). Jangan commit ke `.env` yang ter-version-control.
 
 ---
 
