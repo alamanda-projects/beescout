@@ -12,6 +12,9 @@ export interface Stakeholder {
   name: string
   email?: string
   role: string
+  // ADR-0004: dipakai untuk menentukan approver Producer/Consumer.
+  // Hanya stakeholder ber-username yang aktif yang dihitung.
+  username?: string
   date_in?: string
   date_out?: string
 }
@@ -99,12 +102,30 @@ export interface Vote {
   voted_at?: string | null
 }
 
+// ADR-0005 — owner menggantikan steward; ketiga peran diturunkan dari
+// metadata.stakeholders[role]. Admin/root tidak lagi otomatis ikut.
+export type ApproverRole = 'owner' | 'producer' | 'consumer'
+
+export const APPROVER_ROLE_LABELS: Record<ApproverRole, string> = {
+  owner:    'Owner',
+  producer: 'Producer',
+  consumer: 'Consumer',
+}
+
 export interface ApprovalRecord {
   approval_id: string
   contract_number: string
   requested_by: string
   proposed_changes: Record<string, unknown>
   approvers: string[]
+  // ADR-0005 — approver per peran. Kunci yang umum: owner/producer/consumer.
+  // Approval ADR-0004 in-flight masih bisa muncul dengan kunci 'steward' —
+  // UI tampilkan label apa adanya, voting tetap jalan (role-agnostic).
+  approvers_by_role?: Record<string, string[]>
+  // Peran yang auto-pass karena tidak punya approver (kontrak tanpa
+  // stakeholder ber-username untuk peran itu). Audit trail; UI
+  // memperingatkan supaya operator melengkapi.
+  fallback_roles?: string[]
   votes: Vote[]
   status: 'pending' | 'approved' | 'rejected'
   created_at?: string | null

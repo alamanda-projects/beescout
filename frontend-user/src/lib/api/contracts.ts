@@ -54,6 +54,15 @@ export async function getMyApprovals(): Promise<ApprovalRecord[]> {
   return Array.isArray(res.data) ? res.data : []
 }
 
+export interface UserBasic { username: string; name: string }
+
+// Direktori ringan utk dropdown stakeholder — bisa dipanggil semua role.
+// Backend: GET /user/basic (require_any).
+export async function getUsersBasic(): Promise<UserBasic[]> {
+  const res = await apiClient.get('/user/basic')
+  return Array.isArray(res.data) ? res.data : []
+}
+
 export async function updateContract(contractNumber: string, data: unknown) {
   const res = await apiClient.put('/datacontract/update', data, {
     params: { contract_number: contractNumber },
