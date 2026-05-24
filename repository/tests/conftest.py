@@ -17,7 +17,8 @@ def mock_collections():
     usr = AsyncMock()
     dgr = AsyncMock()
     dom = AsyncMock()
-    return {"usr": usr, "dgr": dgr, "dom": dom}
+    apr = AsyncMock()
+    return {"usr": usr, "dgr": dgr, "dom": dom, "apr": apr}
 
 
 @pytest_asyncio.fixture
@@ -41,6 +42,7 @@ async def client(mock_collections):
         patch("app.main.usrcollection", mock_collections["usr"]),
         patch("app.main.dccollection", mock_collections["dgr"]),
         patch("app.main.domcollection", mock_collections["dom"]),
+        patch("app.main.aprcollection", mock_collections["apr"]),
         patch("app.core.verificator.usrcollection", mock_collections["usr"]),
         patch("app.core.verificator.dccollection", mock_collections["dgr"]),
     ):

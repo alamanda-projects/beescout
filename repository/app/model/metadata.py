@@ -54,6 +54,9 @@ class MetadataStakeholders(BaseModel):
     name: str
     email: Optional[str] = None
     role: str
+    # ADR-0004: referensi ke dgrusr.username — wajib agar stakeholder ini
+    # dihitung sebagai approver. Tetap opsional untuk kompatibilitas kontrak lama.
+    username: Optional[str] = None
     date_in: Optional[str] = None
     date_out: Optional[str] = None
 
