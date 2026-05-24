@@ -133,6 +133,66 @@ def slugify_domain(raw: str) -> str:
     return "-".join((raw or "").strip().lower().split())
 
 
+async def derive_approvers_by_role(contract: dict) -> tuple[Dict[str, list], list]:
+    """Hitung approver per peran untuk satu kontrak (lihat ADR-0004).
+
+    Mengembalikan tuple (approvers_by_role, fallback_roles):
+      - approvers_by_role: dict {"steward": [...], "producer": [...], "consumer": [...]}
+      - fallback_roles: peran yang kosong → auto-pass (audit trail).
+
+    Hanya stakeholder ber-username yang **aktif** di koleksi user yang dihitung.
+    Username inaktif disaring agar approval tidak nyangkut.
+    """
+    metadata = contract.get("metadata") or {}
+    stakeholders = metadata.get("stakeholders") or []
+
+    # Steward: semua admin/root aktif
+    steward_docs = await usrcollection.find(
+        {"group_access": {"$in": grplvladmin}, "is_active": True},
+        {"username": 1, "_id": 0},
+    ).to_list(None)
+    steward = sorted({u["username"] for u in steward_docs})
+
+    # Producer & Consumer dari stakeholders[role,username]
+    producer_candidates = {
+        s["username"] for s in stakeholders
+        if s.get("role") == "producer" and s.get("username")
+    }
+    consumer_candidates = {
+        s["username"] for s in stakeholders
+        if s.get("role") == "consumer" and s.get("username")
+    }
+
+    # Saring kandidat: hanya user yang masih aktif
+    all_candidates = producer_candidates | consumer_candidates
+    active_set: set = set()
+    if all_candidates:
+        active_docs = await usrcollection.find(
+            {"username": {"$in": list(all_candidates)}, "is_active": True},
+            {"username": 1, "_id": 0},
+        ).to_list(None)
+        active_set = {u["username"] for u in active_docs}
+
+    approvers_by_role = {
+        "steward":  steward,
+        "producer": sorted(producer_candidates & active_set),
+        "consumer": sorted(consumer_candidates & active_set),
+    }
+    fallback_roles = [r for r, users in approvers_by_role.items() if not users]
+    return approvers_by_role, fallback_roles
+
+
+def is_consensus_reached(approvers_by_role: dict, votes: list) -> bool:
+    """Konsensus tercapai bila tiap peran non-kosong punya >= 1 vote approved."""
+    approved = {v["username"] for v in votes if v.get("vote") == "approved"}
+    for users in approvers_by_role.values():
+        if not users:
+            continue  # peran kosong → auto-pass
+        if not (set(users) & approved):
+            return False
+    return True
+
+
 async def validate_data_domain(domain: str):
     """Ensure `data_domain` refers to an active, registered domain.
 
@@ -803,12 +863,14 @@ async def update_datacontract(
             return {"message": "Update Success"}
         else:
             # developer/user: simpan sebagai pending + buat approval record
-            # Tentukan approvers: semua admin/root aktif + contract managers
-            admin_users = await usrcollection.find(
-                {"group_access": {"$in": grplvladmin}, "is_active": True},
-                {"username": 1, "_id": 0}
-            ).to_list(None)
-            approvers = list({u["username"] for u in admin_users} | set(existing.get("managers") or []))
+            # ADR-0004: approver diturunkan per peran (steward + producer + consumer)
+            # Sumber payload dipakai supaya stakeholder yang baru ditambahkan langsung
+            # ikut menjadi approver — bukan dari `existing` yang masih state lama.
+            contract_for_derivation = {"metadata": payload.get("metadata") or {}}
+            approvers_by_role, fallback_roles = await derive_approvers_by_role(
+                contract_for_derivation
+            )
+            approvers = sorted({u for users in approvers_by_role.values() for u in users})
 
             from nanoid import generate
             approval_id = generate(size=16)
@@ -819,6 +881,8 @@ async def update_datacontract(
                 "requested_by": username,
                 "proposed_changes": payload,
                 "approvers": approvers,
+                "approvers_by_role": approvers_by_role,
+                "fallback_roles": fallback_roles,
                 "votes": [],
                 "status": "pending",
                 "created_at": datetime.now().isoformat(),
@@ -1419,8 +1483,16 @@ async def vote_approval(
         return {"message": "Perubahan ditolak."}
 
     updated = await aprcollection.find_one({"approval_id": approval_id})
-    approved_votes = [v for v in updated["votes"] if v["vote"] == "approved"]
-    if len(approved_votes) == len(record["approvers"]):
+    # ADR-0004: konsensus berbasis peran untuk approval baru;
+    # fallback ke logika lama (unanimous count) untuk approval in-flight
+    # yang dibuat sebelum migrasi.
+    approvers_by_role = updated.get("approvers_by_role")
+    if approvers_by_role:
+        consensus = is_consensus_reached(approvers_by_role, updated["votes"])
+    else:
+        approved_votes = [v for v in updated["votes"] if v["vote"] == "approved"]
+        consensus = len(approved_votes) == len(record["approvers"])
+    if consensus:
         _allowed = {"standard_version", "metadata", "model", "ports", "examples"}
         changes = {k: v for k, v in record["proposed_changes"].items() if k in _allowed}
         changes["approval_status"] = None
