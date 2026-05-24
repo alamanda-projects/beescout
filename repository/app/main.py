@@ -134,11 +134,15 @@ def slugify_domain(raw: str) -> str:
 
 
 async def derive_approvers_by_role(contract: dict) -> tuple[Dict[str, list], list]:
-    """Hitung approver per peran untuk satu kontrak (lihat ADR-0004).
+    """Hitung approver per peran untuk satu kontrak (lihat ADR-0005, supersedes ADR-0004).
 
     Mengembalikan tuple (approvers_by_role, fallback_roles):
-      - approvers_by_role: dict {"steward": [...], "producer": [...], "consumer": [...]}
+      - approvers_by_role: dict {"owner": [...], "producer": [...], "consumer": [...]}
       - fallback_roles: peran yang kosong → auto-pass (audit trail).
+
+    Ketiga peran diturunkan dari `metadata.stakeholders[role,username]`.
+    Admin/root tidak lagi otomatis ikut sebagai approver — governance
+    sepenuhnya per-stakeholder.
 
     Hanya stakeholder ber-username yang **aktif** di koleksi user yang dihitung.
     Username inaktif disaring agar approval tidak nyangkut.
@@ -146,25 +150,18 @@ async def derive_approvers_by_role(contract: dict) -> tuple[Dict[str, list], lis
     metadata = contract.get("metadata") or {}
     stakeholders = metadata.get("stakeholders") or []
 
-    # Steward: semua admin/root aktif
-    steward_docs = await usrcollection.find(
-        {"group_access": {"$in": grplvladmin}, "is_active": True},
-        {"username": 1, "_id": 0},
-    ).to_list(None)
-    steward = sorted({u["username"] for u in steward_docs})
+    def _candidates(role: str) -> set:
+        return {
+            s["username"] for s in stakeholders
+            if s.get("role") == role and s.get("username")
+        }
 
-    # Producer & Consumer dari stakeholders[role,username]
-    producer_candidates = {
-        s["username"] for s in stakeholders
-        if s.get("role") == "producer" and s.get("username")
-    }
-    consumer_candidates = {
-        s["username"] for s in stakeholders
-        if s.get("role") == "consumer" and s.get("username")
-    }
+    owner_candidates    = _candidates("owner")
+    producer_candidates = _candidates("producer")
+    consumer_candidates = _candidates("consumer")
 
     # Saring kandidat: hanya user yang masih aktif
-    all_candidates = producer_candidates | consumer_candidates
+    all_candidates = owner_candidates | producer_candidates | consumer_candidates
     active_set: set = set()
     if all_candidates:
         active_docs = await usrcollection.find(
@@ -174,7 +171,7 @@ async def derive_approvers_by_role(contract: dict) -> tuple[Dict[str, list], lis
         active_set = {u["username"] for u in active_docs}
 
     approvers_by_role = {
-        "steward":  steward,
+        "owner":    sorted(owner_candidates & active_set),
         "producer": sorted(producer_candidates & active_set),
         "consumer": sorted(consumer_candidates & active_set),
     }

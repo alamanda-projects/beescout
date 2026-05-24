@@ -1,8 +1,11 @@
 # ADR-0004: Approval workflow multi-peran (Steward + Producer + Consumer)
 
-**Status**: Accepted
+**Status**: Superseded by [ADR-0005](0005-approval-owner-replaces-steward.md)
 **Tanggal**: 2026-05-24
 **Decider**: @haninp
+
+> Steward (admin/root auto-derived) sudah tidak menjadi approver. Lihat ADR-0005:
+> approver kini Owner + Producer + Consumer, semua dari `metadata.stakeholders[]`.
 
 ---
 
