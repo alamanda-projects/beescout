@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
-import { CheckCircle2, XCircle, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckCircle2, XCircle, ClipboardList, ChevronDown, ChevronUp, Clock, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import type { ApprovalRecord } from '@/types/contract'
+import { APPROVER_ROLE_LABELS, type ApprovalRecord, type ApproverRole } from '@/types/contract'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') return <Badge variant="success">Disetujui</Badge>
@@ -18,14 +18,84 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="warning">Menunggu</Badge>
 }
 
-function VoteProgress({ record }: { record: ApprovalRecord }) {
-  const approved = record.votes.filter((v) => v.vote === 'approved').length
-  const rejected = record.votes.filter((v) => v.vote === 'rejected').length
-  const total = record.approvers.length
+// ADR-0004 — progres per peran (steward/producer/consumer). Bila approval
+// lama (tanpa approvers_by_role), jatuh ke summary flat seperti sebelumnya.
+function RoleProgress({ record }: { record: ApprovalRecord }) {
+  const byRole = record.approvers_by_role
+  if (!byRole) {
+    const approved = record.votes.filter((v) => v.vote === 'approved').length
+    const rejected = record.votes.filter((v) => v.vote === 'rejected').length
+    const total = record.approvers.length
+    return (
+      <p className="text-xs text-muted-foreground">
+        {approved}/{total} setuju · {rejected} menolak · {total - record.votes.length} belum vote
+      </p>
+    )
+  }
+
+  const approvedSet = new Set(record.votes.filter((v) => v.vote === 'approved').map((v) => v.username))
+  const rejectedSet = new Set(record.votes.filter((v) => v.vote === 'rejected').map((v) => v.username))
+  const roles: ApproverRole[] = ['steward', 'producer', 'consumer']
+
   return (
-    <p className="text-xs text-muted-foreground">
-      {approved}/{total} setuju · {rejected} menolak · {total - record.votes.length} belum vote
-    </p>
+    <div className="space-y-1.5">
+      {roles.map((role) => {
+        const users = byRole[role] ?? []
+        const isFallback = users.length === 0
+        const anyApproved = users.some((u) => approvedSet.has(u))
+        const anyRejected = users.some((u) => rejectedSet.has(u))
+        const Icon = isFallback ? AlertTriangle
+                    : anyRejected ? XCircle
+                    : anyApproved ? CheckCircle2
+                    : Clock
+        const tone = isFallback ? 'text-amber-500'
+                    : anyRejected ? 'text-red-500'
+                    : anyApproved ? 'text-emerald-500'
+                    : 'text-amber-500'
+        return (
+          <div key={role} className="flex items-start gap-2 text-xs">
+            <Icon size={14} className={`${tone} shrink-0 mt-0.5`} />
+            <div className="flex-1">
+              <span className="font-medium text-slate-700">{APPROVER_ROLE_LABELS[role]}</span>
+              {isFallback ? (
+                <span className="text-muted-foreground italic"> — tidak ada (auto-pass)</span>
+              ) : (
+                <>
+                  <span className="text-muted-foreground"> ({users.filter((u) => approvedSet.has(u)).length}/{users.length})</span>
+                  <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+                    {users.map((u) => {
+                      const voted = approvedSet.has(u) ? 'approved' : rejectedSet.has(u) ? 'rejected' : null
+                      return (
+                        <span key={u} className={
+                          voted === 'approved' ? 'text-emerald-700'
+                          : voted === 'rejected' ? 'text-red-600'
+                          : 'text-slate-500'
+                        }>
+                          {voted === 'approved' ? '✓' : voted === 'rejected' ? '✕' : '⋯'} @{u}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function FallbackBanner({ roles }: { roles?: ApproverRole[] }) {
+  if (!roles || roles.length === 0) return null
+  return (
+    <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
+      <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+      <span>
+        Tidak ada approver dari peran <strong>{roles.map((r) => APPROVER_ROLE_LABELS[r]).join(', ')}</strong> —
+        auto-lulus. Lengkapi <em>username</em> di stakeholder kontrak agar peran ini ikut menyetujui di pengajuan berikutnya.
+      </span>
+    </div>
   )
 }
 
@@ -161,16 +231,16 @@ export default function ApprovalsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0 space-y-3">
-                  <VoteProgress record={record} />
-                  {record.votes.length > 0 && (
+                  <RoleProgress record={record} />
+                  <FallbackBanner roles={record.fallback_roles} />
+                  {record.votes.some((v) => v.reason) && (
                     <div className="space-y-1">
-                      {record.votes.map((v) => (
-                        <div key={v.username} className="flex items-center gap-2 text-xs text-slate-600">
+                      {record.votes.filter((v) => v.reason).map((v) => (
+                        <div key={v.username} className="flex items-start gap-2 text-xs text-slate-600">
                           {v.vote === 'approved'
-                            ? <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                            : <XCircle size={12} className="text-red-400 shrink-0" />}
-                          <span className="font-medium">{v.username}</span>
-                          {v.reason && <span className="text-muted-foreground">— {v.reason}</span>}
+                            ? <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                            : <XCircle size={12} className="text-red-400 shrink-0 mt-0.5" />}
+                          <span><span className="font-medium">@{v.username}</span> — {v.reason}</span>
                         </div>
                       ))}
                     </div>

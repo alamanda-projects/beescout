@@ -612,6 +612,19 @@ async def list_users(current_user: dict = Depends(require_admin)):
     return users
 
 
+@app.get("/user/basic", tags=["user"])
+async def list_users_basic(current_user: dict = Depends(require_any)):
+    """Direktori ringan {username, name} user **aktif** untuk pengisian
+    stakeholder kontrak. Hanya field yang diperlukan UI di-expose, sehingga
+    bisa dibuka ke semua role tanpa kebocoran data sensitif.
+    """
+    cursor = usrcollection.find(
+        {"is_active": True, "type": {"$ne": "sa"}},
+        {"_id": 0, "username": 1, "name": 1},
+    )
+    return await cursor.to_list(length=500)
+
+
 @app.patch("/user/{username}", tags=["user"])
 async def update_user(username: str, payload: dict = Body(...), current_user: dict = Depends(require_root)):
     """Edit user (nama, peran, domain, status aktif, password). Hanya root."""

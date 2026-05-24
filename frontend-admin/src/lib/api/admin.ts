@@ -52,6 +52,16 @@ export async function getUsers(): Promise<UserRecord[]> {
   return Array.isArray(res.data) ? res.data : []
 }
 
+export interface UserBasic { username: string; name: string }
+
+// Direktori ringan utk dropdown stakeholder — bisa dipanggil semua role.
+// Backend: GET /user/basic (require_any). Pakai ini di tempat-tempat yang
+// hanya butuh username + nama tampilan.
+export async function getUsersBasic(): Promise<UserBasic[]> {
+  const res = await apiClient.get('/user/basic')
+  return Array.isArray(res.data) ? res.data : []
+}
+
 export async function createUser(data: {
   username: string
   password: string

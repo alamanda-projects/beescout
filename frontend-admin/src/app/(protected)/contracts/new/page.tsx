@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { addContract, generateContractNumber } from '@/lib/api/admin'
+import { addContract, generateContractNumber, getUsersBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
 import { useQuery } from '@tanstack/react-query'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
@@ -50,6 +50,9 @@ const schema = z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
       email: z.string().optional(),
+      // ADR-0004: link ke dgrusr.username — wajib bila stakeholder ini
+      // ingin menjadi approver Producer/Consumer.
+      username: z.string().optional(),
     })).optional(),
     quality: z.array(z.object({
       code: z.string().min(1, 'Kode wajib diisi'),
@@ -192,6 +195,7 @@ function ContractReview({ data, retentionValue, retentionUnit }: {
             <span className="font-medium">{s.name || '—'}</span>
             {s.role && <span className="text-muted-foreground"> · {s.role}</span>}
             {s.email && <span className="text-muted-foreground"> · {s.email}</span>}
+            {s.username && <span className="text-indigo-600"> · @{s.username}</span>}
           </div>
         ))}
       </ReviewSection>
@@ -256,6 +260,8 @@ export default function NewContractPage() {
   const [isGenCN, setIsGenCN] = useState(false)
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
   const userRole = user?.group_access ?? 'user'
+  // Direktori user untuk dropdown stakeholder (ADR-0004).
+  const { data: userOptions = [] } = useQuery({ queryKey: ['users-basic'], queryFn: getUsersBasic })
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -542,7 +548,7 @@ export default function NewContractPage() {
                     <CardDescription>Orang-orang yang terlibat dalam kontrak ini</CardDescription>
                   </div>
                   <Button type="button" variant="outline" size="sm"
-                    onClick={() => addStakeholder({ name: '', role: '', email: '' })}>
+                    onClick={() => addStakeholder({ name: '', role: '', email: '', username: undefined })}>
                     <Plus size={14} className="mr-1" />Tambah
                   </Button>
                 </div>
@@ -551,8 +557,13 @@ export default function NewContractPage() {
                 {stakeholders.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">Belum ada pemangku kepentingan. Klik &quot;Tambah&quot; untuk menambah.</p>
                 )}
-                {stakeholders.map((field, i) => (
-                  <div key={field.id} className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg relative">
+                {stakeholders.map((field, i) => {
+                  const usernameVal = watch(`metadata.stakeholders.${i}.username`) ?? ''
+                  const role = watch(`metadata.stakeholders.${i}.role`) ?? ''
+                  const needsUsername = role === 'producer' || role === 'consumer'
+                  return (
+                  <div key={field.id} className="space-y-2 p-3 bg-slate-50 rounded-lg relative">
+                    <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs">Nama *</Label>
                       <Input placeholder="Nama lengkap" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.name`)} />
@@ -560,7 +571,7 @@ export default function NewContractPage() {
                     <div className="space-y-1">
                       <Label className="text-xs">Peran *</Label>
                       <Select
-                        value={watch(`metadata.stakeholders.${i}.role`) ?? ''}
+                        value={role}
                         onValueChange={(v) => setValue(`metadata.stakeholders.${i}.role`, v)}
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih peran" /></SelectTrigger>
@@ -586,8 +597,38 @@ export default function NewContractPage() {
                         </Button>
                       </div>
                     </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs flex items-center gap-1.5">
+                        Akun User
+                        {needsUsername
+                          ? <span className="text-[10px] uppercase font-medium text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">wajib untuk approver</span>
+                          : <span className="text-[10px] text-muted-foreground">opsional</span>}
+                      </Label>
+                      <Select
+                        value={usernameVal || '__none__'}
+                        onValueChange={(v) => setValue(
+                          `metadata.stakeholders.${i}.username`,
+                          v === '__none__' ? undefined : v,
+                        )}
+                      >
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih akun" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__" className="text-xs italic text-muted-foreground">— Tidak terkait akun —</SelectItem>
+                          {userOptions.map(u => (
+                            <SelectItem key={u.username} value={u.username} className="text-xs">
+                              {u.name} <span className="text-muted-foreground">@{u.username}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {needsUsername && !usernameVal && (
+                        <p className="text-[11px] text-amber-700">Tanpa akun, stakeholder ini tidak dihitung sebagai approver Producer/Consumer.</p>
+                      )}
+                    </div>
                   </div>
-                ))}
+                  )
+                })}
               </CardContent>
             </Card>
         )}

@@ -12,6 +12,9 @@ export interface Stakeholder {
   name: string
   email?: string
   role: string
+  // ADR-0004: dipakai untuk menentukan approver Producer/Consumer.
+  // Hanya stakeholder ber-username yang aktif yang dihitung.
+  username?: string
   date_in?: string
   date_out?: string
 }
@@ -99,12 +102,27 @@ export interface Vote {
   voted_at?: string | null
 }
 
+export type ApproverRole = 'steward' | 'producer' | 'consumer'
+
+export const APPROVER_ROLE_LABELS: Record<ApproverRole, string> = {
+  steward:  'Steward',
+  producer: 'Producer',
+  consumer: 'Consumer',
+}
+
 export interface ApprovalRecord {
   approval_id: string
   contract_number: string
   requested_by: string
   proposed_changes: Record<string, unknown>
   approvers: string[]
+  // ADR-0004 — approver per peran. Bisa absen pada approval lama → UI
+  // jatuh ke tampilan flat list seperti sebelumnya.
+  approvers_by_role?: Partial<Record<ApproverRole, string[]>>
+  // Peran yang auto-pass karena tidak punya approver (kontrak tanpa
+  // stakeholder consumer/producer ber-username). Audit trail; UI
+  // memperingatkan supaya operator melengkapi.
+  fallback_roles?: ApproverRole[]
   votes: Vote[]
   status: 'pending' | 'approved' | 'rejected'
   created_at?: string | null
