@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 import type { ModelColumn, Stakeholder } from '@/types/contract'
 import { getStakeholderRoleLabel } from '@/types/contract'
+import * as jsYaml from 'js-yaml'
 
 function BoolCell({ value }: { value?: boolean }) {
   return value ? (
@@ -101,7 +102,7 @@ export default function ContractDetailPage() {
           <TabsTrigger value="model">Struktur Data ({model?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="ports">Koneksi ({ports?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="examples">Contoh Data</TabsTrigger>
-          <TabsTrigger value="raw">JSON Raw</TabsTrigger>
+          <TabsTrigger value="raw">YAML</TabsTrigger>
         </TabsList>
 
         {/* ── Metadata tab ─────────────────────────────────────────── */}
@@ -305,13 +306,17 @@ export default function ContractDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* ── JSON Raw tab ───────────────────────────────────────────── */}
+        {/* ── YAML tab ──────────────────────────────────────────────── */}
         <TabsContent value="raw">
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-base">JSON Raw</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-base">YAML</CardTitle></CardHeader>
             <CardContent>
               <pre className="text-xs bg-slate-50 border rounded-lg p-4 overflow-auto max-h-[600px] text-slate-700">
-                {JSON.stringify(contract, null, 2)}
+                {(() => {
+                  // Buang field internal MongoDB sebelum di-dump ke YAML kanonik.
+                  const { _id, __v, ...contractYaml } = contract as unknown as Record<string, unknown>
+                  return jsYaml.dump(contractYaml, { lineWidth: -1, noRefs: true })
+                })()}
               </pre>
             </CardContent>
           </Card>
