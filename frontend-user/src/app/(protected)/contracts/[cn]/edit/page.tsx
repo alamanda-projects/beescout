@@ -460,7 +460,7 @@ export default function EditContractPage() {
                 {stakeholders.map((field, i) => {
                   const usernameVal = watch(`metadata.stakeholders.${i}.username`) ?? ''
                   const role = watch(`metadata.stakeholders.${i}.role`) ?? ''
-                  const needsUsername = role === 'producer' || role === 'consumer'
+                  const needsUsername = role === 'owner' || role === 'producer' || role === 'consumer'
                   return (
                   <div key={field.id} className="space-y-2 p-3 bg-slate-50 rounded-lg">
                     <div className="grid grid-cols-3 gap-3">
@@ -523,7 +523,7 @@ export default function EditContractPage() {
                         </SelectContent>
                       </Select>
                       {needsUsername && !usernameVal && (
-                        <p className="text-[11px] text-amber-700">Tanpa akun, stakeholder ini tidak dihitung sebagai approver Producer/Consumer.</p>
+                        <p className="text-[11px] text-amber-700">Tanpa akun, stakeholder ini tidak dihitung sebagai approver Owner/Producer/Consumer.</p>
                       )}
                     </div>
                   </div>

@@ -10,7 +10,24 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { CheckCircle2, XCircle, ClipboardList, ChevronDown, ChevronUp, Clock, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { APPROVER_ROLE_LABELS, type ApprovalRecord, type ApproverRole } from '@/types/contract'
+import { APPROVER_ROLE_LABELS, type ApprovalRecord } from '@/types/contract'
+
+// Tampilkan kunci peran sesuai urutan preferensi (owner > producer > consumer),
+// dengan kunci legacy ('steward') ditempatkan setelahnya. Kunci tak dikenal di
+// akhir, alfabetis — supaya UI tetap stabil bila approval lama format ADR-0004
+// muncul di sini (kunci 'steward'). Lihat ADR-0005.
+const ROLE_ORDER = ['owner', 'producer', 'consumer', 'steward'] as const
+function orderRoleKeys(keys: string[]): string[] {
+  const indexed = (k: string) => {
+    const i = (ROLE_ORDER as readonly string[]).indexOf(k)
+    return i === -1 ? Number.MAX_SAFE_INTEGER : i
+  }
+  return [...keys].sort((a, b) => indexed(a) - indexed(b) || a.localeCompare(b))
+}
+function roleLabel(role: string): string {
+  return APPROVER_ROLE_LABELS[role as keyof typeof APPROVER_ROLE_LABELS]
+    ?? (role.charAt(0).toUpperCase() + role.slice(1))
+}
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') return <Badge variant="success">Disetujui</Badge>
@@ -35,7 +52,11 @@ function RoleProgress({ record }: { record: ApprovalRecord }) {
 
   const approvedSet = new Set(record.votes.filter((v) => v.vote === 'approved').map((v) => v.username))
   const rejectedSet = new Set(record.votes.filter((v) => v.vote === 'rejected').map((v) => v.username))
-  const roles: ApproverRole[] = ['steward', 'producer', 'consumer']
+  // Iterasi sesuai kunci yang ada di doc + fallback_roles (peran kosong tetap
+  // ditampilkan supaya operator melihat alasan auto-pass).
+  const presentKeys = Object.keys(byRole)
+  const fallbackKeys = (record.fallback_roles ?? []).filter((r) => !presentKeys.includes(r))
+  const roles = orderRoleKeys([...presentKeys, ...fallbackKeys])
 
   return (
     <div className="space-y-1.5">
@@ -56,7 +77,7 @@ function RoleProgress({ record }: { record: ApprovalRecord }) {
           <div key={role} className="flex items-start gap-2 text-xs">
             <Icon size={14} className={`${tone} shrink-0 mt-0.5`} />
             <div className="flex-1">
-              <span className="font-medium text-slate-700">{APPROVER_ROLE_LABELS[role]}</span>
+              <span className="font-medium text-slate-700">{roleLabel(role)}</span>
               {isFallback ? (
                 <span className="text-muted-foreground italic"> — tidak ada (auto-pass)</span>
               ) : (
@@ -86,13 +107,13 @@ function RoleProgress({ record }: { record: ApprovalRecord }) {
   )
 }
 
-function FallbackBanner({ roles }: { roles?: ApproverRole[] }) {
+function FallbackBanner({ roles }: { roles?: string[] }) {
   if (!roles || roles.length === 0) return null
   return (
     <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
       <AlertTriangle size={13} className="mt-0.5 shrink-0" />
       <span>
-        Tidak ada approver dari peran <strong>{roles.map((r) => APPROVER_ROLE_LABELS[r]).join(', ')}</strong> —
+        Tidak ada approver dari peran <strong>{orderRoleKeys(roles).map(roleLabel).join(', ')}</strong> —
         auto-lulus. Lengkapi <em>username</em> di stakeholder kontrak agar peran ini ikut menyetujui di pengajuan berikutnya.
       </span>
     </div>

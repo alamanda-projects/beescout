@@ -7,7 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ClipboardList, CheckCircle2, XCircle, Clock, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
-import { APPROVER_ROLE_LABELS, type ApprovalRecord, type ApproverRole } from '@/types/contract'
+import { APPROVER_ROLE_LABELS, type ApprovalRecord } from '@/types/contract'
+
+// Tampilkan kunci peran sesuai urutan preferensi; kunci legacy ('steward')
+// dari approval ADR-0004 in-flight tetap di-render apa adanya (lihat ADR-0005).
+const ROLE_ORDER = ['owner', 'producer', 'consumer', 'steward'] as const
+function orderRoleKeys(keys: string[]): string[] {
+  const indexed = (k: string) => {
+    const i = (ROLE_ORDER as readonly string[]).indexOf(k)
+    return i === -1 ? Number.MAX_SAFE_INTEGER : i
+  }
+  return [...keys].sort((a, b) => indexed(a) - indexed(b) || a.localeCompare(b))
+}
+function roleLabel(role: string): string {
+  return APPROVER_ROLE_LABELS[role as keyof typeof APPROVER_ROLE_LABELS]
+    ?? (role.charAt(0).toUpperCase() + role.slice(1))
+}
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') return <Badge variant="success">Disetujui</Badge>
@@ -66,12 +81,14 @@ function VoteList({ record }: { record: ApprovalRecord }) {
     )
   }
 
-  const roles: ApproverRole[] = ['steward', 'producer', 'consumer']
+  const presentKeys = Object.keys(byRole)
+  const fallbackKeys = (record.fallback_roles ?? []).filter((r) => !presentKeys.includes(r))
+  const roles = orderRoleKeys([...presentKeys, ...fallbackKeys])
   const summary = roles.map((r) => {
     const users = byRole[r] ?? []
-    if (users.length === 0) return `${APPROVER_ROLE_LABELS[r]}: auto`
+    if (users.length === 0) return `${roleLabel(r)}: auto`
     const a = users.filter((u) => approvedSet.has(u)).length
-    return `${APPROVER_ROLE_LABELS[r]} ${a}/${users.length}`
+    return `${roleLabel(r)} ${a}/${users.length}`
   }).join(' · ')
 
   return (
@@ -99,7 +116,7 @@ function VoteList({ record }: { record: ApprovalRecord }) {
                       : users.every((u) => approvedSet.has(u))
                         ? <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
                         : <Clock size={12} className="text-amber-400 shrink-0" />}
-                  <span className="font-medium text-slate-700">{APPROVER_ROLE_LABELS[role]}</span>
+                  <span className="font-medium text-slate-700">{roleLabel(role)}</span>
                   {isFallback && <span className="text-muted-foreground italic">— auto-pass</span>}
                 </div>
                 {!isFallback && (
@@ -129,13 +146,13 @@ function VoteList({ record }: { record: ApprovalRecord }) {
   )
 }
 
-function FallbackBanner({ roles }: { roles?: ApproverRole[] }) {
+function FallbackBanner({ roles }: { roles?: string[] }) {
   if (!roles || roles.length === 0) return null
   return (
     <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">
       <AlertTriangle size={12} className="mt-0.5 shrink-0" />
       <span>
-        Peran <strong>{roles.map((r) => APPROVER_ROLE_LABELS[r]).join(', ')}</strong> auto-lulus karena
+        Peran <strong>{orderRoleKeys(roles).map(roleLabel).join(', ')}</strong> auto-lulus karena
         tidak ada stakeholder ber-akun di kontrak. Minta steward melengkapi <em>username</em>.
       </span>
     </div>

@@ -105,10 +105,12 @@ export interface Vote {
   voted_at?: string | null
 }
 
-export type ApproverRole = 'steward' | 'producer' | 'consumer'
+// ADR-0005 — owner menggantikan steward; ketiga peran diturunkan dari
+// metadata.stakeholders[role]. Admin/root tidak lagi otomatis ikut.
+export type ApproverRole = 'owner' | 'producer' | 'consumer'
 
 export const APPROVER_ROLE_LABELS: Record<ApproverRole, string> = {
-  steward:  'Steward',
+  owner:    'Owner',
   producer: 'Producer',
   consumer: 'Consumer',
 }
@@ -119,12 +121,13 @@ export interface ApprovalRecord {
   requested_by: string
   proposed_changes: Record<string, unknown>
   approvers: string[]
-  // ADR-0004 — approver per peran. Bisa absen pada approval lama → UI
-  // jatuh ke tampilan flat list seperti sebelumnya.
-  approvers_by_role?: Partial<Record<ApproverRole, string[]>>
+  // ADR-0005 — approver per peran. Kunci umum: owner/producer/consumer.
+  // Approval ADR-0004 in-flight masih bisa muncul dengan kunci 'steward' —
+  // UI tampilkan label apa adanya, voting tetap jalan.
+  approvers_by_role?: Record<string, string[]>
   // Peran yang auto-pass karena tidak punya approver. Audit trail; UI
   // memperingatkan supaya operator melengkapi data.
-  fallback_roles?: ApproverRole[]
+  fallback_roles?: string[]
   votes: Vote[]
   status: 'pending' | 'approved' | 'rejected'
   created_at?: string | null
