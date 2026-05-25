@@ -190,6 +190,24 @@ def is_consensus_reached(approvers_by_role: dict, votes: list) -> bool:
     return True
 
 
+async def derive_catalog_approvers() -> tuple[Dict[str, list], list]:
+    """Approver untuk pengajuan modul rule catalog (issue #69 / #27).
+
+    Rule catalog adalah resource **global** (tidak terikat kontrak), jadi
+    tata kelolanya lewat governance role steward (= admin/root aktif), bukan
+    via stakeholder per-kontrak seperti ADR-0005. Konsisten dengan keputusan
+    "Opsi C khusus steward-only" yang dicatat saat diskusi #27.
+    """
+    docs = await usrcollection.find(
+        {"group_access": {"$in": grplvladmin}, "is_active": True},
+        {"username": 1, "_id": 0},
+    ).to_list(None)
+    stewards = sorted({u["username"] for u in docs})
+    approvers_by_role = {"steward": stewards}
+    fallback_roles = [] if stewards else ["steward"]
+    return approvers_by_role, fallback_roles
+
+
 async def validate_data_domain(domain: str):
     """Ensure `data_domain` refers to an active, registered domain.
 
@@ -1269,11 +1287,21 @@ async def get_rule_by_code(code: str, user=Depends(require_any)):
 
 
 @app.post("/catalog/rules", tags=["catalog"], status_code=201)
-async def create_rule(payload: RuleCatalogCreate, user=Depends(require_admin)):
+async def create_rule(payload: RuleCatalogCreate, user=Depends(require_any)):
     """
-    Tambah modul aturan baru ke katalog (model patching).
-    Hanya root dan admin.
+    Tambah modul aturan baru ke katalog.
+
+    - Admin/root → langsung disimpan ke katalog.
+    - User/developer → masuk approval workflow, menunggu persetujuan
+      steward (admin/root) sebelum benar-benar tersimpan (issue #69).
+
+    Code unik diperiksa di kedua jalur untuk mencegah konflik nama saat
+    submit (tetap mungkin terjadi race condition di antara submit & approve;
+    bila konflik baru terlihat saat apply, vote handler menolak).
     """
+    username = user["usr"]
+    user_level = user["lvl"]
+
     existing = await catalogcollection.find_one({"code": payload.code})
     if existing:
         raise HTTPException(status_code=409, detail=f"Modul dengan code '{payload.code}' sudah ada.")
@@ -1281,10 +1309,63 @@ async def create_rule(payload: RuleCatalogCreate, user=Depends(require_admin)):
     doc = payload.model_dump()
     doc["is_builtin"] = False
     doc["is_active"] = True
-    await catalogcollection.insert_one(doc)
 
-    created = await catalogcollection.find_one({"code": payload.code}, {"_id": 0})
-    return created
+    # Admin/root: commit langsung — perilaku lama.
+    if user_level in grplvladmin:
+        await catalogcollection.insert_one(doc)
+        created = await catalogcollection.find_one({"code": payload.code}, {"_id": 0})
+        return created
+
+    # User/developer: jalur approval. Cegah duplikasi pengajuan aktif
+    # untuk code yang sama supaya tidak ada dua approval saling overwrite
+    # di saat di-apply.
+    pending_dup = await aprcollection.find_one({
+        "type": "rule_catalog_create",
+        "target_id": payload.code,
+        "status": "pending",
+    })
+    if pending_dup:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Pengajuan modul '{payload.code}' sudah ada dan menunggu persetujuan.",
+        )
+
+    approvers_by_role, fallback_roles = await derive_catalog_approvers()
+    approvers = sorted({u for users in approvers_by_role.values() for u in users})
+    if not approvers:
+        # Tidak ada steward aktif → tidak ada yang bisa menyetujui.
+        raise HTTPException(
+            status_code=503,
+            detail="Tidak ada steward (admin/root) aktif untuk menyetujui pengajuan. "
+                   "Hubungi administrator sistem.",
+        )
+
+    from nanoid import generate
+    approval_id = generate(size=16)
+
+    approval_doc = {
+        "approval_id":       approval_id,
+        "type":              "rule_catalog_create",
+        "target_id":         payload.code,
+        "requested_by":      username,
+        "proposed_changes":  doc,
+        "approvers":         approvers,
+        "approvers_by_role": approvers_by_role,
+        "fallback_roles":    fallback_roles,
+        "votes":             [],
+        "status":            "pending",
+        "created_at":        datetime.now().isoformat(),
+        "resolved_at":       None,
+    }
+    await aprcollection.insert_one(approval_doc)
+
+    return {
+        "message":     "Modul aturan diajukan dan menunggu persetujuan steward.",
+        "approval_id": approval_id,
+        "approvers":   approvers,
+        "rule_code":   payload.code,
+        "status":      "pending",
+    }
 
 
 @app.patch("/catalog/rules/{code}", tags=["catalog"])
@@ -1538,19 +1619,25 @@ async def vote_approval(
     }
     await aprcollection.update_one({"approval_id": approval_id}, {"$push": {"votes": new_vote}})
 
+    # Tipe pengajuan — default contract_change untuk approval lama (issue #69).
+    approval_type = record.get("type", "contract_change")
+
     if vote_data.vote == "rejected":
         await aprcollection.update_one(
             {"approval_id": approval_id},
             {"$set": {"status": "rejected", "resolved_at": datetime.now().isoformat()}},
         )
-        await dccollection.update_one(
-            {"contract_number": record["contract_number"]},
-            {"$set": {"approval_status": "rejected", "pending_changes": None, "pending_by": None, "approval_id": None}},
-        )
-        return {"message": "Perubahan ditolak."}
+        # Reset state pending hanya untuk perubahan kontrak. Untuk rule
+        # catalog, tidak ada side-effect lain yang perlu di-rollback.
+        if approval_type == "contract_change":
+            await dccollection.update_one(
+                {"contract_number": record.get("contract_number")},
+                {"$set": {"approval_status": "rejected", "pending_changes": None, "pending_by": None, "approval_id": None}},
+            )
+        return {"message": "Pengajuan ditolak."}
 
     updated = await aprcollection.find_one({"approval_id": approval_id})
-    # ADR-0004: konsensus berbasis peran untuk approval baru;
+    # ADR-0004/0005: konsensus berbasis peran untuk approval baru;
     # fallback ke logika lama (unanimous count) untuk approval in-flight
     # yang dibuat sebelum migrasi.
     approvers_by_role = updated.get("approvers_by_role")
@@ -1559,7 +1646,12 @@ async def vote_approval(
     else:
         approved_votes = [v for v in updated["votes"] if v["vote"] == "approved"]
         consensus = len(approved_votes) == len(record["approvers"])
-    if consensus:
+
+    if not consensus:
+        return {"message": "Vote diterima. Menunggu persetujuan anggota lain."}
+
+    # Konsensus tercapai → terapkan sesuai jenis pengajuan.
+    if approval_type == "contract_change":
         _allowed = {"standard_version", "metadata", "model", "ports", "examples"}
         changes = {k: v for k, v in record["proposed_changes"].items() if k in _allowed}
         changes["approval_status"] = None
@@ -1567,13 +1659,44 @@ async def vote_approval(
         changes["pending_by"] = None
         changes["approval_id"] = None
         await dccollection.update_one(
-            {"contract_number": record["contract_number"]},
+            {"contract_number": record.get("contract_number")},
             {"$set": changes},
         )
         await aprcollection.update_one(
             {"approval_id": approval_id},
             {"$set": {"status": "approved", "resolved_at": datetime.now().isoformat()}},
         )
-        return {"message": "Semua setuju. Perubahan berhasil diterapkan."}
+        return {"message": "Semua setuju. Perubahan kontrak berhasil diterapkan."}
 
-    return {"message": "Vote diterima. Menunggu persetujuan anggota lain."}
+    if approval_type == "rule_catalog_create":
+        # Cek konflik code baru terhadap katalog saat ini — bila admin sempat
+        # membuat modul dengan code sama setelah pengajuan diajukan, batalkan
+        # apply supaya tidak ada duplikat (tanpa unique index DB).
+        rule = record["proposed_changes"]
+        code = rule.get("code") or record.get("target_id")
+        existing = await catalogcollection.find_one({"code": code})
+        if existing:
+            await aprcollection.update_one(
+                {"approval_id": approval_id},
+                {"$set": {
+                    "status": "rejected",
+                    "resolved_at": datetime.now().isoformat(),
+                    "rejection_reason": f"Modul dengan code '{code}' sudah ada di katalog saat pengajuan disetujui.",
+                }},
+            )
+            raise HTTPException(
+                status_code=409,
+                detail=f"Modul '{code}' sudah ada di katalog. Pengajuan otomatis ditolak.",
+            )
+        await catalogcollection.insert_one(rule)
+        await aprcollection.update_one(
+            {"approval_id": approval_id},
+            {"$set": {"status": "approved", "resolved_at": datetime.now().isoformat()}},
+        )
+        return {"message": f"Semua setuju. Modul '{code}' ditambahkan ke katalog."}
+
+    # Unknown type — defensif, jangan biarkan approval nyangkut di pending.
+    raise HTTPException(
+        status_code=500,
+        detail=f"Tipe approval '{approval_type}' tidak dikenal. Hubungi administrator.",
+    )

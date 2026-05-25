@@ -175,11 +175,14 @@ export default function MyApprovalsPage() {
           <Card key={record.approval_id}>
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <StatusIcon status={record.status} />
                   <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
-                    {record.contract_number}
+                    {record.target_id ?? record.contract_number ?? '—'}
                   </code>
+                  <Badge variant="outline" className="text-[10px]">
+                    {(record.type ?? 'contract_change') === 'rule_catalog_create' ? 'Modul Aturan' : 'Kontrak'}
+                  </Badge>
                   <StatusBadge status={record.status} />
                 </div>
                 {record.created_at && (

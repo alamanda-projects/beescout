@@ -219,9 +219,12 @@ export default function ApprovalsPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <CardTitle className="text-sm">
                           <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs text-slate-600">
-                            {record.contract_number}
+                            {record.target_id ?? record.contract_number ?? '—'}
                           </code>
                         </CardTitle>
+                        <Badge variant="outline" className="text-[10px]">
+                          {(record.type ?? 'contract_change') === 'rule_catalog_create' ? 'Modul Aturan' : 'Kontrak'}
+                        </Badge>
                         <StatusBadge status={record.status} />
                       </div>
                       <p className="text-xs text-muted-foreground">

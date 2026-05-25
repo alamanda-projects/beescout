@@ -1,8 +1,27 @@
 import { apiClient } from '@/lib/api/client'
-import type { RuleCatalogItem, YamlValidationResult } from '@/types/rule_catalog'
+import type { RuleCatalogCreate, RuleCatalogItem, YamlValidationResult } from '@/types/rule_catalog'
 
 export const getAllRules = async (): Promise<RuleCatalogItem[]> => {
   const res = await apiClient.get('/catalog/rules')
+  return res.data
+}
+
+// Ajukan modul aturan baru. Backend mendeteksi role:
+// - admin/root: langsung tersimpan & mengembalikan RuleCatalogItem.
+// - user/developer: masuk approval, mengembalikan { approval_id, status: 'pending', ... }.
+// Frontend menangani kedua bentuk respons.
+export interface CatalogProposalResponse {
+  message: string
+  approval_id: string
+  approvers: string[]
+  rule_code: string
+  status: 'pending'
+}
+
+export const createRule = async (
+  payload: RuleCatalogCreate,
+): Promise<RuleCatalogItem | CatalogProposalResponse> => {
+  const res = await apiClient.post('/catalog/rules', payload)
   return res.data
 }
 

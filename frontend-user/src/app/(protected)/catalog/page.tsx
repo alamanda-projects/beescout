@@ -12,7 +12,8 @@ import { getAllRules } from '@/lib/api/catalog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, Lock } from 'lucide-react'
+import { Search, Lock, Plus } from 'lucide-react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { DIMENSION_LABELS, LAYER_LABELS, type RuleCatalogItem } from '@/types/rule_catalog'
 
@@ -99,18 +100,23 @@ export default function CatalogPage() {
 
   return (
     <div className="space-y-5 max-w-5xl">
-      <div>
-        <h2 className="text-xl font-semibold text-zinc-900">Katalog Aturan Kualitas</h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          Modul aturan yang tersedia untuk dipakai di kontrak. Mode tampilan saja — pengajuan modul baru menyusul.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-semibold text-zinc-900">Katalog Aturan Kualitas</h2>
+          <p className="text-sm text-zinc-500 mt-1">
+            Modul aturan yang tersedia untuk dipakai di kontrak. Ajukan modul baru bila yang Anda butuhkan belum tersedia.
+          </p>
+        </div>
+        <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5">
+          <Link href="/catalog/new"><Plus size={14} />Ajukan Modul Baru</Link>
+        </Button>
       </div>
 
       <div className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-xs text-indigo-800 flex gap-2">
         <span className="shrink-0 mt-0.5">⬡</span>
         <span>
           <strong>Sistem Modular</strong> — Pilih modul dari daftar ini saat menyusun aturan kualitas di kontrak data.
-          Hubungi steward jika membutuhkan modul baru.
+          Modul yang Anda ajukan akan masuk antrian persetujuan steward.
         </span>
       </div>
 
