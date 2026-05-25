@@ -19,6 +19,8 @@ class DomainCreate(BaseModel):
 
 # Update domain — semua field opsional (partial update / PATCH).
 # `name` tidak bisa diubah: itu kunci akses kontrak yang dipakai user existing.
+# `is_default` sengaja tidak diekspos: domain default di-seed otomatis oleh
+# /setup (#74), bukan dipromosikan via API.
 class DomainUpdate(BaseModel):
     label: Optional[str] = None
     description: Optional[str] = None

@@ -107,6 +107,9 @@ export interface DomainRecord {
   label: string
   description?: string
   is_active: boolean
+  // Domain default ('root', 'admin') yang di-seed /setup (#74). Tidak boleh
+  // dinonaktifkan / dihapus — UI menyembunyikan kontrol terkait.
+  is_default?: boolean
   user_count?: number
   created_at?: string
 }

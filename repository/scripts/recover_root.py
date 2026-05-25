@@ -43,10 +43,36 @@ import sys
 from datetime import datetime
 from typing import Optional
 
-from app.core.connection import database, col_usr
+from app.core.connection import database, col_usr, col_dom
 from app.core.hasher import Hasher
 
 usrcollection = database[col_usr]
+domcollection = database[col_dom]
+
+# Sinkron dengan seed_default_domains() di app/main.py. Diduplikasi di sini
+# karena script bisa dijalankan tanpa proses FastAPI yang sudah booting —
+# nilainya kecil (4 baris), tidak layak modul shared khusus.
+_DEFAULT_DOMAINS = [
+    {"name": "root",  "label": "Root"},
+    {"name": "admin", "label": "Admin"},
+]
+
+
+async def _seed_default_domains(now: datetime) -> int:
+    inserted = 0
+    for spec in _DEFAULT_DOMAINS:
+        if await domcollection.find_one({"name": spec["name"]}):
+            continue
+        await domcollection.insert_one({
+            "name":        spec["name"],
+            "label":       spec["label"],
+            "description": "",
+            "is_active":   True,
+            "is_default":  True,
+            "created_at":  now,
+        })
+        inserted += 1
+    return inserted
 
 # Aturan password — identik dengan /setup & /user/create di app/main.py.
 _VALID_SPECIAL = set("!@#$%^&*()-_+={}[]<>,./?;:'\"")
@@ -153,25 +179,29 @@ async def main(args: argparse.Namespace) -> int:
 
     if is_recovery:
         # 2a. Reset password + aktifkan akun root yang ada.
+        # Sekalian normalisasi data_domain ke 'root' supaya konsisten dengan
+        # invariant baru di /setup (#74) — recovery sering dipakai justru saat
+        # database lama yang nyangkut, jadi mungkin masih data_domain lama.
         await usrcollection.update_one(
             {"username": args.username},
             {"$set": {
                 "password": hashed,
                 "is_active": True,
                 "group_access": "root",
+                "data_domain": "root",
                 "recovered_at": now,
                 "recovery_note": note,
             }},
         )
         print(f"✓ Akun root '{args.username}' di-reset & diaktifkan.")
     else:
-        # 2b. Buat akun root baru.
+        # 2b. Buat akun root baru. data_domain dipaksa 'root' (#74).
         await usrcollection.insert_one({
             "username": args.username,
             "password": hashed,
             "name": args.name,
             "group_access": "root",
-            "data_domain": args.data_domain,
+            "data_domain": "root",
             "is_active": True,
             "type": "user",
             "created_at": now,
@@ -179,6 +209,13 @@ async def main(args: argparse.Namespace) -> int:
             "recovery_note": note,
         })
         print(f"✓ Akun root baru '{args.username}' dibuat.")
+
+    # 3. Seed domain default ('root', 'admin') kalau belum ada (#74). Sama
+    # invariant dengan /setup — recovery di DB lama yang belum punya katalog
+    # domain pun ikut ter-bootstrap.
+    seeded = await _seed_default_domains(now)
+    if seeded:
+        print(f"✓ {seeded} domain default ('root', 'admin') ditambahkan ke katalog.")
 
     print(f"\n✓ Selesai. Tepat satu root aktif: '{args.username}'. Silakan login.")
     print(f"  AUDIT: {note}")
@@ -191,8 +228,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--username", required=True, help="Username root yang dipulihkan / dibuat.")
     parser.add_argument("--name", help="Nama tampilan (wajib untuk mode create).")
-    parser.add_argument("--data-domain", default="platform",
-                        help="data_domain untuk akun baru (default: platform).")
+    parser.add_argument("--data-domain", default="root",
+                        help="DEPRECATED (#74): akun root selalu di domain 'root'. "
+                             "Argumen ini diabaikan, dipertahankan untuk kompatibilitas CLI.")
     parser.add_argument("--password", help="Password baru (hindari — tercatat di shell history; "
                                            "biarkan kosong agar diminta lewat prompt aman).")
     parser.add_argument("--apply", action="store_true",

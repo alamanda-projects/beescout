@@ -68,13 +68,22 @@ async def test_dry_run_makes_no_writes():
 
 # ── main() — recovery mode ────────────────────────────────────────────────────
 
+def _mock_dom_empty():
+    """Empty domain collection — _seed_default_domains() akan insert keduanya."""
+    dom = AsyncMock()
+    dom.find_one.return_value = None
+    return dom
+
+
 @pytest.mark.asyncio
 async def test_recovery_resets_existing_root_and_disables_others():
     col = _make_collection(
         {"username": "root", "group_access": "root", "is_active": False},
         [{"username": "oldroot", "group_access": "root", "is_active": True}],
     )
-    with patch.object(recover_root, "usrcollection", col):
+    dom = _mock_dom_empty()
+    with patch.object(recover_root, "usrcollection", col), \
+         patch.object(recover_root, "domcollection", dom):
         rc = await recover_root.main(_args(username="root", apply=True))
     assert rc == 0
     # root lain di-non-aktifkan
@@ -83,11 +92,12 @@ async def test_recovery_resets_existing_root_and_disables_others():
     assert query["group_access"] == "root"
     assert query["username"] == {"$ne": "root"}
     assert update == {"$set": {"is_active": False}}
-    # akun root yang ada di-reset & diaktifkan
+    # akun root yang ada di-reset & diaktifkan, dan data_domain dinormalkan ke 'root' (#74)
     col.update_one.assert_called_once()
     _, upd = col.update_one.call_args.args
     assert upd["$set"]["is_active"] is True
     assert upd["$set"]["group_access"] == "root"
+    assert upd["$set"]["data_domain"] == "root"
     assert "recovered_at" in upd["$set"]
     col.insert_one.assert_not_called()
 
@@ -97,7 +107,9 @@ async def test_recovery_resets_existing_root_and_disables_others():
 @pytest.mark.asyncio
 async def test_create_mode_inserts_new_active_root():
     col = _make_collection(None, [{"username": "oldroot", "group_access": "root"}])
-    with patch.object(recover_root, "usrcollection", col):
+    dom = _mock_dom_empty()
+    with patch.object(recover_root, "usrcollection", col), \
+         patch.object(recover_root, "domcollection", dom):
         rc = await recover_root.main(_args(username="newroot", apply=True))
     assert rc == 0
     col.insert_one.assert_called_once()
@@ -105,7 +117,24 @@ async def test_create_mode_inserts_new_active_root():
     assert doc["username"] == "newroot"
     assert doc["group_access"] == "root"
     assert doc["is_active"] is True
+    # #74: data_domain root account selalu 'root', --data-domain diabaikan
+    assert doc["data_domain"] == "root"
     col.update_many.assert_called_once()  # root lama di-non-aktifkan
+
+
+@pytest.mark.asyncio
+async def test_apply_seeds_default_domains(tmp_path):
+    """Setelah recovery/create, domain 'root' & 'admin' di-seed bila belum ada (#74)."""
+    col = _make_collection(None, [])
+    dom = _mock_dom_empty()
+    with patch.object(recover_root, "usrcollection", col), \
+         patch.object(recover_root, "domcollection", dom):
+        rc = await recover_root.main(_args(username="newroot", apply=True))
+    assert rc == 0
+    inserted = [c.args[0]["name"] for c in dom.insert_one.call_args_list]
+    assert set(inserted) == {"root", "admin"}
+    for c in dom.insert_one.call_args_list:
+        assert c.args[0]["is_default"] is True
 
 
 @pytest.mark.asyncio

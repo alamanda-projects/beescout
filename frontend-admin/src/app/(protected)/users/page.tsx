@@ -128,21 +128,30 @@ function EditPanel({
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Domain Data *</Label>
-                {domains.length > 0 ? (
-                  <Select value={watch('data_domain') || ''} onValueChange={(v) => setValue('data_domain', v)}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih domain" /></SelectTrigger>
-                    <SelectContent>
-                      {domains.map((d) => (
-                        <SelectItem key={d.name} value={d.name}>{d.label}</SelectItem>
-                      ))}
-                      {user.data_domain && !domains.some((d) => d.name === user.data_domain) && (
-                        <SelectItem value={user.data_domain}>{user.data_domain} (lama)</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input className="h-8 text-xs" {...register('data_domain')} />
-                )}
+                {(() => {
+                  // 'root' adalah domain super-admin (di-seed /setup, #74) —
+                  // tidak dipakai oleh user/developer/admin yang diedit di
+                  // form ini. Disembunyikan kecuali user yang diedit memang
+                  // sudah berada di domain itu (preserve nilai legacy).
+                  const selectable = domains.filter(d =>
+                    d.name !== 'root' || user.data_domain === 'root'
+                  )
+                  return selectable.length > 0 ? (
+                    <Select value={watch('data_domain') || ''} onValueChange={(v) => setValue('data_domain', v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih domain" /></SelectTrigger>
+                      <SelectContent>
+                        {selectable.map((d) => (
+                          <SelectItem key={d.name} value={d.name}>{d.label}</SelectItem>
+                        ))}
+                        {user.data_domain && !selectable.some((d) => d.name === user.data_domain) && (
+                          <SelectItem value={user.data_domain}>{user.data_domain} (lama)</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input className="h-8 text-xs" {...register('data_domain')} />
+                  )
+                })()}
                 {errors.data_domain && <p className="text-[10px] text-destructive">{errors.data_domain.message}</p>}
               </div>
               <div className="space-y-1">
@@ -515,7 +524,18 @@ export default function UsersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Peran *</Label>
-                    <Select onValueChange={(v) => setValue('group_access', v)}>
+                    <Select
+                      value={watch('group_access') || ''}
+                      onValueChange={(v) => {
+                        setValue('group_access', v)
+                        // Smart default (#74): admin → domain 'admin' kalau
+                        // tersedia di katalog. User tetap bisa override
+                        // dropdown domain setelah ini.
+                        if (v === 'admin' && domains.some(d => d.name === 'admin')) {
+                          setValue('data_domain', 'admin')
+                        }
+                      }}
+                    >
                       <SelectTrigger><SelectValue placeholder="Pilih peran" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="user">Pengguna (user)</SelectItem>
@@ -527,20 +547,25 @@ export default function UsersPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Domain Data *</Label>
-                    {domains.length > 0 ? (
-                      <Select value={watch('data_domain') || ''} onValueChange={(v) => setValue('data_domain', v)}>
-                        <SelectTrigger><SelectValue placeholder="Pilih domain" /></SelectTrigger>
-                        <SelectContent>
-                          {domains.map((d) => (
-                            <SelectItem key={d.name} value={d.name}>{d.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input placeholder="Contoh: penjualan, inventory" {...register('data_domain')} />
-                    )}
+                    {(() => {
+                      // Domain 'root' khusus akun super admin (di-seed /setup, #74);
+                      // user/developer/admin tidak boleh dimasukkan ke domain 'root'.
+                      const selectable = domains.filter(d => d.name !== 'root')
+                      return selectable.length > 0 ? (
+                        <Select value={watch('data_domain') || ''} onValueChange={(v) => setValue('data_domain', v)}>
+                          <SelectTrigger><SelectValue placeholder="Pilih domain" /></SelectTrigger>
+                          <SelectContent>
+                            {selectable.map((d) => (
+                              <SelectItem key={d.name} value={d.name}>{d.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input placeholder="Contoh: penjualan, inventory" {...register('data_domain')} />
+                      )
+                    })()}
                     {errors.data_domain && <p className="text-xs text-destructive">{errors.data_domain.message}</p>}
-                    {domains.length === 0 && (
+                    {domains.filter(d => d.name !== 'root').length === 0 && (
                       <p className="text-xs text-muted-foreground">
                         Belum ada domain terstandarisasi — buat di menu <span className="font-medium">Domain Data</span>.
                       </p>
