@@ -115,18 +115,21 @@ export const APPROVER_ROLE_LABELS: Record<ApproverRole, string> = {
   consumer: 'Consumer',
 }
 
+// Issue #69: pengajuan modul rule catalog dari user. Approval lama
+// tanpa field 'type' default ke 'contract_change'.
+export type ApprovalType = 'contract_change' | 'rule_catalog_create'
+
 export interface ApprovalRecord {
   approval_id: string
-  contract_number: string
+  type?: ApprovalType
+  target_id?: string | null                    // contract_number atau rule code
+  contract_number?: string | null              // legacy untuk contract_change
   requested_by: string
   proposed_changes: Record<string, unknown>
   approvers: string[]
-  // ADR-0005 — approver per peran. Kunci umum: owner/producer/consumer.
-  // Approval ADR-0004 in-flight masih bisa muncul dengan kunci 'steward' —
-  // UI tampilkan label apa adanya, voting tetap jalan.
+  // ADR-0005 — approver per peran. Kunci umum: owner/producer/consumer
+  // (contract_change) atau steward (rule_catalog_create).
   approvers_by_role?: Record<string, string[]>
-  // Peran yang auto-pass karena tidak punya approver. Audit trail; UI
-  // memperingatkan supaya operator melengkapi data.
   fallback_roles?: string[]
   votes: Vote[]
   status: 'pending' | 'approved' | 'rejected'
