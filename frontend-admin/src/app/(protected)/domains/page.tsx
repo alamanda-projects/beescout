@@ -247,23 +247,36 @@ export default function DomainsPage() {
                     <TableCell className="text-sm text-muted-foreground">{d.description || '—'}</TableCell>
                     <TableCell className="text-center text-sm">{d.user_count ?? 0}</TableCell>
                     <TableCell className="text-center">
-                      {d.is_active ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Aktif
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />Nonaktif
-                        </span>
-                      )}
+                      <div className="flex items-center justify-center gap-1.5">
+                        {d.is_active ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Aktif
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />Nonaktif
+                          </span>
+                        )}
+                        {d.is_default && (
+                          <span
+                            title="Domain bawaan sistem — tidak bisa dinonaktifkan"
+                            className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
+                          >
+                            Default
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
-                          title={d.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                          title={d.is_default
+                            ? 'Domain default tidak bisa dinonaktifkan'
+                            : (d.is_active ? 'Nonaktifkan' : 'Aktifkan')}
                           onClick={() => toggleActive({ name: d.name, is_active: !d.is_active })}
-                          className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                          disabled={d.is_default}
+                          className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
                         >
                           {d.is_active ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
                         </button>

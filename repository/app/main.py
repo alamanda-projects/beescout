@@ -133,6 +133,40 @@ def slugify_domain(raw: str) -> str:
     return "-".join((raw or "").strip().lower().split())
 
 
+# Dua domain yang selalu ada sejak hari ke-1 (issue #74):
+#   `root`  — domain akun super admin (dibuat /setup)
+#   `admin` — domain default tim Enterprise Data Steward
+# Ditandai `is_default=True` supaya tidak bisa dinonaktifkan/dihapus.
+_DEFAULT_DOMAINS = [
+    {"name": "root",  "label": "Root"},
+    {"name": "admin", "label": "Admin"},
+]
+
+
+async def seed_default_domains() -> int:
+    """Idempoten: insert domain default yang belum ada. Return jumlah yang
+    benar-benar diinsert (0 berarti semuanya sudah ada).
+
+    Dipanggil oleh /setup dan _seed_root_from_env supaya katalog Domain
+    tidak pernah kosong di lingkungan fresh.
+    """
+    inserted = 0
+    now = datetime.now()
+    for spec in _DEFAULT_DOMAINS:
+        if await domcollection.find_one({"name": spec["name"]}):
+            continue
+        await domcollection.insert_one({
+            "name":        spec["name"],
+            "label":       spec["label"],
+            "description": "",
+            "is_active":   True,
+            "is_default":  True,
+            "created_at":  now,
+        })
+        inserted += 1
+    return inserted
+
+
 async def derive_approvers_by_role(contract: dict) -> tuple[Dict[str, list], list]:
     """Hitung approver per peran untuk satu kontrak (lihat ADR-0005, supersedes ADR-0004).
 
@@ -281,12 +315,18 @@ async def bootstrap_setup(user_form: UserCreate):
         "password": hashed_password,
         "name": user_form.name,
         "group_access": "root",
-        "data_domain": user_form.data_domain,
+        # Issue #74: root selalu di domain "root" (di-seed di bawah). Nilai
+        # form diabaikan supaya invariant ini tidak bisa di-bypass.
+        "data_domain": "root",
         "is_active": True,
         "type": "user",
         "created_at": datetime.now(),
     }
     await usrcollection.insert_one(user_data)
+
+    # Seed domain default ('root', 'admin') jika belum ada (#74). Idempoten
+    # supaya /setup yang dipanggil ulang (mis. test rerun) aman.
+    await seed_default_domains()
 
     sample_contracts_imported = 0
     if user_form.import_sample_contracts:
@@ -367,11 +407,14 @@ async def _seed_root_from_env() -> None:
         "password":     hashed,
         "name":         config("SEED_ROOT_NAME",   default=username),
         "group_access": "root",
-        "data_domain":  config("SEED_ROOT_DOMAIN", default="root"),
+        # Issue #74: root selalu di domain "root". SEED_ROOT_DOMAIN sengaja
+        # tidak lagi dibaca — invariant ditegakkan oleh seed_default_domains().
+        "data_domain":  "root",
         "is_active":    True,
         "type":         "user",
         "created_at":   datetime.now(),
     })
+    await seed_default_domains()
     print(f"[seed] Root account '{username}' created from SEED_ROOT_* env.")
 
 
@@ -814,6 +857,12 @@ async def update_domain(
     if payload.description is not None:
         update_data["description"] = payload.description.strip()
     if payload.is_active is not None:
+        # Domain default ('root', 'admin') tidak boleh dinonaktifkan (#74).
+        if payload.is_active is False and target.get("is_default"):
+            raise HTTPException(
+                status_code=409,
+                detail=f"Domain default '{name}' tidak bisa dinonaktifkan.",
+            )
         update_data["is_active"] = payload.is_active
 
     if not update_data:
@@ -832,6 +881,12 @@ async def deactivate_domain(
     target = await domcollection.find_one({"name": name})
     if not target:
         raise HTTPException(status_code=404, detail="Domain tidak ditemukan.")
+    # Domain default ('root', 'admin') tidak boleh dihapus (#74).
+    if target.get("is_default"):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Domain default '{name}' tidak bisa dihapus.",
+        )
     await domcollection.update_one({"name": name}, {"$set": {"is_active": False}})
     return {"message": f"Domain '{name}' dinonaktifkan."}
 

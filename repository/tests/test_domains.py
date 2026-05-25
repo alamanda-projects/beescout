@@ -157,6 +157,48 @@ async def test_deactivate_domain_not_found(client, override_token):
     assert res.status_code == 404
 
 
+# ── Default domain guard (#74) ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_delete_default_domain_returns_409(client, override_token):
+    ac, mocks = client
+    mocks["dom"].find_one.return_value = {
+        "name": "root", "label": "Root", "is_active": True, "is_default": True,
+    }
+    override_token("admin")
+    res = await ac.delete("/domain/root")
+    assert res.status_code == 409
+    assert "default" in res.json()["detail"].lower()
+    mocks["dom"].update_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_deactivate_default_domain_via_patch_returns_409(client, override_token):
+    ac, mocks = client
+    mocks["dom"].find_one.return_value = {
+        "name": "admin", "label": "Admin", "is_active": True, "is_default": True,
+    }
+    override_token("admin")
+    res = await ac.patch("/domain/admin", json={"is_active": False})
+    assert res.status_code == 409
+    mocks["dom"].update_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_relabel_default_domain_still_allowed(client, override_token):
+    """Default hanya melindungi dari delete/deactivate, bukan rename label."""
+    ac, mocks = client
+    mocks["dom"].find_one.return_value = {
+        "name": "admin", "label": "Admin", "is_active": True, "is_default": True,
+    }
+    mocks["dom"].update_one.return_value = None
+    override_token("admin")
+    res = await ac.patch("/domain/admin", json={"label": "Stewardship"})
+    assert res.status_code == 200, res.text
+    mocks["dom"].update_one.assert_awaited_once()
+
+
 # ── data_domain validation on /user/create ────────────────────────────────────
 
 VALID_USER = {

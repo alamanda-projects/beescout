@@ -151,3 +151,55 @@ async def test_setup_skips_catalog_rules_if_already_seeded(client):
     body = response.json()
     assert body["catalog_rules_imported"] is False
     catalog_mock.insert_many.assert_not_called()
+
+
+# ── Default domain seed (#74) ─────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_setup_seeds_default_domains_when_empty(client):
+    """Fresh /setup → katalog `domains` harus berisi 'root' & 'admin'."""
+    ac, mocks = client
+    mocks["usr"].find_one.return_value = None
+    mocks["dom"].find_one.return_value = None  # belum ada domain apa pun
+
+    response = await ac.post("/setup", json=VALID_PAYLOAD)
+    assert response.status_code == 200
+
+    insert_calls = mocks["dom"].insert_one.call_args_list
+    inserted_names = [call.args[0]["name"] for call in insert_calls]
+    assert set(inserted_names) == {"root", "admin"}
+    for call in insert_calls:
+        doc = call.args[0]
+        assert doc["is_default"] is True
+        assert doc["is_active"] is True
+
+
+@pytest.mark.asyncio
+async def test_setup_hardsets_root_data_domain_to_root(client):
+    """Form data_domain diabaikan — root selalu di domain 'root'."""
+    ac, mocks = client
+    mocks["usr"].find_one.return_value = None
+    payload = {**VALID_PAYLOAD, "data_domain": "marketing"}  # nilai aneh
+
+    response = await ac.post("/setup", json=payload)
+    assert response.status_code == 200
+
+    inserted = mocks["usr"].insert_one.call_args.args[0]
+    assert inserted["data_domain"] == "root"
+
+
+@pytest.mark.asyncio
+async def test_setup_does_not_duplicate_default_domains(client):
+    """Idempoten: kalau domain default sudah ada, /setup tidak meng-insert lagi."""
+    ac, mocks = client
+    mocks["usr"].find_one.return_value = None
+    # Anggap kedua domain default sudah ada di katalog.
+    mocks["dom"].find_one.return_value = {"name": "root", "is_default": True}
+
+    response = await ac.post("/setup", json=VALID_PAYLOAD)
+    assert response.status_code == 200
+
+    mocks["dom"].insert_one.assert_not_called()
+
+
