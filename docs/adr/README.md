@@ -12,7 +12,7 @@
 | [0003](0003-impact-severity-split.md) | Pisah Impact & Severity di Quality Rule | Diterima | 2026-05-22 |
 | [0004](0004-approval-workflow-multi-role.md) | Approval Workflow Multi-Peran | Superseded by ADR-0005 | 2026-05-24 |
 | [0005](0005-approval-owner-replaces-steward.md) | Approver = Owner + Producer + Consumer | Diterima | 2026-05-24 |
-| [0007](0007-consumer-producer-representation.md) | Konsolidasi Representasi Konsumen/Produser | Proposed | 2026-05-26 |
+| [0007](0007-consumer-producer-representation.md) | Konsolidasi Representasi Konsumen/Produser | Diterima | 2026-05-26 |
 
 ## Status — Legenda
 

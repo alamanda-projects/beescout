@@ -37,6 +37,7 @@ from app.core.verificator import (
     user_verification,
     access_verification,
     access_verification_filter,
+    derive_team_scope,
     token_verification,
     grplvlroot,
     grplvladmin,
@@ -1179,14 +1180,14 @@ async def get_datacontract_filter(
         if user_level in grplvladmin:
             dcfilter = await display_all()
         else:
-            # Filter contracts where user's team is listed as consumer
+            # ADR-0007: scope derive dari stakeholders (consumer/producer),
+            # fallback ke metadata.consumer[] untuk kontrak legacy.
             all_contracts = await dccollection.find().to_list(None)
-            accessible = [
-                c for c in all_contracts
-                if user_team in [
-                    m.get("name") for m in (c.get("metadata") or {}).get("consumer") or []
-                ]
-            ]
+            accessible = []
+            for c in all_contracts:
+                scope = await derive_team_scope(c)
+                if user_team in scope:
+                    accessible.append(c)
             if not accessible:
                 return []
             from app.model.all import All as AllModel

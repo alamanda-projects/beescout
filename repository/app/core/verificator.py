@@ -111,17 +111,44 @@ async def access_verification_filter(
     if dc_info is None:
         raise HTTPException(status_code=404, detail=dcnotfound)
 
-    # # Team validation
-    dc_team = dc_info["metadata"].get("consumer") or []
-
-    dc_team_member = []
-    for team_member in dc_team:
-        dc_team_member.append(team_member.get("name", None))
-
-    if user_team not in dc_team_member and user_level not in grplvladmin:
+    # ADR-0007: tim scope derive dari stakeholders, fallback consumer[].
+    dc_scope = await derive_team_scope(dc_info)
+    if user_team not in dc_scope and user_level not in grplvladmin:
         raise HTTPException(status_code=403, detail=usrnotallowed)
 
     return
+
+
+async def derive_team_scope(contract: dict) -> set:
+    """ADR-0007: tim yang punya akses (view) ke kontrak.
+
+    Source of truth: `metadata.stakeholders[*]` dengan role consumer/producer
+    dan `username` terisi → lookup user → `data_domain`. Mendukung simetri
+    producer (sebelumnya hanya consumer yang ter-filter).
+
+    Phase 1 backward-compat: kalau jalur stakeholders tidak menghasilkan
+    scope apa pun (kontrak legacy / username tidak match user aktif),
+    fallback baca `metadata.consumer[].name`. Fallback dihapus di Phase 3
+    setelah migration legacy selesai.
+    """
+    metadata = contract.get("metadata") or {}
+    stakeholders = metadata.get("stakeholders") or []
+    usernames = [
+        s.get("username") for s in stakeholders
+        if s.get("role") in ("consumer", "producer") and s.get("username")
+    ]
+    if usernames:
+        cursor = usrcollection.find(
+            {"username": {"$in": usernames}, "is_active": True},
+            {"_id": 0, "username": 1, "data_domain": 1},
+        )
+        users = await cursor.to_list(None)
+        scope = {u["data_domain"] for u in users if u.get("data_domain")}
+        if scope:
+            return scope
+
+    legacy = [m.get("name") for m in (metadata.get("consumer") or [])]
+    return {n for n in legacy if n}
 
 
 # # Function to verify the token & sakey
