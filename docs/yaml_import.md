@@ -1,16 +1,16 @@
 # Import & Validasi YAML
 
-BeeScout mendukung pengelolaan Data Contract secara deklaratif menggunakan file YAML yang mengikuti standar ODCS (Open Data Contract Standard).
+BeeScout mendukung pengelolaan Data Contract secara deklaratif menggunakan file YAML yang mengikuti [**BeeScout standard**](../data-contract/docs/README.md) (lihat juga [contoh kanonik](../data-contract/examples/full.yaml)). Untuk perbandingan dengan ODCS sebagai standar industri komparasi, lihat [comparison-odcs.md](../data-contract/docs/comparison-odcs.md). Konverter dua arah ODCS↔BeeScout di-track di [#100](https://github.com/alamanda-projects/beescout/issues/100) dan [#101](https://github.com/alamanda-projects/beescout/issues/101).
 
 ## 🛡️ Lapisan Validasi
 
 Sistem melakukan validasi berlapis saat file YAML diunggah:
 
 1. **Layer 1: YAML Syntax**: Memastikan file adalah format YAML yang valid.
-2. **Layer 2: ODCS Schema**:
+2. **Layer 2: BeeScout Schema**:
     - Memastikan adanya field wajib (`standard_version`, `metadata`, `name`, `owner`, dll).
     - Memvalidasi tipe data (misal: `retention` harus integer).
-    - Memvalidasi nilai enum (misal: `role` stakeholder harus sesuai standar).
+    - Memvalidasi nilai enum (misal: `role` stakeholder harus sesuai BeeScout standard).
 
 ## 🛠️ Endpoints Terkait
 

@@ -19,7 +19,7 @@ Cocok untuk:
 - **Organisasi yang sedang merapikan data governance**-nya
 - **Engineer yang bekerja dengan banyak data producer/consumer**
 - **Analis bisnis yang butuh tahu** *"data ini bisa dipercaya tidak?"*
-- **Komunitas yang mengeksplorasi pola standar Data Contract** (mengikuti spec [ODCS](https://github.com/bitol-io/open-data-contract-standard))
+- **Komunitas yang mengeksplorasi pola standar Data Contract** (BeeScout punya standar internal di [`/data-contract/`](data-contract/README.md), terinspirasi oleh [ODCS](https://github.com/bitol-io/open-data-contract-standard) sebagai komparasi industri — lihat [pemetaan perbedaan](data-contract/docs/comparison-odcs.md))
 
 > Status proyek: **pre-1.0** — sedang divalidasi via tes UX internal dan perancangan format quality rules.
 
@@ -99,7 +99,7 @@ Untuk ganti password biasa, login → halaman **Profil** — bukan script ini.
 - **Kelola Data Contract** — multi-step form untuk metadata, schema, SLA, port koneksi, contoh data
 - **Alur Persetujuan (Approval Workflow)** — perubahan kontrak masuk antrean approval lintas steward → [docs/approval_workflow.md](docs/approval_workflow.md)
 - **Katalog Aturan Kualitas (Rule Catalog)** — aturan reusable lintas kontrak → [docs/rule_catalog.md](docs/rule_catalog.md)
-- **Import & Validasi YAML** — bulk import format ODCS standar dengan validasi skema → [docs/yaml_import.md](docs/yaml_import.md)
+- **Import & Validasi YAML** — bulk import format [BeeScout standard](data-contract/docs/README.md) dengan validasi skema → [docs/yaml_import.md](docs/yaml_import.md)
 - **RBAC + Multi-tenancy** — 4 role, akses kontrak per tim (consumer/producer)
 - **Service Account Keys** — token long-lived untuk integrasi pipeline CI/CD
 - **Dua frontend terpisah** — User App (lensa bisnis) dan Admin Panel (lensa steward)

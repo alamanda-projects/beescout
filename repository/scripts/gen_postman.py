@@ -32,7 +32,7 @@ TAG_LABELS: dict[str, tuple[str, str]] = {
     "datacontract_filtered": ("04. Data Contract — Filtered","View per-contract dengan validasi scope team (consumer match)."),
     "approval":              ("05. Approval Workflow",      "Antrean approval lintas peran (Owner/Producer/Consumer per ADR-0005)."),
     "catalog":               ("06. Rule Catalog",           "Katalog modul aturan kualitas reusable."),
-    "contracts":             ("07. YAML Import",            "Validasi & import kontrak format YAML (ODCS)."),
+    "contracts":             ("07. YAML Import",            "Validasi & import kontrak format YAML BeeScout standard."),
 }
 
 UNTAGGED_FOLDER = ("99. Lain-lain", "Endpoint yang tidak punya tag eksplisit.")

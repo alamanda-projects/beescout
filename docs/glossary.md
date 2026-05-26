@@ -24,7 +24,7 @@
 | Data Steward | Pengelola Data | Orang yang bertanggung jawab atas kualitas dan dokumentasi sebuah dataset (persona Bu Retno) | Pengelola Data |
 | Schema | Struktur Data | Definisi kolom-kolom data: nama, tipe, constraint | Struktur Data |
 | Metadata | Informasi Kontrak | Info tentang kontrak (nama, pemilik, deskripsi, versi) — bukan datanya itu sendiri | Informasi Kontrak |
-| ODCS | Open Data Contract Standard | Standar industri untuk format data contract yang dipakai BeeScout | (jarang muncul di UI; di README sebagai referensi) |
+| ODCS | Open Data Contract Standard | Standar industri yang menginspirasi BeeScout — **bukan** standar yang diikuti langsung. BeeScout punya standar internal sendiri di [`/data-contract/`](../data-contract/docs/README.md); pemetaan perbedaan di [comparison-odcs.md](../data-contract/docs/comparison-odcs.md) | (jarang muncul di UI; di README sebagai referensi komparasi) |
 
 ## B. Kualitas & SLA
 
@@ -77,7 +77,7 @@
 > - **Tipe Data Bisnis** (`logical_type`) — istilah yang dipahami pengguna domain
 > - **Tipe Data Teknis** (`physical_type`) — tipe SQL/storage yang dipakai sistem
 >
-> Keduanya **free-text** (sesuai ODCS spec) supaya tetap fleksibel lintas database. Tabel di bawah adalah panduan pemetaan umum untuk membantu Bu Retno (non-IT) memilih tipe teknis yang sesuai.
+> Keduanya **free-text** (sesuai [BeeScout standard](../data-contract/docs/README.md) — sama dengan praktik ODCS) supaya tetap fleksibel lintas database. Tabel di bawah adalah panduan pemetaan umum untuk membantu Bu Retno (non-IT) memilih tipe teknis yang sesuai.
 
 | Tipe Bisnis | Tipe Teknis (contoh) | Catatan |
 |---|---|---|

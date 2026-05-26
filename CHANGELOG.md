@@ -47,14 +47,14 @@ Kami mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Modular Architecture**: Pemisahan repository menjadi backend (FastAPI), frontend-user (Next.js), dan frontend-admin (Next.js).
 - **Approval Workflow**: Sistem voting/approval untuk perubahan Data Contract yang diajukan oleh non-admin.
 - **Rule Catalog**: Katalog terpusat untuk aturan kualitas data dengan dukungan built-in rules.
-- **YAML Import & Validation**: Kemampuan import kontrak via YAML dengan validasi skema ODCS.
+- **YAML Import & Validation**: Kemampuan import kontrak via YAML dengan validasi skema BeeScout standard.
 - **Nginx Reverse Proxy**: Gateway terpusat dengan dukungan rate limiting dan IP restriction.
 - **Makefile**: Otomasi workflow pengembangan (setup, up, dev, test).
 - **Service Account Keys**: Dukungan kunci akses programatik untuk role `developer`.
 
 ### Changed
 - Migrasi frontend ke Next.js 15 (App Router).
-- Pembaruan skema Data Contract mengikuti standar ODCS yang lebih ketat.
+- Pembaruan skema Data Contract mengikuti BeeScout standard yang lebih ketat (terinspirasi ODCS sebagai komparasi industri — lihat [data-contract/docs/comparison-odcs.md](data-contract/docs/comparison-odcs.md)).
 - Peningkatan keamanan pada endpoint `/setup` untuk bootstrap root user.
 
 ### Fixed

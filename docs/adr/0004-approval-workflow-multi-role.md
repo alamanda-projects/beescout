@@ -142,7 +142,7 @@ Issue #27 menyebut Rule Catalog juga. Keputusan: untuk Rule Catalog approval ber
 → Ditolak karena `email` opsional dan banyak stakeholder lama tanpa email — sama saja butuh data cleanup.
 
 **Per-tim approval (team-level)**: tambah `metadata.producer[]` dengan struktur seperti `metadata.consumer[]`. Approver = semua user dengan `data_domain` cocok.
-→ Ditolak karena mengganggu schema kontrak ODCS dan memaksa setiap tim punya minimal 1 anggota di setiap kontrak. Stakeholder-level lebih fleksibel.
+→ Ditolak karena mengganggu schema kontrak ODCS dan memaksa setiap tim punya minimal 1 anggota di setiap kontrak. Stakeholder-level lebih fleksibel. _(Update #99: framing "schema kontrak ODCS" keliru — acuan sebenarnya [BeeScout standard](../../data-contract/docs/README.md); ODCS hanya komparasi industri. Alasan utama penolakan tetap valid: memaksa minimum 1 anggota per tim.)_
 
 **Quorum mayoritas (>50% per peran)**: alih-alih min 1 approved.
 → Ditolak karena menambah cognitive load tanpa keuntungan jelas; mayoritas tim Producer/Consumer kemungkinan hanya 1–3 orang.

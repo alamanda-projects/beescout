@@ -1507,7 +1507,8 @@ async def validate_yaml_import(
                 "errors": [{"message": "File YAML harus berupa objek/mapping di level teratas."}],
                 "suggestions": []}
 
-    # ── Layer 2: ODCS schema
+    # ── Layer 2: BeeScout schema (lihat data-contract/docs/README.md;
+    #           komparasi vs ODCS di data-contract/docs/comparison-odcs.md).
     errors = []
     warnings = []
 
