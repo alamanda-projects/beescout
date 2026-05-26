@@ -108,6 +108,27 @@ async def test_list_domains_returns_active(client, override_token):
     assert body[0]["user_count"] == 3
 
 
+# ── Basic directory (#73) ─────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_domains_basic_accessible_to_all_roles(client, override_token):
+    """`/domain/basic` dapat diakses semua role aktif — pola mirror /user/basic
+    untuk mengisi dropdown Pemilik kontrak tanpa membuka katalog penuh."""
+    ac, mocks = client
+    mocks["dom"].find = MagicMock(return_value=_cursor([
+        {"name": "penjualan", "label": "Penjualan"},
+        {"name": "marketing", "label": "Marketing"},
+    ]))
+    override_token("user")
+    res = await ac.get("/domain/basic")
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert {d["name"] for d in body} == {"penjualan", "marketing"}
+    # Bukan endpoint admin: tidak boleh ada user_count / is_active / created_at.
+    assert all(set(d.keys()) <= {"name", "label"} for d in body)
+
+
 # ── Update ────────────────────────────────────────────────────────────────────
 
 
