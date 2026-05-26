@@ -119,9 +119,11 @@ function EditPanel({
                 <Select value={watch('group_access')} onValueChange={(v) => setValue('group_access', v)}>
                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">user</SelectItem>
+                    <SelectItem value="business_user">Business User</SelectItem>
                     <SelectItem value="developer">developer</SelectItem>
                     <SelectItem value="admin">admin</SelectItem>
+                    {/* #75 PR-A: legacy alias — keep visible for display of existing rows. */}
+                    <SelectItem value="user" className="text-muted-foreground italic">user (legacy)</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.group_access && <p className="text-[10px] text-destructive">{errors.group_access.message}</p>}
@@ -538,9 +540,11 @@ export default function UsersPage() {
                     >
                       <SelectTrigger><SelectValue placeholder="Pilih peran" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">Pengguna (user)</SelectItem>
+                        <SelectItem value="business_user">Business User</SelectItem>
                         <SelectItem value="developer">Developer</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
+                        {/* #75 PR-A: legacy alias — keep visible for display of existing rows. */}
+                        <SelectItem value="user" className="text-muted-foreground italic">Pengguna (legacy alias)</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.group_access && <p className="text-xs text-destructive">{errors.group_access.message}</p>}

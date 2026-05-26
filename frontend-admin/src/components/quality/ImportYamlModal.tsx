@@ -38,7 +38,7 @@ interface Props {
   /** Jika ada callback (misal: prefill form baru), gunakan ini */
   onPrefill?: (data: Record<string, unknown>) => void
   /** Role user — tombol hanya tampil untuk root dan admin */
-  userRole: 'root' | 'admin' | 'developer' | 'user'
+  userRole: 'root' | 'admin' | 'developer' | 'user' | 'business_user'
 }
 
 // ─── Trigger button ────────────────────────────────────────────────────────────
@@ -51,8 +51,8 @@ export function ImportYamlButton({
 }: Props) {
   const [open, setOpen] = useState(false)
 
-  // Sembunyikan untuk developer dan user
-  if (userRole === 'developer' || userRole === 'user') return null
+  // Sembunyikan untuk developer & business user (#75 PR-A: alias `user` masih diterima).
+  if (userRole === 'developer' || userRole === 'user' || userRole === 'business_user') return null
 
   const label = context === 'new' ? 'Isi dari YAML' : 'Import YAML'
 

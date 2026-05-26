@@ -270,6 +270,22 @@ async def test_user_create_accepts_registered_domain(client, override_token):
 
 
 @pytest.mark.asyncio
+async def test_user_create_accepts_business_user_role(client, override_token):
+    """#75 PR-A: nilai role baru `business_user` diterima sejajar `user`."""
+    ac, mocks = client
+    mocks["usr"].find_one.return_value = None
+    mocks["usr"].insert_one.return_value = None
+    mocks["dom"].count_documents.return_value = 2
+    mocks["dom"].find_one.return_value = {"name": "penjualan", "is_active": True}
+    override_token("root")
+    payload = {**VALID_USER, "group_access": "business_user"}
+    res = await ac.post("/user/create", json=payload)
+    assert res.status_code == 200, res.text
+    inserted = mocks["usr"].insert_one.call_args.args[0]
+    assert inserted["group_access"] == "business_user"
+
+
+@pytest.mark.asyncio
 async def test_user_create_skips_validation_when_catalog_empty(client, override_token):
     ac, mocks = client
     mocks["usr"].find_one.return_value = None

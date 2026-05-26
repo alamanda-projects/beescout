@@ -29,7 +29,10 @@ usr_401_cnvc = config("USR_401_CNVC")
 grplvlroot = ["root"]
 grplvladmin = ["root", "admin"]
 grplvldev = ["root", "admin", "developer"]
-grplvlall = ["root", "admin", "user", "developer"]
+grplvlall = ["root", "admin", "user", "business_user", "developer"]
+# `user` masih diterima sebagai alias `business_user` selama window migrasi
+# (#75 PR-A, dual-accept). Phase berikutnya (PR-B / #91) menjalankan
+# migration + menghapus alias supaya value resmi tinggal `business_user`.
 
 
 async def user_verification(
