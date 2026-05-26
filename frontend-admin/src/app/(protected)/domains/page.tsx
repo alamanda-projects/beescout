@@ -282,9 +282,10 @@ export default function DomainsPage() {
                         </button>
                         <button
                           type="button"
-                          title="Edit"
+                          title={d.is_default ? 'Domain default tidak bisa diedit' : 'Edit'}
                           onClick={() => setEditTarget(editTarget === d.name ? null : d.name)}
-                          className={`p-1.5 rounded hover:bg-slate-100 transition-colors ${editTarget === d.name ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-slate-700'}`}
+                          disabled={d.is_default}
+                          className={`p-1.5 rounded hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400 ${editTarget === d.name ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:text-slate-700'}`}
                         >
                           <Pencil size={14} />
                         </button>

@@ -848,6 +848,15 @@ async def update_domain(
     if not target:
         raise HTTPException(status_code=404, detail="Domain tidak ditemukan.")
 
+    # Domain default ('root', 'admin') read-only sepenuhnya (#85).
+    # Why: rename label `admin` → "Root" akan bentrok dengan label domain `root`
+    # di dropdown user assignment dan membuka jalan social engineering.
+    if target.get("is_default"):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Domain default '{name}' tidak bisa diubah.",
+        )
+
     update_data: dict = {}
     if payload.label is not None:
         label = payload.label.strip()
@@ -857,12 +866,6 @@ async def update_domain(
     if payload.description is not None:
         update_data["description"] = payload.description.strip()
     if payload.is_active is not None:
-        # Domain default ('root', 'admin') tidak boleh dinonaktifkan (#74).
-        if payload.is_active is False and target.get("is_default"):
-            raise HTTPException(
-                status_code=409,
-                detail=f"Domain default '{name}' tidak bisa dinonaktifkan.",
-            )
         update_data["is_active"] = payload.is_active
 
     if not update_data:
