@@ -435,6 +435,7 @@ Dokumentasi API interaktif tersedia saat aplikasi berjalan:
 
 - **Swagger UI**: [http://app.localhost/api/docs](http://app.localhost/api/docs)
 - **ReDoc**: [http://app.localhost/api/redoc](http://app.localhost/api/redoc)
+- **Postman Collection**: [docs/api/](docs/api/) — koleksi auto-generated dari OpenAPI, siap di-import ke Postman. Regenerate dengan `make regen-postman` setelah ada perubahan endpoint.
 
 ### Referensi eksternal
 
