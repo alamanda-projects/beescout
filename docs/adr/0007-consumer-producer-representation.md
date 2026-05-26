@@ -9,7 +9,15 @@
 
 ## Konteks
 
-BeeScout punya **dua field terpisah** yang sama-sama mewakili "siapa konsumen kontrak":
+### Acuan standar
+
+Standar rujukan BeeScout adalah **[`/data-contract/`](../../data-contract/README.md)** — spec internal yang sengaja dipisah dari ODCS. Lihat [`data-contract/docs/README.md`](../../data-contract/docs/README.md) untuk definisi lengkap field, dan [`data-contract/examples/full.yaml`](../../data-contract/examples/full.yaml) untuk contoh kanonik.
+
+ODCS ([Open Data Contract Standard](https://github.com/bitol-io/open-data-contract-standard)) adalah referensi industri yang menginspirasi BeeScout, **bukan otoritas yang diikuti langsung**. BeeScout sengaja divergen pada beberapa hal (`consumer[]` first-class, `stakeholders[].role` enum closed, `standard_version` independen, `ports[]` alih-alih `servers[]`, dsb). Issue [#A — mapping](../../data-contract/docs/comparison-odcs.md) (akan dibuat) mendokumentasikan perbedaannya.
+
+### Dua field representasi konsumen
+
+BeeScout punya **dua field terpisah** yang sama-sama menyebut "konsumen kontrak":
 
 | Field | Granularitas | Dipakai untuk |
 |---|---|---|
@@ -40,41 +48,41 @@ Mas Dimas (developer) tidak melihat kontrak yang dibuat admin. Akar persis:
 
 `access_verification_filter` di [`verificator.py:115-122`](../../repository/app/core/verificator.py#L115-L122) hanya cek `consumer[]` — tidak ada `producer[]`. Tim produser tidak punya filter visibilitas setara consumer, hanya bisa lihat kontrak via stakeholder lens (ADR-0005).
 
-### ODCS upstream
+### Apa kata BeeScout standard tentang dua field ini
 
-Cek terhadap [Open Data Contract Standard](https://github.com/bitol-io/open-data-contract-standard) (v3.1+):
+Dari [`data-contract/docs/README.md`](../../data-contract/docs/README.md) (sumber otoritatif):
 
-| Field | Ada di ODCS? |
-|---|---|
-| `consumer[]` top-level | **Tidak** |
-| `producer[]` top-level | **Tidak** |
-| `team` / `team.members[]` dengan `role` field | **Ya** (role bebas string, contoh: owner, data steward) |
+| Field di spec | Required | Definisi (kutipan langsung) |
+|---|---|---|
+| `metadata.consumer.name` | YES | "Nama tim, sistem atau _consumer apps_ produk data" |
+| `metadata.consumer.use_case` | YES | "Deskripsi singkat use case yang dapat dijalankan dengan dataset ini" |
+| `metadata.stakeholders.name` | YES | Nama orang (Product Owner / Manager / dst) |
+| `metadata.stakeholders.email` | YES | Email orang |
+| `metadata.stakeholders.role` | YES | Enum closed: `owner`, `producer`, `consumer`, `reviewer` |
+| `metadata.stakeholders.date_in/out` | — | Kapan masuk/keluar daftar |
 
-Artinya: `metadata.consumer[]` di BeeScout sudah merupakan **divergensi dari ODCS**, bukan alignment. Argumen "drop consumer[] = kita divergen" di issue #76 ternyata terbalik — `consumer[]` justru sumber divergensi.
+**Kesimpulan:** BeeScout standard memang **menetapkan keduanya sebagai first-class field** dengan tujuan berbeda:
 
-### Tapi: `consumer[].use_case` punya nilai dokumentasi
+- `consumer[]` = **team/sistem level** dengan `use_case` (intent dokumentasi — siapa pakai untuk apa)
+- `stakeholders[]` = **per-orang** dengan role enum (siapa pertanggungjawaban data)
 
-Canonical [`data-contract/examples/full.yaml`](../../data-contract/examples/full.yaml) menunjukkan `consumer[]` punya field `use_case`:
+**Bukan duplikasi spec-level.** Yang duplikasi adalah **penggunaan-nya di backend**: filter visibilitas saat ini exact-match ke `consumer[].name` (treating it as access key), padahal spec menempatkan `consumer[]` sebagai documentary. Akses-control yang lebih tepat: derive dari `stakeholders[role=consumer].username → user.data_domain`. Ini selaras dengan intent spec — `stakeholders[]` adalah field per-orang yang sudah punya link ke user account (lewat `username` per ADR-0004).
 
-```yaml
-consumer:
-  - name: data analyst
-    use_case: combine the dataset to transactional data...
-```
+### `consumer[].use_case` jangan hilang
 
-`stakeholders[]` tidak punya field setara. Kalau kita drop `consumer[]` sepenuhnya, informasi *bagaimana* tim memakai data hilang. Ini bukan info trivial — auditor & steward butuh tahu use case untuk evaluasi compliance.
+Spec menetapkan `metadata.consumer.use_case` sebagai **required**. Kalau kita drop `consumer[]` total, informasi *bagaimana* tim memakai data hilang — bukan hal trivial untuk audit & compliance. Solusi: pertahankan `consumer[]` sesuai spec, tapi jangan dipakai untuk access-control.
 
 ---
 
 ## Opsi yang dipertimbangkan
 
-| Opsi | Inti | Effort | Migration | ODCS | Drift |
+| Opsi | Inti | Effort | Migration | Sesuai BeeScout spec? | Drift |
 |---|---|---|---|---|---|
-| A. Drop `consumer[]`, derive dari stakeholders | Single source | Tinggi | Wajib | ✅ Aligned | ✅ Hilang |
-| B. Tetap dua field, auto-sync via backend validator | Backward-compat | Sedang | Tidak | ⚠️ Tetap divergen | ⚠️ Sync hook harus cover semua path |
-| C. Tambah `producer[]` untuk simetri | Additive | Rendah | Optional | ❌ Lebih divergen | ❌ Menggandakan problem |
-| D. UI auto-fill (hot-fix #92) | Form-only | Sudah ship | Tidak | ⚠️ Tetap | ⚠️ YAML/API bypass |
-| **A'. Hybrid (pilihan)** | **Pisahkan concern**: `consumer[]` = dokumentasi, akses dari stakeholders | **Sedang** | **Phased** | **✅ Bisa later** | **✅ Hilang** |
+| A. Drop `consumer[]`, derive dari stakeholders | Single source | Tinggi | Wajib | ❌ `consumer.use_case` wajib di spec | ✅ Hilang |
+| B. Tetap dua field, auto-sync via backend validator | Backward-compat | Sedang | Tidak | ✅ | ⚠️ Sync hook harus cover semua path |
+| C. Tambah `producer[]` untuk simetri | Additive | Rendah | Optional | ❌ Spec tidak punya `producer[]` | ❌ Menggandakan problem |
+| D. UI auto-fill (hot-fix #92) | Form-only | Sudah ship | Tidak | ✅ | ⚠️ YAML/API bypass |
+| **A'. Hybrid (pilihan)** | **Pisahkan concern**: `consumer[]` = documentary (sesuai spec), akses derive dari stakeholders | **Sedang** | **Phased** | **✅ Selaras intent spec** | **✅ Hilang** |
 
 ### Detail Opsi A' (rekomendasi)
 
@@ -85,9 +93,9 @@ Pisahkan **dua concern berbeda** yang saat ini tercampur di `consumer[]`:
 
 Hasil:
 - Bug visibilitas hilang permanen — sumber tunggal (stakeholders) untuk akses.
-- `use_case` documentation tetap ada.
+- `use_case` documentation tetap ada sesuai BeeScout spec.
 - Producer dapat filter setara consumer secara gratis (`stakeholders[role=producer]`).
-- ODCS-aligned untuk concern access-control; `consumer[]` jadi field "extension" yang menambah info, bukan substitute team field.
+- Selaras intent BeeScout spec: `consumer[]` tetap field documentary (sesuai definisi spec), `stakeholders[]` jadi field per-orang (yang sudah link ke user account via `username` per ADR-0004).
 - Backward-compat tidak break: kontrak lama yang punya `consumer[].name` tapi tanpa stakeholder username → tetap perlu migration (lihat di bawah).
 
 ## Keputusan
@@ -193,8 +201,8 @@ Pada pre-1.0 dengan beban kecil, lookup correct-by-default lebih aman daripada c
 - **Bug visibilitas hilang permanen** — single source of truth untuk akses.
 - **Producer simetri gratis** — `stakeholders[role=producer]` masuk filter dengan effort 0.
 - **Eliminasi class drift** — admin tidak bisa "lupa" satu sisi karena hanya satu sisi.
-- **Lebih dekat ke ODCS** — concept stakeholders/team.members aligned.
-- **`use_case` documentation tetap utuh** — concern terpisah, tidak hilang.
+- **Sesuai BeeScout spec** — backend yang sebelumnya keliru pakai `consumer[]` (documentary) untuk access-control sekarang sejajar dengan intent spec.
+- **`use_case` documentation tetap utuh** — `consumer[]` tetap di tempatnya sebagai field documentary, sesuai requirement spec.
 
 ### Negatif / Risiko
 
@@ -212,23 +220,32 @@ Pada pre-1.0 dengan beban kecil, lookup correct-by-default lebih aman daripada c
 
 ## Alternatif yang ditolak
 
-**Opsi A pure (drop `consumer[]` total)**: kehilangan `use_case` documentation. Ditolak karena auditor/steward butuh info ini.
+**Opsi A pure (drop `consumer[]` total)**: kehilangan `use_case` documentation yang BeeScout spec tetapkan sebagai required. Ditolak — auditor/steward butuh info ini dan menghapus field wajib spec adalah breaking change semantik.
 
-**Opsi B (auto-sync dua arah)**: memang kerja, tapi tetap simpan duplikasi sebagai sumber semantik. Hook sync harus cover: form wizard, YAML import, direct API, migration script. Lebih banyak surface untuk drift dibanding Opsi A'.
+**Opsi B (auto-sync dua arah)**: memang kerja, tapi backend tetap simpan duplikasi semantik (akses + dokumentasi di field yang sama). Hook sync harus cover: form wizard, YAML import, direct API, migration script. Lebih banyak surface untuk drift dibanding Opsi A' yang memisahkan concern di level desain.
 
-**Opsi C (tambah `metadata.producer[]`)**: menggandakan problem konsumen ke produser. Apalagi ODCS upstream tidak punya field ini — divergensi makin dalam. Producer simetri lebih baik dicapai via Opsi A' (derive dari stakeholders).
+**Opsi C (tambah `metadata.producer[]`)**: menggandakan problem ke sisi produser. BeeScout spec tidak menetapkan `producer[]` sebagai field — menambahkannya = extend spec tanpa kebutuhan. Producer simetri lebih baik dicapai via Opsi A' (derive dari `stakeholders[role=producer]`) tanpa ubah spec.
 
-**Opsi D pure (hot-fix #92 saja, tidak ada perubahan backend)**: cukup untuk close bug observasi tapi tidak menyelesaikan: (a) YAML import bypass, (b) producer asimetri, (c) divergensi ODCS. Hot-fix sengaja sempit dan disebut "hot-fix" — bukan solusi.
+**Opsi D pure (hot-fix #92 saja, tidak ada perubahan backend)**: cukup untuk close bug observasi tapi tidak menyelesaikan: (a) YAML import bypass, (b) producer asimetri, (c) ambiguity desain (`consumer[]` masih dipakai untuk dua tujuan). Hot-fix sengaja sempit dan disebut "hot-fix" — bukan solusi struktural.
 
 ---
 
 ## Referensi
 
+### Acuan utama
+
+- [`data-contract/docs/README.md`](../../data-contract/docs/README.md) — BeeScout standard, otoritatif untuk definisi field
+- [`data-contract/examples/full.yaml`](../../data-contract/examples/full.yaml) — contoh kanonik (sumber `consumer[].use_case` & `stakeholders[]`)
+
+### Related di BeeScout
+
 - Issue [#76](https://github.com/alamanda-projects/beescout/issues/76) — analisa awal
 - Issue [#92](https://github.com/alamanda-projects/beescout/issues/92) — hot-fix UX (in production via PR [#97](https://github.com/alamanda-projects/beescout/pull/97))
 - Issue [#94](https://github.com/alamanda-projects/beescout/issues/94) — implementasi (scope di-update sesuai phasing di atas)
 - [ADR-0004](0004-approval-workflow-multi-role.md), [ADR-0005](0005-approval-owner-replaces-steward.md) — keputusan stakeholder-per-orang yang jadi basis Opsi A'
-- [ODCS Team docs](https://github.com/bitol-io/open-data-contract-standard/blob/main/docs/team.md) — referensi alignment
 - [`repository/app/main.py:1182-1189`](../../repository/app/main.py#L1182-L1189) — filter list mode
 - [`repository/app/core/verificator.py:115-122`](../../repository/app/core/verificator.py#L115-L122) — `access_verification_filter`
-- [`data-contract/examples/full.yaml`](../../data-contract/examples/full.yaml) — canonical schema (sumber `consumer[].use_case`)
+
+### Komparasi industri (bukan acuan)
+
+- [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard) — referensi industri yang menginspirasi BeeScout. Bukan otoritas; BeeScout sengaja divergen pada beberapa concept. Detail perbedaan & rationale akan didokumentasikan di `data-contract/docs/comparison-odcs.md` (issue terpisah).
