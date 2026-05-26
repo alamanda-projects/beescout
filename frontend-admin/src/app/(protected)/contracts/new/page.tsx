@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, RefreshCw, ChevronRight, ChevronLeft, Check, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
+import { isBusinessUser } from '@/types/user'
 import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -825,7 +826,7 @@ export default function NewContractPage() {
               })
               toast.success('Aturan kualitas berhasil diperbarui')
             }}
-            userMode={userRole === 'user' ? 'biz' : 'eng'}
+            userMode={isBusinessUser(userRole) ? 'biz' : 'eng'}
             canSwitchMode={userRole === 'admin' || userRole === 'root'}
           />
           </div>

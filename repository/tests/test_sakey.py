@@ -43,11 +43,14 @@ async def test_sakey_create_allowed_for_privileged_roles(client, override_token,
 
 
 @pytest.mark.asyncio
-async def test_sakey_create_forbidden_for_user_role(client, override_token):
+@pytest.mark.parametrize("level", ["user", "business_user"])
+async def test_sakey_create_forbidden_for_business_roles(client, override_token, level):
+    """#75 PR-A: legacy alias `user` & nilai baru `business_user` sama-sama
+    tidak diizinkan generate SA key (grplvldev tidak include keduanya)."""
     ac, mocks = client
     mocks["usr"].find_one.return_value = {"username": "biz_user", "is_active": True}
     mocks["usr"].insert_one.reset_mock()
-    override_token("user")
+    override_token(level)
     response = await ac.get("/sakey/create")
     assert response.status_code == 403
     mocks["usr"].insert_one.assert_not_called()

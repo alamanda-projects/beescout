@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, ArrowLeft, Save, Info } from 'lucide-react'
 import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, RETENTION_UNITS } from '@/types/contract'
+import { isBusinessUser } from '@/types/user'
 import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
 
 const schema = z.object({
@@ -693,7 +694,7 @@ export default function EditContractPage() {
               })
               toast.success('Aturan kualitas berhasil diperbarui')
             }}
-            userMode={userRole === 'user' ? 'biz' : 'eng'}
+            userMode={isBusinessUser(userRole) ? 'biz' : 'eng'}
             canSwitchMode={true}
           />
           </div>
