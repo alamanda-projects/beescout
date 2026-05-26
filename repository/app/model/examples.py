@@ -14,5 +14,6 @@ from typing import List, Optional, Union
 
 
 class Examples(BaseModel):
-    type: Optional[str]
-    data: Optional[str]
+    # Pydantic v2: Optional butuh default value eksplisit (#102 PR-A).
+    type: Optional[str] = None
+    data: Optional[str] = None
