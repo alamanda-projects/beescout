@@ -1,6 +1,6 @@
 # ADR-0007: Konsolidasi representasi konsumen/produser kontrak
 
-**Status**: Proposed
+**Status**: Accepted
 **Tanggal**: 2026-05-26
 **Decider**: @haninp
 **Related**: Issue [#76](https://github.com/alamanda-projects/beescout/issues/76), [#92](https://github.com/alamanda-projects/beescout/issues/92), [#94](https://github.com/alamanda-projects/beescout/issues/94)
