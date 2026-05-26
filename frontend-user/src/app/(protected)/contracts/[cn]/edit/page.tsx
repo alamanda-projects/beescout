@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic } from '@/lib/api/contracts'
+import { getDomainsBasic } from '@/lib/api/domains'
 import { getMe } from '@/lib/api/auth'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import QualityRulesEditor from '@/components/quality/QualityRulesEditor'
@@ -94,6 +95,8 @@ export default function EditContractPage() {
   const userRole = user?.group_access ?? 'user'
   // Direktori user utk dropdown stakeholder (ADR-0004).
   const { data: userOptions = [] } = useQuery({ queryKey: ['users-basic'], queryFn: getUsersBasic })
+  // Katalog domain untuk dropdown Pemilik (#73).
+  const { data: domainOptions = [] } = useQuery({ queryKey: ['domains-basic'], queryFn: getDomainsBasic })
 
   const { data: contract, isLoading } = useQuery({
     queryKey: ['contract', cn],
@@ -338,7 +341,30 @@ export default function EditContractPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Pemilik *</Label>
-                  <Input {...register('metadata.owner')} />
+                  <Controller
+                    control={form.control}
+                    name="metadata.owner"
+                    render={({ field }) => {
+                      const inCatalog = !field.value || domainOptions.some(d => d.name === field.value)
+                      return (
+                        <Select value={field.value || ''} onValueChange={(v) => { if (v) field.onChange(v) }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder={domainOptions.length === 0 ? 'Belum ada domain di katalog' : 'Pilih domain pemilik'} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {!inCatalog && (
+                              <SelectItem value={field.value as string} className="italic text-muted-foreground">
+                                {field.value} (di luar katalog)
+                              </SelectItem>
+                            )}
+                            {domainOptions.map(d => (
+                              <SelectItem key={d.name} value={d.name}>{d.label || d.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    }}
+                  />
                   {errors.metadata?.owner && <p className="text-xs text-destructive">{errors.metadata.owner.message}</p>}
                 </div>
               </div>

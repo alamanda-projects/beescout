@@ -816,6 +816,20 @@ async def list_domains(
     return domains
 
 
+@app.get("/domain/basic", tags=["domain"])
+async def list_domains_basic(current_user: dict = Depends(require_any)):
+    """Direktori ringan {name, label} domain **aktif** untuk pengisian
+    field Pemilik kontrak (#73). Mirror pola /user/basic — minim data,
+    bisa diakses semua role tanpa kebocoran info sensitif."""
+    cursor = domcollection.find(
+        {"is_active": True},
+        {"_id": 0, "name": 1, "label": 1},
+    )
+    domains = await cursor.to_list(length=500)
+    domains.sort(key=lambda d: (d.get("label") or d.get("name") or "").lower())
+    return domains
+
+
 @app.post("/domain/create", tags=["domain"], status_code=201)
 async def create_domain(
     payload: DomainCreate, current_user: dict = Depends(require_admin)

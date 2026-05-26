@@ -121,6 +121,15 @@ export async function getDomains(includeInactive = false): Promise<DomainRecord[
   return Array.isArray(res.data) ? res.data : []
 }
 
+export interface DomainBasic { name: string; label: string }
+
+// Direktori ringan utk dropdown Pemilik kontrak (#73) — bisa dipanggil semua role.
+// Backend: GET /domain/basic (require_any). Pakai ini bila hanya butuh slug + label.
+export async function getDomainsBasic(): Promise<DomainBasic[]> {
+  const res = await apiClient.get('/domain/basic')
+  return Array.isArray(res.data) ? res.data : []
+}
+
 export async function createDomain(data: { name: string; label: string; description?: string }) {
   const res = await apiClient.post('/domain/create', data)
   return res.data
