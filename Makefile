@@ -154,6 +154,19 @@ test: test-backend test-fe-admin test-fe-user
 	@echo "All tests passed."
 
 
+# ── API documentation ─────────────────────────────────────────────────────────
+
+# Regenerate docs/api/beescout.postman_collection.json dari skema OpenAPI
+# FastAPI. Wajib dijalankan setiap kali ada perubahan endpoint (CLAUDE.md DoD).
+# Mount source app + scripts + docs ke container backend; tidak menyentuh DB.
+regen-postman:
+	docker compose run --rm --user root \
+		-v $(PWD)/repository/app:/work/app \
+		-v $(PWD)/repository/scripts:/work/scripts \
+		-v $(PWD)/docs:/work/docs \
+		backend python -m scripts.gen_postman
+
+
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
 clean:

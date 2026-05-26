@@ -17,6 +17,7 @@
 | Who decides what, how to become a maintainer | [GOVERNANCE.md](GOVERNANCE.md) |
 | Reporting vulnerabilities | [SECURITY.md](SECURITY.md) |
 | Canonical data contract schema | [data-contract/examples/full.yaml](data-contract/examples/full.yaml) |
+| API reference (Postman Collection) | [docs/api/](docs/api/) |
 | Approval workflow, rule catalog, YAML import | [docs/](docs/) |
 
 When you need user-facing personas (Pak Bambang/Bu Retno/Mas Dimas/Mbak Indah), reference `docs/personas.md` rather than re-deriving them.
@@ -37,7 +38,7 @@ The maintainer (single, [@haninp](https://github.com/haninp)) operates **brainst
 1. **Tests pass locally**: `make test` (backend + both frontend typechecks).
 2. **QA scripts pass**: every `scripts/qa-*.sh` relevant to the change exits 0. Two run on every PR via CI — keep them green: `scripts/qa-form-buttons.sh` (form button safety) and `scripts/qa-prod-readiness.sh` (production-readiness static checks; `.env`-dependent checks auto-skip when no `.env` is present).
 3. **New convention discovered? Document it.** Add a section to this file (and a longer write-up under `docs/` if it deserves one). Future you / future agent will need it.
-4. **API changed? Update the Postman docs.** Any change to a backend endpoint (new endpoint, changed path/method, changed request/response body, removed endpoint) in `repository/app/main.py` or the Pydantic models in `repository/app/model/` **must** include an update to the Postman Collection under `docs/api/` (and the environment file if needed). Treat it like keeping frontend types in sync — the collection goes stale fast otherwise. Mention the Postman update in the PR's test plan checklist.
+4. **API changed? Regenerate the Postman collection.** Any change to a backend endpoint (new endpoint, changed path/method, changed request/response body, removed endpoint) in `repository/app/main.py` or the Pydantic models in `repository/app/model/` **must** include `make regen-postman` and a commit of the resulting [`docs/api/beescout.postman_collection.json`](docs/api/beescout.postman_collection.json). The collection is auto-generated from FastAPI's OpenAPI schema — never hand-edit it. Mention the regen in the PR's test plan checklist. See [`docs/api/README.md`](docs/api/README.md) for details.
 5. **PR description** includes: short summary, "Closes #N" trailer, test plan checklist.
 6. **Branch naming**: `<type>/<issue#>-<slug>` where `type` ∈ `fix | feat | chore | docs | refactor`. Example: `fix/12-unique-contract-number`.
 7. **Squash-merge only** (project default). The branch is deleted on merge.

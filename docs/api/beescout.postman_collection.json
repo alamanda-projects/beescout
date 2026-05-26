@@ -1,0 +1,1265 @@
+{
+  "info": {
+    "name": "BeeScout API",
+    "description": "Auto-generated Postman Collection dari FastAPI OpenAPI schema. Jangan edit manual — jalankan `make regen-postman` setelah mengubah endpoint backend (lihat CLAUDE.md DoD). Setup awal & cara login: lihat docs/api/README.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00. System & Bootstrap",
+      "description": "Health check, status setup awal, dan endpoint bootstrap root pertama.",
+      "item": [
+        {
+          "name": "GET /health — Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /setup/status — Setup Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/setup/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup",
+                "status"
+              ]
+            },
+            "description": "Returns whether the initial root account has been created."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /setup — Bootstrap Setup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/setup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "setup"
+              ]
+            },
+            "description": "Internal bootstrap endpoint used by the web setup flow to create the first root account.\nReturns 409 if a root account already exists.\nThe web setup page is disabled once setup is complete.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"string\",\n  \"name\": \"string\",\n  \"password\": \"string\",\n  \"import_sample_contracts\": true,\n  \"import_catalog_rules\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01. User & Service Account",
+      "description": "Login/logout, manajemen user (root only), direktori user, dan Service Account Key.",
+      "item": [
+        {
+          "name": "POST /login/midware — Login With Sakey",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/login/midware",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login",
+                "midware"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /user/create — Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "create"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"string\",\n  \"name\": \"string\",\n  \"password\": \"string\",\n  \"group_access\": \"string\",\n  \"data_domain\": \"string\",\n  \"is_active\": true,\n  \"import_sample_contracts\": true,\n  \"import_catalog_rules\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /sakey/create — Create Sakey",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sakey/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sakey",
+                "create"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /sakey/lists — List Sakeys",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sakey/lists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sakey",
+                "lists"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/lists — List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/lists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "lists"
+              ]
+            },
+            "description": "List semua user. Hanya dapat diakses oleh root dan admin."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/basic — List Users Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/basic",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "basic"
+              ]
+            },
+            "description": "Direktori ringan {username, name} user **aktif** untuk pengisian\nstakeholder kontrak. Hanya field yang diperlukan UI di-expose, sehingga\nbisa dibuka ke semua role tanpa kebocoran data sensitif."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /user/{username} — Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/:username",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                ":username"
+              ],
+              "variable": [
+                {
+                  "key": "username",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Edit user (nama, peran, domain, status aktif, password). Hanya root.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /user/{username} — Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/:username",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                ":username"
+              ],
+              "variable": [
+                {
+                  "key": "username",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Hapus user permanen. Hanya root. Tidak bisa hapus root lain."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /user/me — Who Am I",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /sakey/me — Sakey Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sakey/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sakey",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Domain Catalog",
+      "description": "Katalog domain terstandarisasi — kunci akses kontrak (`data_domain`).",
+      "item": [
+        {
+          "name": "GET /domain/lists — List Domains",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/domain/lists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "domain",
+                "lists"
+              ],
+              "query": [
+                {
+                  "key": "include_inactive",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Daftar domain. Default hanya domain aktif — `include_inactive=true`\nuntuk menyertakan domain yang sudah dinonaktifkan (halaman manajemen)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /domain/basic — List Domains Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/domain/basic",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "domain",
+                "basic"
+              ]
+            },
+            "description": "Direktori ringan {name, label} domain **aktif** untuk pengisian\nfield Pemilik kontrak (#73). Mirror pola /user/basic — minim data,\nbisa diakses semua role tanpa kebocoran info sensitif."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /domain/create — Create Domain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/domain/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "domain",
+                "create"
+              ]
+            },
+            "description": "Buat domain baru. `name` di-slugify jadi kunci matching lowercase.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"string\",\n  \"label\": \"string\",\n  \"description\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /domain/{name} — Update Domain",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/domain/:name",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "domain",
+                ":name"
+              ],
+              "variable": [
+                {
+                  "key": "name",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Edit label / deskripsi / status aktif. `name` tidak bisa diubah.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": null,\n  \"description\": null,\n  \"is_active\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /domain/{name} — Deactivate Domain",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/domain/:name",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "domain",
+                ":name"
+              ],
+              "variable": [
+                {
+                  "key": "name",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Nonaktifkan domain (soft delete). Dokumen tetap disimpan karena\nuser existing mungkin masih memakai domain ini sebagai `data_domain`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. Data Contract",
+      "description": "CRUD kontrak. Hanya `datacontract/lists` & `mine` di-filter scope; selebihnya admin.",
+      "item": [
+        {
+          "name": "GET /datacontract/gencn — Generate Contract Number",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/gencn",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "gencn"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "POST /datacontract/add — Insert Datacontract",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/datacontract/add",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "add"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"standard_version\": \"string\",\n  \"contract_number\": \"string\",\n  \"metadata\": {\n    \"version\": \"string\",\n    \"type\": \"string\",\n    \"name\": \"string\",\n    \"owner\": \"string\",\n    \"consumption_mode\": null,\n    \"description\": null,\n    \"consumer\": null,\n    \"stakeholders\": null,\n    \"quality\": null,\n    \"sla\": null,\n    \"prev_contract\": null,\n    \"contract_reference\": null\n  },\n  \"model\": [\n    {\n      \"column\": \"string\",\n      \"business_name\": null,\n      \"logical_type\": null,\n      \"physical_type\": null,\n      \"is_primary\": null,\n      \"is_nullable\": null,\n      \"is_partition\": null,\n      \"is_clustered\": null,\n      \"is_pii\": null,\n      \"is_audit\": null,\n      \"is_mandatory\": null,\n      \"description\": null,\n      \"quality\": null,\n      \"sample_value\": null,\n      \"tags\": null\n    }\n  ],\n  \"ports\": [\n    {\n      \"object\": \"string\",\n      \"properties\": [\n        {\n          \"property\": null,\n          \"value\": null\n        }\n      ]\n    }\n  ],\n  \"examples\": {\n    \"type\": null,\n    \"data\": null\n  },\n  \"created_by\": null,\n  \"managers\": null,\n  \"approval_status\": null,\n  \"pending_changes\": null,\n  \"pending_by\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /datacontract/update — Update Datacontract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/datacontract/update",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "update"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"standard_version\": \"string\",\n  \"contract_number\": \"string\",\n  \"metadata\": {\n    \"version\": \"string\",\n    \"type\": \"string\",\n    \"name\": \"string\",\n    \"owner\": \"string\",\n    \"consumption_mode\": null,\n    \"description\": null,\n    \"consumer\": null,\n    \"stakeholders\": null,\n    \"quality\": null,\n    \"sla\": null,\n    \"prev_contract\": null,\n    \"contract_reference\": null\n  },\n  \"model\": [\n    {\n      \"column\": \"string\",\n      \"business_name\": null,\n      \"logical_type\": null,\n      \"physical_type\": null,\n      \"is_primary\": null,\n      \"is_nullable\": null,\n      \"is_partition\": null,\n      \"is_clustered\": null,\n      \"is_pii\": null,\n      \"is_audit\": null,\n      \"is_mandatory\": null,\n      \"description\": null,\n      \"quality\": null,\n      \"sample_value\": null,\n      \"tags\": null\n    }\n  ],\n  \"ports\": [\n    {\n      \"object\": \"string\",\n      \"properties\": [\n        {\n          \"property\": null,\n          \"value\": null\n        }\n      ]\n    }\n  ],\n  \"examples\": {\n    \"type\": null,\n    \"data\": null\n  },\n  \"created_by\": null,\n  \"managers\": null,\n  \"approval_status\": null,\n  \"pending_changes\": null,\n  \"pending_by\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/lists — Get Datacontract",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/lists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "lists"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/mine — Get My Contracts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/mine",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "mine"
+              ]
+            },
+            "description": "Kontrak yang dibuat atau ditugaskan kepada user yang sedang login."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/metadata — Get Datacontract Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/metadata",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "metadata"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/model — Get Datacontract Model",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/model",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "model"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/ports — Get Datacontract Ports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/ports",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "ports"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/examples — Get Datacontract Examples",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/examples",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "examples"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Data Contract — Filtered",
+      "description": "View per-contract dengan validasi scope team (consumer match).",
+      "item": [
+        {
+          "name": "GET /datacontract/filter — Get Datacontract Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/filter",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/metadata/filter — Get Datacontract Metadata Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/metadata/filter",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "metadata",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/model/filter — Get Datacontract Model Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/model/filter",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "model",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/ports/filter — Get Datacontract Ports Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/ports/filter",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "ports",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/examples/filter — Get Datacontract Examples Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/examples/filter",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "examples",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /datacontract/dbtschema/filter — Get Datacontract Dbtschema Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/dbtschema/filter",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                "dbtschema",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "contract_number",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. Approval Workflow",
+      "description": "Antrean approval lintas peran (Owner/Producer/Consumer per ADR-0005).",
+      "item": [
+        {
+          "name": "GET /approval/pending — Get Pending Approvals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/approval/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approval",
+                "pending"
+              ]
+            },
+            "description": "Daftar approval yang menunggu vote dari user yang sedang login."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /approval/mine — Get My Approvals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/approval/mine",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approval",
+                "mine"
+              ]
+            },
+            "description": "Daftar approval yang diajukan oleh user yang sedang login."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /approval/{approval_id}/vote — Vote Approval",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/approval/:approval_id/vote",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "approval",
+                ":approval_id",
+                "vote"
+              ],
+              "variable": [
+                {
+                  "key": "approval_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Cast approve/reject vote. Jika semua setuju → terapkan perubahan.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vote\": \"string\",\n  \"reason\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06. Rule Catalog",
+      "description": "Katalog modul aturan kualitas reusable.",
+      "item": [
+        {
+          "name": "GET /catalog/rules — Get All Rules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/rules",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "rules"
+              ]
+            },
+            "description": "Ambil semua modul aturan kualitas.\nSemua role bisa mengakses (read-only untuk developer & user)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /catalog/rules — Create Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/catalog/rules",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "rules"
+              ]
+            },
+            "description": "Tambah modul aturan baru ke katalog.\n\n- Admin/root → langsung disimpan ke katalog.\n- User/developer → masuk approval workflow, menunggu persetujuan\n  steward (admin/root) sebelum benar-benar tersimpan (issue #69).\n\nCode unik diperiksa di kedua jalur untuk mencegah konflik nama saat\nsubmit (tetap mungkin terjadi race condition di antara submit & approve;\nbila konflik baru terlihat saat apply, vote handler menolak).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"string\",\n  \"label\": \"string\",\n  \"description\": null,\n  \"layer\": \"dataset\",\n  \"dimension\": \"completeness\",\n  \"sentence_template\": \"string\",\n  \"params\": [\n    {\n      \"key\": \"string\",\n      \"label\": \"string\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"options\": null,\n      \"min_value\": null,\n      \"max_value\": null,\n      \"hint\": null\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /catalog/rules/{code} — Get Rule By Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/rules/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "rules",
+                ":code"
+              ],
+              "variable": [
+                {
+                  "key": "code",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Ambil detail satu modul berdasarkan code."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /catalog/rules/{code} — Update Rule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/catalog/rules/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "rules",
+                ":code"
+              ],
+              "variable": [
+                {
+                  "key": "code",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Update modul kustom. Modul bawaan (is_builtin=True) tidak bisa diubah.\nHanya root dan admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": null,\n  \"description\": null,\n  \"sentence_template\": null,\n  \"params\": null,\n  \"is_active\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /catalog/rules/{code} — Delete Rule",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/catalog/rules/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog",
+                "rules",
+                ":code"
+              ],
+              "variable": [
+                {
+                  "key": "code",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Hapus modul kustom. Modul bawaan tidak bisa dihapus.\nHanya root dan admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07. YAML Import",
+      "description": "Validasi & import kontrak format YAML (ODCS).",
+      "item": [
+        {
+          "name": "POST /contracts/validate-yaml — Validate Yaml Import",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/contracts/validate-yaml",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contracts",
+                "validate-yaml"
+              ]
+            },
+            "description": "Validasi file YAML data contract sebelum diimport.\nHanya root dan admin.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /contracts/import-yaml — Import Yaml Contract",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/contracts/import-yaml",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contracts",
+                "import-yaml"
+              ]
+            },
+            "description": "Import data contract dari file YAML.\nHanya root dan admin.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "99. Lain-lain",
+      "description": "Endpoint yang tidak punya tag eksplisit.",
+      "item": [
+        {
+          "name": "GET / — Default Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "GET /welcome — Welcome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/welcome",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "welcome"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "POST /login — Login For Access Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /logout — Logout User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}"
+    }
+  ]
+}
