@@ -12,9 +12,6 @@ VALID_PAYLOAD = {
     "username": "rootuser",
     "name": "Root User",
     "password": "Str0ng!Pass",
-    "group_access": "root",
-    "data_domain": "platform",
-    "is_active": True,
 }
 
 
@@ -177,10 +174,11 @@ async def test_setup_seeds_default_domains_when_empty(client):
 
 @pytest.mark.asyncio
 async def test_setup_hardsets_root_data_domain_to_root(client):
-    """Form data_domain diabaikan — root selalu di domain 'root'."""
+    """SetupRequest tidak punya data_domain (#84) — kalau client iseng kirim
+    field ekstra, Pydantic mengabaikannya dan root tetap di domain 'root'."""
     ac, mocks = client
     mocks["usr"].find_one.return_value = None
-    payload = {**VALID_PAYLOAD, "data_domain": "marketing"}  # nilai aneh
+    payload = {**VALID_PAYLOAD, "data_domain": "marketing"}  # field iseng
 
     response = await ac.post("/setup", json=payload)
     assert response.status_code == 200

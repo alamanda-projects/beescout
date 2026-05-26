@@ -15,15 +15,10 @@ export async function createRootAccount(data: {
   username: string
   password: string
   name: string
-  data_domain: string
   import_sample_contracts: boolean
   import_catalog_rules: boolean
 }) {
-  const res = await apiClient.post('/setup', {
-    ...data,
-    group_access: 'root',
-    is_active: true,
-  })
+  const res = await apiClient.post('/setup', data)
   return res.data
 }
 
