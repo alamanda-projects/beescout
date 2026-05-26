@@ -2,28 +2,35 @@
 
 > **Phase 1 = audit & rekomendasi.** Tidak ada perubahan kode produksi di sini. Phase 2 mengeksekusi keputusan per-field; Phase 3 strict YAML validator. Lihat [#102](https://github.com/alamanda-projects/beescout/issues/102).
 
+## Prinsip (dari maintainer feedback)
+
+> **Pertahankan BeeScout standard sebagai otoritas.** Pydantic, FE zod, dan YAML validator harus follow spec — bukan sebaliknya. Default rekomendasi semua field spec-YES = **🔴 Make required**. Spec relax hanya kalau maintainer eksplisit flag setelah review (bukan default).
+
+Per-field tetap perlu maintainer review untuk konfirmasi mandatory vs non-mandatory — direction-nya sudah jelas (ikuti spec), yang di-review adalah **edge case** yang mungkin perlu UX exception.
+
 ## Metodologi
 
 1. Spec acuan: [`data-contract/docs/README.md`](../data-contract/docs/README.md) — sumber otoritatif (kolom `Required: YES/NO`).
 2. Implementasi: semua file di [`repository/app/model/`](../repository/app/model/).
 3. Untuk tiap field:
    - Cocokkan spec required vs Pydantic Optional/required
-   - Tag dengan rekomendasi awal (maintainer review per-field)
-   - Catat alasan kalau rekomendasi ≠ "match spec persis"
-4. **Validator YAML** ([main.py:1510](../repository/app/main.py#L1510)) dicek terpisah — saat ini hanya cek 4 field metadata.
+   - **Default rekomendasi**: match spec persis (kalau spec YES → 🔴 make required)
+   - Maintainer override → flag 🟡 dengan alasan tertulis
+4. **Validator YAML** ([main.py:1510](../repository/app/main.py#L1510)) dicek terpisah — saat ini hanya cek 4 field metadata, akan extend di Phase 3.
 
-## Legenda tag rekomendasi
+## Legenda tag
 
-| Tag | Arti |
-|---|---|
-| ✅ **Aligned** | Sudah konsisten. Tidak ada aksi. |
-| 🔴 **Make required** | Spec wajib, model harus follow. Migrasi data: back-fill default. |
-| 🟡 **Spec relax** | Realita lebih realistis Optional; update spec jadi `Required: NO`. |
-| 🟠 **Strict write / lenient read** | Schema baca toleran untuk kontrak lama; schema tulis strict. |
-| 🐛 **Type bug** | Type Pydantic salah (bukan masalah required-ness). Fix tanpa breaking. |
-| ❓ **Needs decision** | Ambigu, butuh maintainer untuk decide. |
+| Tag | Arti | Default? |
+|---|---|---|
+| ✅ **Aligned** | Sudah konsisten. Tidak ada aksi. | — |
+| 🔴 **Make required** | Spec wajib, model harus follow. Migrasi data: back-fill default value. | **Default untuk semua spec-YES** |
+| 🟡 **Override-relax** | Maintainer eksplisit minta relax karena UX/edge case khusus. Spec di-update jadi NO + alasan. | Hanya kalau di-flag eksplisit |
+| 🟠 **Strict-write / lenient-read** | Schema baca toleran untuk kontrak lama; schema tulis strict. Untuk container field. | Untuk container |
+| 🐛 **Type bug / cleanup** | Type Pydantic salah atau orphan field. Fix tanpa breaking semantik. | — |
+| ❓ **Needs decision** | Ambigu (mis. dua field redundant). | — |
+| ⏸ **Pending issue lain** | Menunggu keputusan di issue lain (mis. #103). | — |
 
-> Rekomendasi awal adalah **draft saya** berdasarkan UX feasibility + persona analysis. Maintainer berhak override.
+> **Perubahan dari draft awal**: sebelumnya saya draft beberapa field sebagai 🟡 spec relax berdasarkan UX feasibility. Per maintainer feedback, default dibalik: semua spec-YES = 🔴 make required. Tabel di bawah sudah di-reframe sesuai prinsip ini.
 
 ---
 
@@ -74,8 +81,8 @@
 
 | Field | Spec | Pydantic | Tag | Rekomendasi & alasan |
 |---|---|---|---|---|
-| `purpose` | YES | `Optional[str] = None` | 🟡 Spec relax | Persona Bu Retno mungkin tidak selalu bisa artikulasi purpose. Recommend: spec → NO. Atau kalau insists strict, beri default value yang prompt user fill via UI banner. |
-| `usage` | YES | `Optional[str] = None` | 🟡 Spec relax | Sama — `usage` `private`/`public` informasi penting tapi mungkin tidak selalu jelas. Bisa default ke `private` di form. |
+| `purpose` | YES | `Optional[str] = None` | 🔴 Make required | Bu Retno mungkin awalnya susah artikulasi, tapi spec wajib → FE wizard harus paksa isi (placeholder yang membantu, mis. "Untuk analisis bulanan tim sales"). Migrasi: backfill kontrak lama dengan string default "(belum diisi — mohon dilengkapi)" + UI banner notifikasi steward. |
+| `usage` | YES | `Optional[str] = None` | 🔴 Make required | Spec wajib (`private`/`public`). FE wizard default ke `private` untuk meminimalkan klik. Migrasi: backfill kontrak lama dengan `private` (safe default). |
 
 ### `MetadataConsumer`
 
@@ -89,10 +96,10 @@
 | Field | Spec | Pydantic | Tag | Rekomendasi & alasan |
 |---|---|---|---|---|
 | `name` | YES | `str` (required) | ✅ Aligned | — |
-| `email` | YES | `Optional[str] = None` | 🟡 Spec relax | Tidak semua stakeholder punya email organisasi (mis. konsultan). Recommend: spec → NO. |
+| `email` | YES | `Optional[str] = None` | 🔴 Make required | Spec wajib. Konsultan eksternal yang tidak punya email organisasi tetap bisa diisi email pribadi/freelance. UI: input wajib dengan validasi format email. Migrasi: backfill kontrak lama dengan placeholder `unknown@beescout.local` + flag review. |
 | `role` | YES | `str` (required) | ✅ Aligned | Enum value enforced di UI; backend tidak validate (open question untuk Phase 3) |
 | `username` | (ADR-0004: opsional) | `Optional[str] = None` | ✅ Aligned | Per ADR — opsional di spec, tapi wajib untuk jadi approver |
-| `date_in` | YES | `Optional[str] = None` | 🟡 Spec relax | Tracking historis berguna tapi tidak essential. Recommend: spec → NO atau default ke tanggal create. |
+| `date_in` | YES | `Optional[str] = None` | 🔴 Make required | Spec wajib untuk audit trail historis (kapan stakeholder ditugaskan). FE wizard: default ke `datetime.now()` saat tambah stakeholder — admin tinggal accept atau ubah. Backend: bisa server-side default kalau client kirim null. |
 | `date_out` | NO | `Optional[str] = None` | ✅ Aligned | — |
 
 ### `MetadataQuality` & `MetadataQualityCustom`
@@ -141,12 +148,12 @@
 | `physical_type` | YES | `Optional[str] = None` | 🔴 Make required | Sama — backfill `"varchar(255)"` atau prompt admin. |
 | `is_primary` | YES | `Optional[bool] = None` | 🔴 Make required | Default `False`. |
 | `is_nullable` | YES | `Optional[bool] = None` | 🔴 Make required | Default `True`. |
-| `is_partition` | YES | `Optional[bool] = None` | 🟡 Spec relax | Tidak setiap kolom relevan dengan partitioning (mis. kolom audit kecil). Recommend: spec → NO, treat sebagai opsional. |
-| `is_clustered` | YES | `Optional[bool] = None` | 🟡 Spec relax | Sama dengan partition. |
+| `is_partition` | YES | `Optional[bool] = None` | 🔴 Make required (default `false`) | Spec wajib — true/false adalah keputusan eksplisit per kolom. UI: checkbox default unchecked. Migrasi: backfill `false` di semua kolom kontrak lama (asumsi aman). |
+| `is_clustered` | YES | `Optional[bool] = None` | 🔴 Make required (default `false`) | Sama dengan partition — keputusan eksplisit. |
 | `is_pii` | YES | `Optional[bool] = None` | 🔴 Make required | Compliance flag — wajib. Default `False`. |
-| `is_audit` | YES | `Optional[bool] = None` | 🟡 Spec relax | Audit flag biasanya hanya untuk kolom `created_at`/`updated_at`. Mayoritas false. Recommend: spec → NO. |
+| `is_audit` | YES | `Optional[bool] = None` | 🔴 Make required (default `false`) | Spec wajib. Mayoritas kolom `false` — UI default unchecked. Audit kolom (mis. `created_at`) admin explicit check. Migrasi: backfill `false`. |
 | `is_mandatory` | YES | `Optional[bool] = None` | ❓ Needs decision | Duplikatif dengan `is_nullable`? `is_nullable=false` ≈ `is_mandatory=true`. Maintainer: konsolidasi jadi 1 field atau dokumentasikan beda semantik. |
-| `description` | YES | `Optional[str] = None` | 🟡 Spec relax | Kolom dengan nama jelas (`user_id`) kadang tidak butuh deskripsi. Recommend: spec → NO atau lenient. |
+| `description` | YES | `Optional[str] = None` | 🔴 Make required | Spec wajib — meskipun nama kolom jelas, deskripsi bisnis tetap berguna untuk persona non-IT (Mbak Indah). UI: textarea wajib. Migrasi: backfill dengan business_name + " (deskripsi otomatis dari nama)" sebagai prompt admin lengkapi. |
 | `quality` | NO | `Optional[List[ModelQuality]] = None` | ✅ Aligned | — |
 | `sample_value` | NO | `Optional[List[str]] = None` | ✅ Aligned | — |
 | `tags` | NO | `Optional[List[str]] = None` | ✅ Aligned | — |
@@ -194,8 +201,8 @@ Bukan bagian dari "BeeScout data contract spec" — ini model runtime untuk fitu
 | Tag | Count |
 |---|---|
 | ✅ Aligned (no action) | 26 |
-| 🔴 Make required | 13 |
-| 🟡 Spec relax | 9 |
+| 🔴 Make required (default sesuai spec) | 22 |
+| 🟡 Override-relax (kosong — maintainer flag) | 0 |
 | 🟠 Strict-write/lenient-read | 3 |
 | 🐛 Type bug / cleanup | 5 |
 | ❓ Needs decision | 2 |
@@ -203,62 +210,76 @@ Bukan bagian dari "BeeScout data contract spec" — ini model runtime untuk fitu
 
 ## Per-field decision sheet (untuk maintainer)
 
-Setelah review draft di atas, maintainer tinggal isi kolom **Keputusan** per field. Saya bisa generate Phase 2 PR(s) berdasarkan keputusan:
+Default rekomendasi sudah di-set match spec. Maintainer hanya perlu **flag eksplisit field yang minta override-relax** dengan alasan (kolom Keputusan). Field yang dibiarkan = setuju dengan rekomendasi default.
 
-| File | Field | Rekomendasi | Keputusan | Catatan |
+| File | Field | Default Rekomendasi | Keputusan | Catatan |
 |---|---|---|---|---|
-| metadata.py | `description.purpose` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `description.usage` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `consumer[].name` | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `consumer[].use_case` | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `stakeholders[].email` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `stakeholders[].date_in` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `sla.availability_*` (3 field) | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `sla.frequency` + `frequency_unit` | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
-| metadata.py | `sla.retention` + `retention_unit` | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
+| metadata.py | `description.purpose` | 🔴 Make required | ☐ Setuju ☐ Override-relax (alasan: …) | |
+| metadata.py | `description.usage` | 🔴 Make required (default `private`) | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `consumer[].name` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `consumer[].use_case` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `stakeholders[].email` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `stakeholders[].date_in` | 🔴 Make required (server-default now) | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `sla.availability_*` (3 field) | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `sla.frequency` + `frequency_unit` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| metadata.py | `sla.retention` + `retention_unit` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
 | metadata.py | `sla.effective_date` / `end_of_contract` | ⏸ #103 | (tunggu #103) | |
 | metadata.py | `sla.availability` / `cron` | 🐛 Cleanup | ☐ Drop ☐ Document | Tidak ada di spec |
-| metadata.py | `contract_reference` type | 🐛 Type bug | ☐ Fix type | List[{number,type}] |
-| metadata.py | `stakeholders[]` container | 🔴 Make required | ☐ Make required ☐ Other | Min 1 stakeholder owner |
-| metadata.py | `description` container | 🟠 Strict-write | ☐ Strict-write ☐ Other | |
-| metadata.py | `consumer` container | 🟠 Strict-write | ☐ Strict-write ☐ Other | |
-| metadata.py | `sla` container | 🟠 Strict-write | ☐ Strict-write ☐ Other | |
-| model.py | `logical_type` | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
-| model.py | `physical_type` | 🔴 Make required | ☐ Make required ☐ Spec relax ☐ Other | |
-| model.py | `is_primary` | 🔴 Make required (default false) | ☐ Make required ☐ Other | |
-| model.py | `is_nullable` | 🔴 Make required (default true) | ☐ Make required ☐ Other | |
-| model.py | `is_partition` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
-| model.py | `is_clustered` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
-| model.py | `is_pii` | 🔴 Make required (default false) | ☐ Make required ☐ Other | |
-| model.py | `is_audit` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
+| metadata.py | `contract_reference` type | 🐛 Type bug | ☐ Fix type | `List[{number,type}]` |
+| metadata.py | `stakeholders[]` container | 🔴 Make required | ☐ Setuju ☐ Override-relax | Min 1 stakeholder owner |
+| metadata.py | `description` container | 🟠 Strict-write | ☐ Setuju ☐ Other | |
+| metadata.py | `consumer` container | 🟠 Strict-write | ☐ Setuju ☐ Other | |
+| metadata.py | `sla` container | 🟠 Strict-write | ☐ Setuju ☐ Other | |
+| model.py | `logical_type` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| model.py | `physical_type` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
+| model.py | `is_primary` | 🔴 Make required (default `false`) | ☐ Setuju ☐ Override-relax | |
+| model.py | `is_nullable` | 🔴 Make required (default `true`) | ☐ Setuju ☐ Override-relax | |
+| model.py | `is_partition` | 🔴 Make required (default `false`) | ☐ Setuju ☐ Override-relax | |
+| model.py | `is_clustered` | 🔴 Make required (default `false`) | ☐ Setuju ☐ Override-relax | |
+| model.py | `is_pii` | 🔴 Make required (default `false`) | ☐ Setuju ☐ Override-relax | |
+| model.py | `is_audit` | 🔴 Make required (default `false`) | ☐ Setuju ☐ Override-relax | |
 | model.py | `is_mandatory` | ❓ Konsolidasi dgn `is_nullable`? | ☐ Konsolidasi ☐ Keep both ☐ Other | |
-| model.py | `description` | 🟡 Spec relax | ☐ Make required ☐ Spec relax ☐ Other | |
+| model.py | `description` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
 | examples.py | `type` & `data` defaults | 🐛 Type bug | ☐ Fix `= None` | Pydantic v2 syntax |
-| all.py | `examples` container | 🟡 Spec relax | ☐ Optional ☐ Required | |
+| all.py | `examples` container | 🟡 Spec NO → keep Optional | ☐ Setuju ☐ Other | Spec sendiri opsional |
 | all.py | `ports` container | ❓ Needs decision | ☐ Required ☐ Optional | Kontrak file-only tanpa stream? |
 | all.py | Shadow class cleanup | 🐛 Cleanup | ☐ Cleanup | Lines 53, 59, 65 |
 
-## Phase 2 plan (setelah keputusan per-field)
+## Phase 2 plan (eksekusi)
 
-Dipecah jadi 2-3 sub-PR berdasarkan keputusan:
+Dipecah jadi 3 sub-PR. **PR-A bisa langsung ship tanpa per-field review.** PR-B & PR-C menunggu maintainer flag override-relax (kalau ada).
 
-1. **PR-A: Type bugs & cleanup** (low risk, no breaking)
-   - `contract_reference` type fix
-   - `examples.{type,data}` default fix
-   - Drop / document `sla.availability` & `sla.cron`
-   - Cleanup shadow class di `all.py`
-2. **PR-B: Make required group**
-   - Update Pydantic model
-   - Backfill migration script untuk default value
-   - Update FE zod schema + form wizard
-   - Run migration di production
-3. **PR-C: Spec relax group**
-   - Update `data-contract/docs/README.md` field-field yang dipilih jadi `Required: NO`
-   - Bump `standard_version` (minor — backward-compatible relaxation)
+### PR-A — Type bugs & cleanup (low risk, no breaking)
+
+**Bisa langsung dieksekusi — tidak butuh per-field decision.**
+
+- Fix `metadata.contract_reference` type: `Optional[List[str]]` → `Optional[List[MetadataContractReference]]` dengan nested class `{number, type}`
+- Fix `examples.{type, data}` Pydantic v2 syntax: tambah `= None` default
+- Drop / document orphan field `sla.availability` & `sla.cron` (tidak ada di spec)
+- Cleanup shadow classes di `all.py` (lines 53, 59, 65)
+
+### PR-B — Make required group (sesuai spec)
+
+Setelah maintainer review decision sheet:
+
+- Update Pydantic model: spec-YES jadi required (atau dengan default value untuk bool)
+- Update FE zod schema + form wizard (expose field yang belum di-expose, mis. `description.purpose/usage`, `stakeholders.email/date_in`, `sla.*`, semua `model.is_*`)
+- Backfill migration script untuk kontrak lama (`repository/scripts/migrate_pydantic_strict.py`):
+  - Default value sesuai catatan kolom Catatan di tabel di atas
+  - Dry-run default; `--apply` execute
+- Bump `metadata.version` per [CLAUDE.md Schema Versioning](../CLAUDE.md) (major — breaking)
+
+### PR-C — Override-relax & spec update (kalau ada)
+
+Hanya kalau maintainer flag field tertentu untuk override-relax:
+
+- Update [`data-contract/docs/README.md`](../data-contract/docs/README.md): field tsb `Required: YES` → `NO` dengan rationale tertulis
+- Bump `standard_version` (minor — backward-compatible relax)
+- Pydantic untuk field tsb stay Optional
 
 ## Phase 3 plan (setelah Phase 2 deploy)
 
-Strict YAML validator di [`main.py:1510`](../repository/app/main.py#L1510) extend cek field-field hasil keputusan Phase 1/2. Saat ini cuma 4 field metadata.
+Strict YAML validator di [`main.py:1510`](../repository/app/main.py#L1510) extend cek semua field hasil keputusan Phase 1/2. Saat ini cuma 4 field metadata; harus diperluas ke ~30 field wajib.
 
 ## Hubungan dengan issue lain
 
@@ -269,4 +290,6 @@ Strict YAML validator di [`main.py:1510`](../repository/app/main.py#L1510) exten
 
 ## Untuk maintainer
 
-Action item: **review kolom Rekomendasi di Per-field decision sheet, isi kolom Keputusan**. Saya generate PR Phase 2 berdasarkan keputusan. Bisa di-cherry-pick per group (mulai dari 🐛 type bug yang low-risk) atau all-at-once.
+**Action item**: review tabel Per-field decision sheet. Default = match spec (🔴 make required). Cukup **flag eksplisit field yang minta override-relax** dengan alasan UX. Tanpa flag = setuju dengan default.
+
+PR-A (type bugs cleanup) tidak butuh review — bisa langsung ship sebagai warmup low-risk. Tracked di PR follow-up.
