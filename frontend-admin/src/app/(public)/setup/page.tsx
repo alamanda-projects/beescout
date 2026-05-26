@@ -24,7 +24,6 @@ const schema = z.object({
     .regex(/[0-9]/, 'Harus ada angka')
     .regex(/[^A-Za-z0-9]/, 'Harus ada karakter khusus'),
   confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
-  data_domain: z.string().min(1, 'Domain data wajib diisi'),
   import_sample_contracts: z.boolean(),
   import_catalog_rules: z.boolean(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -59,7 +58,6 @@ export default function SetupPage() {
     defaultValues: {
       username: 'superadmin',
       name: 'Super Administrator',
-      data_domain: 'all',
       import_sample_contracts: false,
       import_catalog_rules: true,
     },
@@ -78,7 +76,6 @@ export default function SetupPage() {
         username: data.username,
         password: data.password,
         name: data.name,
-        data_domain: data.data_domain,
         import_sample_contracts: data.import_sample_contracts,
         import_catalog_rules: data.import_catalog_rules,
       })
@@ -141,6 +138,10 @@ export default function SetupPage() {
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+              <p className="rounded border border-slate-700 bg-slate-800/50 px-3 py-2 text-xs text-slate-400">
+                Akun ini otomatis dibuat di domain <span className="font-mono text-amber-400">root</span>.
+              </p>
+
               <div className="space-y-1.5">
                 <Label htmlFor="username" className="text-slate-300">Username</Label>
                 <Input id="username" autoComplete="username" className="border-slate-700 bg-slate-800 text-white" {...register('username')} />
@@ -151,12 +152,6 @@ export default function SetupPage() {
                 <Label htmlFor="name" className="text-slate-300">Nama</Label>
                 <Input id="name" autoComplete="name" className="border-slate-700 bg-slate-800 text-white" {...register('name')} />
                 {errors.name && <p className="text-xs text-red-400">{errors.name.message}</p>}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="data_domain" className="text-slate-300">Domain Data</Label>
-                <Input id="data_domain" className="border-slate-700 bg-slate-800 text-white" {...register('data_domain')} />
-                {errors.data_domain && <p className="text-xs text-red-400">{errors.data_domain.message}</p>}
               </div>
 
               <div className="space-y-1.5">

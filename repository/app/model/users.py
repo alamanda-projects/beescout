@@ -24,3 +24,13 @@ class UserCreate(BaseModel):
     is_active: bool
     import_sample_contracts: bool = False
     import_catalog_rules: bool = False
+
+
+# Bootstrap request untuk /setup — root selalu di domain 'root' & role 'root',
+# jadi field group_access/data_domain/is_active sengaja tidak diekspos (#84).
+class SetupRequest(BaseModel):
+    username: str
+    name: str
+    password: str
+    import_sample_contracts: bool = False
+    import_catalog_rules: bool = False

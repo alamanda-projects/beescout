@@ -13,7 +13,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from typing import Dict
-from app.model.users import UserCreate
+from app.model.users import UserCreate, SetupRequest
 from app.model.domains import DomainCreate, DomainUpdate
 from app.core.connection import database, col_usr, col_dgr, col_apr, col_dom
 from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate
@@ -273,7 +273,7 @@ async def setup_status():
 
 
 @app.post("/setup", tags=["system"])
-async def bootstrap_setup(user_form: UserCreate):
+async def bootstrap_setup(user_form: SetupRequest):
     """
     Internal bootstrap endpoint used by the web setup flow to create the first root account.
     Returns 409 if a root account already exists.
@@ -315,8 +315,8 @@ async def bootstrap_setup(user_form: UserCreate):
         "password": hashed_password,
         "name": user_form.name,
         "group_access": "root",
-        # Issue #74: root selalu di domain "root" (di-seed di bawah). Nilai
-        # form diabaikan supaya invariant ini tidak bisa di-bypass.
+        # Root selalu di domain "root" (#74, #84). Field ini tidak ada di
+        # SetupRequest sehingga invariant tidak bisa di-bypass dari form.
         "data_domain": "root",
         "is_active": True,
         "type": "user",
