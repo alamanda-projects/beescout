@@ -1101,7 +1101,7 @@
     },
     {
       "name": "07. YAML Import",
-      "description": "Validasi & import kontrak format YAML (ODCS).",
+      "description": "Validasi & import kontrak format YAML BeeScout standard.",
       "item": [
         {
           "name": "POST /contracts/validate-yaml — Validate Yaml Import",

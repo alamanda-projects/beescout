@@ -186,7 +186,7 @@ model:                    # column definitions
 
 ### Schema Versioning
 
-`standard_version` tracks the upstream ODCS spec — **do not bump** without reading the upstream changelog.
+`standard_version` tracks the internal **BeeScout standard** at [`/data-contract/`](data-contract/docs/README.md). Bump it together with edits there. ODCS is referenced for industry comparison only (see [`data-contract/docs/comparison-odcs.md`](data-contract/docs/comparison-odcs.md)), not as upstream — BeeScout deliberately diverges on consumer[], stakeholder role enum, ports[], etc.
 
 For `metadata.version` (the contract's own version):
 - **Patch** (`1.0.0 → 1.0.1`): correction to existing field description or constraint

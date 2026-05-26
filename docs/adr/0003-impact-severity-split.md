@@ -37,6 +37,8 @@ UI menampilkan dua input terpisah:
 - **Biz mode**: dua baris radio button — "Jenis dampak" + "Tingkat"
 - **Eng mode**: dua dropdown `impact` + `severity` berdampingan
 
+> **Update framing (#99)**: bullet 3 di bawah keliru memframe ODCS sebagai "upstream". Standar acuan BeeScout adalah [`/data-contract/`](../../data-contract/docs/README.md); ODCS hanya referensi industri (lihat [comparison-odcs.md](../../data-contract/docs/comparison-odcs.md)). Argumen pemisahan impact/severity tetap valid tanpa klaim ODCS-alignment — alasan 1, 2, & 4 berdiri sendiri.
+
 ## Alasan
 
 1. **Monotonik di UI**: `low → medium → high` punya urutan yang jelas, sedangkan `operational | high | low` tidak.

@@ -12,7 +12,7 @@
 ADR-0004 menetapkan approver berasal dari tiga peran: **Steward** (semua admin/root aktif) + Producer + Consumer (dari `metadata.stakeholders[]`). Setelah implementasi (PR #70, PR #71 in-flight), maintainer mereview model dan menemukan ketidakcocokan dengan intent tata kelola yang sebenarnya:
 
 - **Admin/root adalah peran sistem**, bukan peran governance pada kontrak. Mengikat admin/root sebagai approver default mencampur dua dimensi yang berbeda (akses operasional vs. kepemilikan data) dan tidak skalabel saat jumlah admin bertambah.
-- Tiga peran governance yang dikenali di domain data contract (ODCS-aligned) adalah **Owner**, **Producer**, dan **Consumer** — semuanya per-kontrak, per-orang.
+- Tiga peran governance yang dikenali di domain data contract — **Owner**, **Producer**, dan **Consumer** — semuanya per-kontrak, per-orang. _(Update #99: kata "ODCS-aligned" dihapus dari teks ini — acuan sebenarnya adalah [BeeScout standard](../../data-contract/docs/README.md) yang menetapkan ke-3 peran sebagai enum closed di `stakeholders.role`; ODCS hanya komparasi industri dengan field role free string.)_
 - Steward sebagai peran governance memang ada (`role: steward` di STAKEHOLDER_ROLES), tapi bukan default approver — itu peran opsional yang tidak setiap kontrak punya.
 
 Hasilnya: model "Steward = admin/root" di ADR-0004 mengikat sistem ke proses operasional, bukan kepemilikan data. Pembetulan: turunkan semua approver dari `metadata.stakeholders[]`, tanpa peran sistem.
@@ -70,7 +70,7 @@ Permission "siapa yang boleh edit kontrak" tidak diatur oleh ADR ini — itu tet
 1. **Pemisahan concern**: peran sistem (admin/root) ≠ peran governance kontrak (owner/producer/consumer). Mencampur keduanya membuat approval bergantung pada siapa yang punya akses admin, bukan siapa yang bertanggung jawab atas data.
 2. **Konsistensi sumber data**: ketiga peran approver dari satu tempat (`stakeholders[]`) — mudah dipahami, mudah diaudit.
 3. **Skalabilitas**: kontrak baru tidak otomatis butuh persetujuan setiap admin yang dibuat di kemudian hari. Approver tetap stabil walau admin pool berubah.
-4. **Aligned dengan ODCS**: spec ODCS menempatkan Owner dan Producer/Consumer sebagai entitas first-class di metadata kontrak. Memakai field yang sama mengurangi divergensi.
+4. **Aligned dengan ODCS**: spec ODCS menempatkan Owner dan Producer/Consumer sebagai entitas first-class di metadata kontrak. Memakai field yang sama mengurangi divergensi. _(Update #99: framing ini keliru — acuan sebenarnya [BeeScout standard](../../data-contract/docs/README.md) yang sudah eksplisit memisahkan peran. ODCS tidak punya enum `role` closed; alasan ini sebaiknya dibaca sebagai "konsisten dengan spec BeeScout internal".)_
 
 ## Konsekuensi
 
