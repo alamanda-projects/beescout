@@ -304,21 +304,11 @@ Password is whatever you set in `.env` as `MONGODB_PASS`.
 
 ### Lost / forgotten root account
 
-`/setup` locks itself once an active root exists, so there is no web way back in if the root credentials are lost. Recovery is **out-of-band by design** — an HTTP recovery endpoint would be an account-takeover backdoor. The trust boundary is shell access to the server.
+Full procedure: [docs/recover-root.md](docs/recover-root.md). Quick reference:
 
-Use the break-glass CLI script [`repository/scripts/recover_root.py`](repository/scripts/recover_root.py). It resets an existing root's password (recovery mode) or creates a fresh root (create mode), and always enforces the single-active-root invariant by disabling every other root document. Dry-run by default; `--apply` to execute.
-
-```bash
-# Dry-run — shows the plan, writes nothing
-docker compose run --rm backend python -m scripts.recover_root \
-  --username root --name "Root User"
-
-# Execute — prompts for the new password without echo
-docker compose run --rm backend python -m scripts.recover_root \
-  --username root --name "Root User" --apply
-```
-
-It stamps `recovered_at` / `recovery_note` on the root document for audit. Avoid `--password` (it lands in shell history) — let the script prompt instead.
+- Break-glass CLI: `docker compose run --rm backend python -m scripts.recover_root --username root --name "Root User" [--apply]` — dry-run by default.
+- Enforces single-active-root invariant (#59) and stamps `recovered_at` / `recovery_note` for audit.
+- No HTTP endpoint exists by design — recovery is shell-only. If the user asks for one, refer them to the docs above and explain why.
 
 ---
 

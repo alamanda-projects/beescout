@@ -79,6 +79,19 @@ echo "127.0.0.1 app.localhost admin.localhost" | sudo tee -a /etc/hosts
 
 Panduan lengkap → [getting-started.md](getting-started.md)
 
+### 🔐 Pemulihan Akun Root (Break-Glass)
+
+> ⚠️ **Operasi darurat — bukan reset password biasa.**
+>
+> Prosedur ini melewati alur otentikasi normal dan **memerlukan akses shell** ke server.
+> Hanya jalankan kalau Anda kehilangan akses ke akun root dan **tidak ada cara lain**.
+> Setiap eksekusi meninggalkan jejak audit (`recovered_at`, `recovery_note`) di dokumen user.
+
+Kalau Anda lupa password root atau tidak ada root aktif di database, lihat
+[**docs/recover-root.md**](docs/recover-root.md) untuk instruksi lengkap.
+
+Untuk ganti password biasa, login → halaman **Profil** — bukan script ini.
+
 ---
 
 ## Apa yang bisa BeeScout lakukan
@@ -394,6 +407,7 @@ beescout/
 | [Quick Start (non-tech)](docs/quick-start-non-tech.md) | Panduan klik-untuk-jalan untuk pengguna non-teknis |
 | [Getting Started](getting-started.md) | Setup lokal lengkap untuk developer, troubleshooting infra |
 | [Contributor Onboarding](docs/contributor-onboarding.md) | Kontribusi pertama dalam 30 menit |
+| [Pemulihan Akun Root (Break-Glass)](docs/recover-root.md) | Prosedur darurat saat kredensial root hilang |
 
 ### Referensi konvensi & konsep
 
