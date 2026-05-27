@@ -167,6 +167,55 @@ regen-postman:
 		backend python -m scripts.gen_postman
 
 
+# ── Migration & maintenance scripts ───────────────────────────────────────────
+#
+# `scripts/` sengaja tidak masuk production image (Dockerfile hanya copy
+# `app/`). Untuk menjalankan migration / break-glass script, mount script
+# dir + app dir ke container backend yang sudah jalan.
+#
+# Set APPLY=1 untuk eksekusi (default: dry-run).
+# Contoh: make migrate-stakeholder-roles APPLY=1
+
+# Argumen tambahan akan jadi `--apply` bila APPLY=1, sisanya kosong.
+APPLY_FLAG := $(if $(APPLY),--apply,)
+
+# Internal helper — pakai oleh target migrate-* di bawah.
+define _run_script
+	docker compose run --rm --user root \
+		-v $(PWD)/repository/app:/work/app \
+		-v $(PWD)/repository/scripts:/work/scripts \
+		backend python -m scripts.$(1) $(APPLY_FLAG)
+endef
+
+# Strict stakeholder.role ke 4 nilai spec BeeScout (PR #112 / strict role).
+migrate-stakeholder-roles:
+	$(call _run_script,migrate_stakeholder_roles)
+
+# Backfill stakeholders[] dari metadata.consumer[] legacy (PR #105 / ADR-0007 Phase 2).
+migrate-consumer-to-stakeholders:
+	$(call _run_script,migrate_consumer_to_stakeholders)
+
+# Backfill approvers_by_role di approval lama (PR #70 / ADR-0004).
+migrate-approval-roles:
+	$(call _run_script,migrate_approval_roles)
+
+# Migrate quality impact value lama (low/medium/high) ke impact + severity (ADR-0003).
+migrate-impact-severity:
+	$(call _run_script,migrate_impact_severity)
+
+# Dedup kontrak duplikat (DuplicateKeyError fix di unique contract_number index).
+dedupe-contracts:
+	$(call _run_script,dedupe_contracts)
+
+# Break-glass root account recovery (sengaja tanpa default — wajib pass arg).
+# Contoh: make recover-root ARGS="--username root --name 'Root User' --apply"
+recover-root:
+	docker compose run --rm --user root \
+		-v $(PWD)/repository/app:/work/app \
+		-v $(PWD)/repository/scripts:/work/scripts \
+		backend python -m scripts.recover_root $(ARGS)
+
+
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
 clean:

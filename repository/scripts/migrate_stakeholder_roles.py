@@ -21,10 +21,17 @@ Mapping role lama → nilai spec terdekat (fungsi):
 Idempoten + dry-run default + `--apply`. Mirror pola
 migrate_consumer_to_stakeholders.py.
 
-Pemakaian:
+Pemakaian (paling mudah, lewat Makefile target — auto-mount scripts/):
 
-    docker compose run --rm backend python -m scripts.migrate_stakeholder_roles          # dry-run
-    docker compose run --rm backend python -m scripts.migrate_stakeholder_roles --apply  # eksekusi
+    make migrate-stakeholder-roles            # dry-run
+    make migrate-stakeholder-roles APPLY=1    # eksekusi
+
+Atau manual (kalau tidak pakai make):
+
+    docker compose run --rm --user root \\
+        -v $(pwd)/repository/app:/work/app \\
+        -v $(pwd)/repository/scripts:/work/scripts \\
+        backend python -m scripts.migrate_stakeholder_roles [--apply]
 """
 
 import argparse
