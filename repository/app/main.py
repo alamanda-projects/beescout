@@ -1527,7 +1527,11 @@ async def validate_yaml_import(
             warnings.append({"field": "contract_number",
                              "message": "contract_number tidak ada — akan digenerate otomatis oleh sistem."})
 
-        valid_roles = {"owner","consumer","steward","producer","engineer","analyst","architect"}
+        # Strict ke BeeScout spec (data-contract/docs/README.md line 94):
+        # enum closed 4 nilai. role = fungsi terhadap kontrak (bukan job
+        # title user). 1 user dengan job title sama bisa beda role di
+        # kontrak berbeda. Lihat docs/glossary.md.
+        valid_roles = {"owner", "producer", "consumer", "reviewer"}
         for i, s in enumerate(metadata.get("stakeholders") or []):
             if s.get("role") and s["role"] not in valid_roles:
                 errors.append({
