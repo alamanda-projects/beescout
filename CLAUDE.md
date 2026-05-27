@@ -285,7 +285,7 @@ docker exec beescout-db-1 mongosh \
   --eval 'db.dgr.aggregate([{$group:{_id:"$contract_number",c:{$sum:1}}},{$match:{c:{$gt:1}}}]).toArray()'
 
 # Then run the dedup script (keeps oldest doc per contract_number, deletes the rest)
-docker compose run --rm backend python -m scripts.dedupe_contracts --apply
+make dedupe-contracts APPLY=1
 docker compose restart backend
 ```
 
@@ -307,7 +307,7 @@ Password is whatever you set in `.env` as `MONGODB_PASS`.
 
 Full procedure: [docs/recover-root.md](docs/recover-root.md). Quick reference:
 
-- Break-glass CLI: `docker compose run --rm backend python -m scripts.recover_root --username root --name "Root User" [--apply]` — dry-run by default.
+- Break-glass CLI: `make recover-root ARGS="--username root --name 'Root User' [--apply]"` — dry-run by default. Makefile target mounts `scripts/` into the container (`scripts/` is intentionally not in the production image).
 - Enforces single-active-root invariant (#59) and stamps `recovered_at` / `recovery_note` for audit.
 - No HTTP endpoint exists by design — recovery is shell-only. If the user asks for one, refer them to the docs above and explain why.
 

@@ -99,11 +99,11 @@ Voting endpoint role-agnostic — ia menghitung konsensus dari **kunci apa pun**
 Admin yang ingin men-derive ulang `approvers_by_role` untuk approval lama (tanpa kunci sama sekali) bisa menjalankan:
 
 ```bash
-docker compose run --rm backend python -m scripts.migrate_approval_roles            # dry-run
-docker compose run --rm backend python -m scripts.migrate_approval_roles --apply    # eksekusi
+make migrate-approval-roles            # dry-run
+make migrate-approval-roles APPLY=1    # eksekusi
 ```
 
-Script idempoten — aman dijalankan ulang.
+Script idempoten — aman dijalankan ulang. Makefile target mount `scripts/` ke container backend (`scripts/` sengaja tidak masuk production image).
 
 ## 🚧 Risiko & mitigasi
 
