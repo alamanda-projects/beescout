@@ -34,12 +34,18 @@ class Model(BaseModel):
     business_name: Optional[str] = None
     logical_type: Optional[str] = None
     physical_type: Optional[str] = None
-    is_primary: Optional[bool] = None
-    is_nullable: Optional[bool] = None
-    is_partition: Optional[bool] = None
-    is_clustered: Optional[bool] = None
-    is_pii: Optional[bool] = None
-    is_audit: Optional[bool] = None
+    # Boolean flags wajib di spec (lihat data-contract/docs/README.md).
+    # Phase 2 PR-B #102: required dengan safe defaults — zero-breakage karena
+    # default = nilai natural saat field tidak ada di kontrak lama. POST tanpa
+    # field → default applied; POST dengan null → 422 (mencegah null leak).
+    is_primary: bool = False
+    is_nullable: bool = True       # konvensi DB — kolom default nullable
+    is_partition: bool = False
+    is_clustered: bool = False
+    is_pii: bool = False
+    is_audit: bool = False
+    # is_mandatory masih ❓ Needs decision (potensial duplikatif dgn is_nullable
+    # — lihat docs/pydantic-spec-audit.md). Tetap Optional sampai keputusan.
     is_mandatory: Optional[bool] = None
     description: Optional[str] = None
     quality: Optional[List[ModelQuality]] = None
