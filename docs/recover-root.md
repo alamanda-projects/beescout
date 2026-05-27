@@ -67,9 +67,10 @@ docker compose up -d backend db
 Dry-run **tidak menulis apa pun** ke database — hanya menampilkan rencana eksekusi.
 
 ```bash
-docker compose run --rm backend python -m scripts.recover_root \
-  --username root --name "Root User"
+make recover-root ARGS="--username root --name 'Root User'"
 ```
+
+> `scripts/` sengaja tidak masuk production image — Makefile target di atas mount `scripts/` + `app/` ke container backend. Setara dengan: `docker compose run --rm --user root -v $(pwd)/repository/scripts:/work/scripts -v $(pwd)/repository/app:/work/app backend python -m scripts.recover_root --username root --name "Root User"`.
 
 Output yang diharapkan:
 
@@ -87,8 +88,7 @@ Kalau `Root lain` > 0, perhatikan daftarnya — semua akan di-non-aktifkan untuk
 ### 3. Eksekusi dengan `--apply`
 
 ```bash
-docker compose run --rm backend python -m scripts.recover_root \
-  --username root --name "Root User" --apply
+make recover-root ARGS="--username root --name 'Root User' --apply"
 ```
 
 Script akan meminta password 2× tanpa echo:
