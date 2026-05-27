@@ -157,22 +157,18 @@ export const QUALITY_DIMENSIONS = [
 export interface StakeholderRoleItem { value: string; label: string }
 export interface StakeholderRoleGroup { group: string; items: StakeholderRoleItem[] }
 
+// Role di kontrak = fungsi user terhadap kontrak ini (BUKAN job title).
+// Spec BeeScout: enum closed 4 nilai (data-contract/docs/README.md line 94).
+// 1 user dengan job title sama bisa beda role di kontrak berbeda. Label
+// dipilih untuk menjelaskan fungsi, bukan profesi. Lihat docs/glossary.md.
 export const STAKEHOLDER_ROLE_GROUPS: StakeholderRoleGroup[] = [
   {
-    group: 'Peran Bisnis',
+    group: 'Fungsi di Kontrak',
     items: [
-      { value: 'owner', label: 'Data Owner' },
-      { value: 'consumer', label: 'Data Consumer' },
-      { value: 'analyst', label: 'Data Analyst' },
-    ],
-  },
-  {
-    group: 'Peran Teknis',
-    items: [
-      { value: 'producer', label: 'Data Producer' },
-      { value: 'engineer', label: 'Data Engineer' },
-      { value: 'architect', label: 'Data Architect' },
-      { value: 'steward', label: 'Data Steward' },
+      { value: 'owner',    label: 'Pemilik — kewenangan penuh terkait kontrak' },
+      { value: 'producer', label: 'Produser — menyediakan/menghasilkan data' },
+      { value: 'consumer', label: 'Konsumen — menggunakan data dari kontrak' },
+      { value: 'reviewer', label: 'Pengawas — tata kelola / audit (Governance, GRC, Security)' },
     ],
   },
 ]

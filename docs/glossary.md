@@ -44,7 +44,8 @@
 | Istilah teknis | Padanan bisnis (ID) | Penjelasan singkat | Dipakai di UI |
 |---|---|---|---|
 | RBAC (Role-Based Access Control) | Hak Akses Berdasarkan Peran | Sistem keamanan: hak akses ditentukan berdasarkan peran user | (umumnya di docs/dev, jarang di UI) |
-| Role / Group Access | Peran | Kategori user: root, admin, developer, user | Peran |
+| Role / Group Access | Peran (sistem) | Kategori user di sistem: `root`, `admin`, `developer`, `business_user` (alias `user`). **Beda dari Stakeholder Role** — yang ini melekat ke akun user, bukan ke kontrak. | Peran |
+| Stakeholder Role | Peran (di Kontrak) | Fungsi user terhadap **kontrak spesifik**: `owner`, `producer`, `consumer`, `reviewer`. **Bukan job title.** 1 user dengan jabatan sama bisa berbeda role di kontrak berbeda (mis. Mas Dimas jadi `producer` di Kontrak A, `consumer` di Kontrak B). Spec: [`/data-contract/docs/README.md`](../data-contract/docs/README.md) line 94. | Pemilik / Produser / Konsumen / Pengawas |
 | Data Domain | Domain Data | Pengelompokan data berdasarkan unit bisnis (mis. penjualan, marketing, finance) | Domain Data |
 | Service Account | Akun Layanan | Akun khusus untuk sistem-ke-sistem (bukan manusia), pakai key bukan password | Akun Layanan / SA |
 | JWT | Token Sesi | Tanda bukti login dalam bentuk string ber-enkripsi | (tersembunyi di cookie, jarang ditampilkan) |
