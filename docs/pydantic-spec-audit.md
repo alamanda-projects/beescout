@@ -224,8 +224,8 @@ Default rekomendasi sudah di-set match spec. Maintainer hanya perlu **flag ekspl
 | metadata.py | `sla.frequency` + `frequency_unit` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
 | metadata.py | `sla.retention` + `retention_unit` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
 | metadata.py | `sla.effective_date` / `end_of_contract` | ⏸ #103 | (tunggu #103) | |
-| metadata.py | `sla.availability` / `cron` | 🐛 Cleanup | ☐ Drop ☐ Document | Tidak ada di spec |
-| metadata.py | `contract_reference` type | 🐛 Type bug | ☐ Fix type | `List[{number,type}]` |
+| metadata.py | `sla.availability` / `cron` | 🐛 Cleanup | ☑ Documented (PR #109) | UI aliases, konsolidasi defer ke PR-B |
+| metadata.py | `contract_reference` type | 🐛 Type bug | ☑ Fixed (PR #109) | Nested class `MetadataContractReference{number, type}` |
 | metadata.py | `stakeholders[]` container | 🔴 Make required | ☐ Setuju ☐ Override-relax | Min 1 stakeholder owner |
 | metadata.py | `description` container | 🟠 Strict-write | ☐ Setuju ☐ Other | |
 | metadata.py | `consumer` container | 🟠 Strict-write | ☐ Setuju ☐ Other | |
@@ -240,39 +240,45 @@ Default rekomendasi sudah di-set match spec. Maintainer hanya perlu **flag ekspl
 | model.py | `is_audit` | 🔴 Make required (default `false`) | ☐ Setuju ☐ Override-relax | |
 | model.py | `is_mandatory` | ❓ Konsolidasi dgn `is_nullable`? | ☐ Konsolidasi ☐ Keep both ☐ Other | |
 | model.py | `description` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
-| examples.py | `type` & `data` defaults | 🐛 Type bug | ☐ Fix `= None` | Pydantic v2 syntax |
+| examples.py | `type` & `data` defaults | 🐛 Type bug | ☑ Fixed (PR #109) | Pydantic v2 default |
 | all.py | `examples` container | 🟡 Spec NO → keep Optional | ☐ Setuju ☐ Other | Spec sendiri opsional |
 | all.py | `ports` container | ❓ Needs decision | ☐ Required ☐ Optional | Kontrak file-only tanpa stream? |
-| all.py | Shadow class cleanup | 🐛 Cleanup | ☐ Cleanup | Lines 53, 59, 65 |
+| all.py | Shadow class cleanup | 🟠 Defer | Skipped — intentional wrapping pattern utk display.py (lihat note PR #109) | Re-evaluate kalau ada refactor |
 
 ## Phase 2 plan (eksekusi)
 
-Dipecah jadi 3 sub-PR. **PR-A bisa langsung ship tanpa per-field review.** PR-B & PR-C menunggu maintainer flag override-relax (kalau ada).
+Dipecah jadi 3 sub-PR.
 
-### PR-A — Type bugs & cleanup (low risk, no breaking)
+### ✅ PR-A — Type bugs & cleanup — **MERGED via [#109](https://github.com/alamanda-projects/beescout/pull/109)**
 
-**Bisa langsung dieksekusi — tidak butuh per-field decision.**
+3 fix shipped:
+- `metadata.contract_reference` type → nested class `MetadataContractReference{number, type}`
+- `examples.{type, data}` Pydantic v2 default = None
+- `sla.availability` & `cron` documented sebagai UI aliases
 
-- Fix `metadata.contract_reference` type: `Optional[List[str]]` → `Optional[List[MetadataContractReference]]` dengan nested class `{number, type}`
-- Fix `examples.{type, data}` Pydantic v2 syntax: tambah `= None` default
-- Drop / document orphan field `sla.availability` & `sla.cron` (tidak ada di spec)
-- Cleanup shadow classes di `all.py` (lines 53, 59, 65)
+Shadow class di `all.py` skipped (intentional wrapping pattern; bukan bug).
 
 ### PR-B — Make required group (sesuai spec)
 
-Setelah maintainer review decision sheet:
+**Status**: menunggu maintainer flag override-relax di decision sheet (kalau ada). Tanpa flag → semua 🔴 field jadi required sesuai default.
 
-- Update Pydantic model: spec-YES jadi required (atau dengan default value untuk bool)
-- Update FE zod schema + form wizard (expose field yang belum di-expose, mis. `description.purpose/usage`, `stakeholders.email/date_in`, `sla.*`, semua `model.is_*`)
-- Backfill migration script untuk kontrak lama (`repository/scripts/migrate_pydantic_strict.py`):
-  - Default value sesuai catatan kolom Catatan di tabel di atas
-  - Dry-run default; `--apply` execute
-- Bump `metadata.version` per [CLAUDE.md Schema Versioning](../CLAUDE.md) (major — breaking)
+Scope:
+- Update Pydantic model: spec-YES jadi required (atau dengan default value untuk bool yang punya safe default mis. `is_partition=false`).
+- Update FE zod schema + form wizard di 4 page (admin+user × new+edit). Field yang **belum di-expose** dan jadi required:
+  - `description.purpose` & `description.usage` (wizard belum ada step "Deskripsi" eksplisit)
+  - `stakeholders.email` (sudah ada, tapi mandatori-kan)
+  - `stakeholders.date_in` (server-side default ke `datetime.now()`)
+  - `sla.availability_start/end/unit`, `frequency`, `frequency_unit`, `retention`, `retention_unit` (wizard saat ini pakai UI aliases `availability` & `cron` — perlu refactor expose field spec)
+  - Semua `model.is_*` flags (sudah ada di FE, mandatori-kan)
+- Migration script `repository/scripts/migrate_pydantic_strict.py`:
+  - Backfill default value sesuai catatan kolom Catatan di tabel di atas
+  - Dry-run default; `--apply` execute. Idempoten.
+- Bump `metadata.version` per [CLAUDE.md Schema Versioning](../CLAUDE.md) — major (breaking)
+- Bump `standard_version` di [`data-contract/`](../data-contract/) — minor (relax-checking yang sebelumnya tidak strict)
 
-### PR-C — Override-relax & spec update (kalau ada)
+### PR-C — Override-relax & spec update (hanya jika maintainer flag)
 
-Hanya kalau maintainer flag field tertentu untuk override-relax:
-
+Kalau maintainer flag 1+ field untuk override-relax:
 - Update [`data-contract/docs/README.md`](../data-contract/docs/README.md): field tsb `Required: YES` → `NO` dengan rationale tertulis
 - Bump `standard_version` (minor — backward-compatible relax)
 - Pydantic untuk field tsb stay Optional
@@ -283,13 +289,19 @@ Strict YAML validator di [`main.py:1510`](../repository/app/main.py#L1510) exten
 
 ## Hubungan dengan issue lain
 
-- **#103** (periode kontrak) — `sla.effective_date` & `end_of_contract` decision pending. Audit ini menandai ⏸ untuk 2 field tsb.
-- **#94 Phase 3** — overlap area `consumer[]` (documentary per ADR-0007). Konsumer field decision di sini harus konsisten.
-- **#100 / #101** (konverter ODCS↔BeeScout) — converter behavior berbeda kalau field jadi required vs tidak; tunggu Phase 2 selesai.
-- **#99** (mapping ODCS) — sudah PR #107, sibling.
+- **[#103](https://github.com/alamanda-projects/beescout/issues/103)** (periode kontrak) — `sla.effective_date` & `end_of_contract` decision pending opsi A/B/C. Audit ini menandai ⏸ untuk 2 field tsb.
+- **[#94 Phase 3](https://github.com/alamanda-projects/beescout/issues/94)** — overlap area `consumer[]` (documentary per [ADR-0007](adr/0007-consumer-producer-representation.md)). Konsumer field decision di sini harus konsisten.
+- **[#100](https://github.com/alamanda-projects/beescout/issues/100) / [#101](https://github.com/alamanda-projects/beescout/issues/101)** (konverter ODCS↔BeeScout) — converter behavior bergantung field required/optional di model BeeScout; tunggu Phase 2 PR-B selesai.
+- **[#99](https://github.com/alamanda-projects/beescout/issues/99) (mapping ODCS)** — ✅ shipped via PR #107.
+- **[#109](https://github.com/alamanda-projects/beescout/pull/109) (Phase 2 PR-A)** — ✅ merged. Type bugs cleanup selesai.
 
 ## Untuk maintainer
 
-**Action item**: review tabel Per-field decision sheet. Default = match spec (🔴 make required). Cukup **flag eksplisit field yang minta override-relax** dengan alasan UX. Tanpa flag = setuju dengan default.
+**Status saat ini**:
+- ✅ Phase 1 audit (this doc) — ready to merge
+- ✅ Phase 2 PR-A (type bugs) — merged via #109
+- ⏳ Phase 2 PR-B (make-required group) — menunggu review decision sheet di atas
 
-PR-A (type bugs cleanup) tidak butuh review — bisa langsung ship sebagai warmup low-risk. Tracked di PR follow-up.
+**Action item next**: review tabel Per-field decision sheet. Default = match spec (🔴 make required). Cukup **flag eksplisit field yang minta override-relax** dengan alasan UX. Tanpa flag = setuju dengan default → saya generate PR-B dengan asumsi semua 🔴 jadi required.
+
+Komen "lanjut tanpa override" di PR #108 = sinyal saya untuk mulai eksekusi PR-B.
