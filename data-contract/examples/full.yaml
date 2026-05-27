@@ -71,8 +71,8 @@ metadata:
     frequency_cron: 0 0/6 * * *
     retention: 1
     retention_unit: y
-    effective_date: 2023-08-13T16:07:54+07:00
-    end_of_contract: 2025-08-13T16:07:54+07:00
+  effective_date: 2023-08-13T16:07:54+07:00
+  expiry_date: 2025-08-13T16:07:54+07:00
   prev_contract: 4oxinOpVbBefG
   contract_reference:
     - number: 240785ED2D134204

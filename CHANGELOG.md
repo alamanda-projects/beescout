@@ -24,6 +24,7 @@ Kami mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Import YAML + Edit button di detail page user panel** (#25): Header halaman detail kontrak user panel kini punya tombol Edit dan Import YAML.
 
 ### Changed
+- **Standar BeeScout `standard_version` 0.4.0 → 0.5.0** (#103, PR-A): Lifecycle kontrak (`effective_date`, `expiry_date`) dinaikkan dari `metadata.sla.*` ke top-level `metadata.*` agar terpisah jelas dari concern SLA (ketersediaan data). Field `end_of_contract` di-rename ke `expiry_date` untuk simetri dengan `effective_date`. Spec doc & contoh kanonik di [`data-contract/`](data-contract/) sudah disesuaikan. **Catatan**: PR-A ini hanya spec/docs — implementasi Pydantic + migration ada di PR-B, expose FE wizard di PR-C.
 - **Add-on Loader generalisasi**: `app/core/catalog_addon.py` di-rename ke `app/core/addon_loader.py` dan kini meng-handle dua jenis add-on (catalog rules + sample contracts) dengan helper bersama. Sample contract tidak lagi hardcoded inline di `main.py`.
 - **QualityRulesEditor di user panel** (#25): Mode switch biz/eng kini aktif untuk semua user panel — `developer` default eng, `user` default biz, keduanya bisa switch. Sebelumnya locked ke biz mode.
 - **Stakeholder role label di user panel** (#25, #19): Kolom Peran di halaman detail kontrak user panel kini menampilkan label cantik ("Data Owner") bukan value mentah (`owner`).

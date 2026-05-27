@@ -115,7 +115,7 @@ Per-field tetap perlu maintainer review untuk konfirmasi mandatory vs non-mandat
 
 ### `MetadataSla`
 
-> **Catatan #103**: `effective_date` & `end_of_contract` direkomendasikan dipindah dari `sla.*` ke top-level metadata. Audit di sini tidak preempt — tunggu keputusan #103 dulu untuk decision final atas dua field tsb.
+> **Update #103 (Opsi A, standard_version 0.5.0)**: `effective_date` & `end_of_contract` sudah dipindah dari `sla.*` ke top-level `metadata.*`, dan `end_of_contract` di-rename `expiry_date`. PR-A (spec doc) merged. Pydantic update untuk dua field tsb masuk ke PR-B #103 (bareng migration). Field-field SLA lain (availability/frequency/retention) tetap di-audit normal di tabel ini.
 
 | Field | Spec | Pydantic | Tag | Rekomendasi |
 |---|---|---|---|---|
@@ -127,10 +127,17 @@ Per-field tetap perlu maintainer review untuk konfirmasi mandatory vs non-mandat
 | `frequency_cron` | NO | `Optional[str] = None` | ✅ Aligned | — |
 | `retention` | YES | `Optional[int] = None` | 🔴 Make required | Wajib untuk compliance |
 | `retention_unit` | YES | `Optional[str] = None` | 🔴 Make required | Enum `[tahun, bulan, pekan, hari, jam]` |
-| `effective_date` | YES | `Optional[str] = None` | ⏸ Tunggu #103 | — |
-| `end_of_contract` | YES | `Optional[str] = None` | ⏸ Tunggu #103 | — |
+| ~~`effective_date`~~ | — | (di MetadataSla) | 🔁 Pindah | Naik ke top-level `Metadata` (PR-B #103) |
+| ~~`end_of_contract`~~ | — | (di MetadataSla) | 🔁 Pindah + rename | Naik ke top-level `Metadata` sebagai `expiry_date` (PR-B #103) |
 | `availability` | — | `Optional[str] = None` | 🐛 Cleanup | Field ini **tidak ada di spec**. Sepertinya legacy/runtime. Drop atau document. |
 | `cron` | — | `Optional[str] = None` | 🐛 Cleanup | Duplikatif dengan `frequency_cron`? Cek kode pemakaiannya. |
+
+### `Metadata` (top-level lifecycle, **baru** di standard_version 0.5.0)
+
+| Field | Spec | Pydantic | Tag | Rekomendasi |
+|---|---|---|---|---|
+| `effective_date` | YES | (belum ada — PR-B) | 🆕 Add + required | Tanggal mulai berlaku (#103) |
+| `expiry_date` | YES | (belum ada — PR-B) | 🆕 Add + required | Tanggal berakhir (#103) |
 
 ---
 
@@ -223,7 +230,7 @@ Default rekomendasi sudah di-set match spec. Maintainer hanya perlu **flag ekspl
 | metadata.py | `sla.availability_*` (3 field) | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
 | metadata.py | `sla.frequency` + `frequency_unit` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
 | metadata.py | `sla.retention` + `retention_unit` | 🔴 Make required | ☐ Setuju ☐ Override-relax | |
-| metadata.py | `sla.effective_date` / `end_of_contract` | ⏸ #103 | (tunggu #103) | |
+| metadata.py | `metadata.effective_date` / `expiry_date` (top-level) | 🆕 Add + required | ☑ Disetujui (Opsi A, PR-A merged) | Lokasi & nama final via #103 PR-A; Pydantic add di PR-B |
 | metadata.py | `sla.availability` / `cron` | 🐛 Cleanup | ☑ Documented (PR #109) | UI aliases, konsolidasi defer ke PR-B |
 | metadata.py | `contract_reference` type | 🐛 Type bug | ☑ Fixed (PR #109) | Nested class `MetadataContractReference{number, type}` |
 | metadata.py | `stakeholders[]` container | 🔴 Make required | ☐ Setuju ☐ Override-relax | Min 1 stakeholder owner |
@@ -289,7 +296,7 @@ Strict YAML validator di [`main.py:1510`](../repository/app/main.py#L1510) exten
 
 ## Hubungan dengan issue lain
 
-- **[#103](https://github.com/alamanda-projects/beescout/issues/103)** (periode kontrak) — `sla.effective_date` & `end_of_contract` decision pending opsi A/B/C. Audit ini menandai ⏸ untuk 2 field tsb.
+- **[#103](https://github.com/alamanda-projects/beescout/issues/103)** (periode kontrak) — Opsi A diputuskan & PR-A (spec) merged. Field naik ke top-level `metadata.{effective_date, expiry_date}` di `standard_version` 0.5.0. Pydantic add (top-level) + drop dari `MetadataSla` masuk PR-B #103.
 - **[#94 Phase 3](https://github.com/alamanda-projects/beescout/issues/94)** — overlap area `consumer[]` (documentary per [ADR-0007](adr/0007-consumer-producer-representation.md)). Konsumer field decision di sini harus konsisten.
 - **[#100](https://github.com/alamanda-projects/beescout/issues/100) / [#101](https://github.com/alamanda-projects/beescout/issues/101)** (konverter ODCS↔BeeScout) — converter behavior bergantung field required/optional di model BeeScout; tunggu Phase 2 PR-B selesai.
 - **[#99](https://github.com/alamanda-projects/beescout/issues/99) (mapping ODCS)** — ✅ shipped via PR #107.
