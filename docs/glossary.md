@@ -38,6 +38,8 @@
 | Retention | Masa Simpan | Berapa lama data dipertahankan sebelum dihapus | Masa Simpan |
 | Frequency | Frekuensi Update | Seberapa sering dataset diperbarui | Frekuensi |
 | Availability | Jam Tersedia | Rentang jam saat dataset bisa diakses | Jam Tersedia |
+| `effective_date` | Tanggal Mulai Berlaku | Tanggal mulai berlakunya kontrak (lifecycle, **bukan** bagian SLA). Top-level di `metadata` sejak `standard_version` 0.5.0 (#103). | Tanggal Mulai Berlaku |
+| `expiry_date` | Tanggal Berakhir | Tanggal berakhirnya kontrak. Rename dari `end_of_contract` sejak `standard_version` 0.5.0 (#103). Simetris dengan `effective_date`. | Tanggal Berakhir |
 
 ## C. Kontrol Akses
 

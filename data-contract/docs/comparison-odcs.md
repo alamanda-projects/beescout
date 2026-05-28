@@ -93,15 +93,15 @@
 | `metadata.sla.frequency` + `frequency_unit` | `serviceLevelAgreements[*]` | Overlap (struktur beda) | — |
 | `metadata.sla.frequency_cron` | — | BeeScout-specific | Standar crontab |
 | `metadata.sla.retention` + `retention_unit` | `serviceLevelAgreements[*]` retention | Overlap | — |
-| `metadata.sla.effective_date` | `serviceLevelAgreements[*]` | Overlap | Lihat [#103](https://github.com/alamanda-projects/beescout/issues/103) — revisi naming/grouping diusulkan |
-| `metadata.sla.end_of_contract` | `serviceLevelAgreements[*]` | Overlap | Lihat #103 |
 
-> **Open question (#103)**: `effective_date` & `end_of_contract` di BeeScout sebaiknya dipindah dari `sla.*` ke top-level metadata (lifecycle, bukan SLA). Keputusan opsi A/B/C pending maintainer.
+> **Resolved (#103, standard_version 0.5.0)**: `effective_date` & `end_of_contract` dulu di `metadata.sla.*` — kini dipindah ke top-level metadata (lifecycle, bukan SLA) & `end_of_contract` di-rename ke `expiry_date` agar simetris. Mapping ke ODCS dipindah ke section [Lifecycle kontrak](#lifecycle-kontrak) di bawah.
 
 #### Lifecycle kontrak
 
 | BeeScout | ODCS | Kategori | Catatan |
 |---|---|---|---|
+| `metadata.effective_date` | `serviceLevelAgreements[*]` (atau `status`) | Overlap | Top-level di BeeScout sejak `standard_version` 0.5.0 (#103); ODCS biasanya menaruh di SLA list |
+| `metadata.expiry_date` | `serviceLevelAgreements[*]` | Overlap | Rename dari `end_of_contract` sejak `standard_version` 0.5.0 (#103) |
 | `metadata.prev_contract` | `authoritativeDefinitions[]` (mungkin) | Overlap (lemah) | BeeScout: identifier kontrak sebelumnya |
 | `metadata.contract_reference[]` (`{number, type}`) | `authoritativeDefinitions[]` | Overlap (struktur beda) | Lebih granular di BeeScout |
 
@@ -189,7 +189,6 @@ BeeScout sengaja berbeda dari ODCS pada beberapa hal — biasanya karena pertimb
 Divergensi yang **bukan disengaja** (technical debt, calon harmonisasi):
 
 - `is_nullable` vs `is_mandatory` (potensial redundan)
-- `metadata.sla.effective_date` / `end_of_contract` naming asimetris (lihat #103)
 - `model[].sample_value` vs ODCS `examples` (sengaja-disengaja perlu konfirmasi)
 
 ## Open questions

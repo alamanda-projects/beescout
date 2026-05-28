@@ -22,7 +22,7 @@ Dokumen ini akan menjelaskan beberapa hal penting terkait pembuatan Data Contrac
 ## Data Contract YAML Demographics
 
 ```
-standard_version: 0.4.0
+standard_version: 0.5.0
 contract_number: {{random string}}
 
 metadata:
@@ -75,7 +75,8 @@ Bagian ini berisikan informasi metadata dari Data Contract. Bagian ini mempunyai
 
 - Deskripsi / penjelasan
 - Kualitas Data
-- SLAs (_Service Level Agreements_)
+- SLAs (_Service Level Agreements_) — tentang ketersediaan data
+- Periode berlaku kontrak (`effective_date`, `expiry_date`) — _lifecycle_, terpisah dari SLA
 - Pemangku kepentingan (_Stakeholders_)
 
 | Field                                            | Required | Definitions                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -108,8 +109,8 @@ Bagian ini berisikan informasi metadata dari Data Contract. Bagian ini mempunyai
 | metadata.sla.frequency_cron                      | NO       | Anda dapat mengisi kolom ini dengan perintah cron. Untuk informasi lebih lanjut -> [crontab.guru](!https://crontab.guru/)                                                                                                                                                                                                                                                                                                                            |
 | metadata.sla.retention                           | YES      | Periode retensi data                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | metadata.sla.retention_unit                      | YES      | Unit periode retensi data                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| metadata.sla.effective_date                      | YES      | Waktu efektif _Data Contract_ dapat digunakan                                                                                                                                                                                                                                                                                                                                                                                                        |
-| metadata.sla.end_of_contract                     | YES      | Waktu ketika _Data Contract_ telah berakhir                                                                                                                                                                                                                                                                                                                                                                                                          |
+| metadata.effective_date                          | YES      | Tanggal mulai berlaku _Data Contract_ (lifecycle kontrak, bukan SLA). Format ISO-8601.                                                                                                                                                                                                                                                                                                                                                              |
+| metadata.expiry_date                             | YES      | Tanggal berakhir berlaku _Data Contract_ (lifecycle kontrak, bukan SLA). Format ISO-8601. Simetris dengan `effective_date`.                                                                                                                                                                                                                                                                                                                          |
 | metadata.prev_contract                           | NO       | contract_number sebelumnya, kolom ini dapat mengidentifikasi bahwa Data Contract ini merupakan versi update dari contract sebelumnya                                                                                                                                                                                                                                                                                                                 |
 | metadata.contract_reference                      | NO       | Referensi contract, kolom ini dapat berupa sebuah no tiket permintaan data atau yang semisal                                                                                                                                                                                                                                                                                                                                                         |
 | metadata.contract_reference.number               | NO       | Nomor referensi contract, kolom ini dapat berupa sebuah no tiket permintaan data atau yang semisal                                                                                                                                                                                                                                                                                                                                                   |
@@ -185,8 +186,8 @@ metadata:
     frequency_cron: 0 0/6 * * *
     retention: 1
     retention_unit: y
-    effective_date: 2023-08-13T16:07:54+07:00
-    end_of_contract: 2025-08-13T16:07:54+07:00
+  effective_date: 2023-08-13T16:07:54+07:00
+  expiry_date: 2025-08-13T16:07:54+07:00
   prev_contract: 4oxinOpVbBefG
   contract_reference:
     - number: 240785ED2D134204
