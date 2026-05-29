@@ -195,6 +195,10 @@ migrate-stakeholder-roles:
 migrate-consumer-to-stakeholders:
 	$(call _run_script,migrate_consumer_to_stakeholders)
 
+# Pindah effective_date / expiry_date ke metadata top-level (#103 / standard 0.5.0).
+migrate-period-to-toplevel:
+	$(call _run_script,migrate_period_to_toplevel)
+
 # Backfill approvers_by_role di approval lama (PR #70 / ADR-0004).
 migrate-approval-roles:
 	$(call _run_script,migrate_approval_roles)
