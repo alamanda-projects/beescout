@@ -1523,6 +1523,23 @@ async def validate_yaml_import(
                 errors.append({"field": f"metadata.{mf}",
                                 "message": f"Field wajib 'metadata.{mf}' tidak ditemukan atau kosong."})
 
+        # Lifecycle kontrak (#103, standard_version 0.5.0). Terima legacy
+        # `metadata.sla.effective_date` / `metadata.sla.end_of_contract`
+        # sebagai pengganti — Pydantic compat shim akan auto-promote.
+        sla_for_period = metadata.get("sla") or {}
+        if not metadata.get("effective_date") and not sla_for_period.get("effective_date"):
+            errors.append({
+                "field": "metadata.effective_date",
+                "message": "Field wajib 'metadata.effective_date' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tanggal mulai berlakunya kontrak (ISO-8601, contoh: 2026-01-01).",
+            })
+        if not metadata.get("expiry_date") and not sla_for_period.get("end_of_contract"):
+            errors.append({
+                "field": "metadata.expiry_date",
+                "message": "Field wajib 'metadata.expiry_date' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tanggal berakhirnya kontrak (ISO-8601, contoh: 2027-12-31).",
+            })
+
         if not data.get("contract_number"):
             warnings.append({"field": "contract_number",
                              "message": "contract_number tidak ada — akan digenerate otomatis oleh sistem."})

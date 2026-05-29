@@ -40,6 +40,9 @@ export interface Metadata {
   name: string
   owner: string
   consumption_mode?: string
+  // Lifecycle kontrak (#103, standard_version 0.5.0) — top-level, bukan di sla.
+  effective_date?: string
+  expiry_date?: string
   description?: ContractDescription
   consumer?: Consumer[]
   stakeholders?: Stakeholder[]

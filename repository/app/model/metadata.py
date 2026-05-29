@@ -94,11 +94,12 @@ class Metadata(BaseModel):
     stakeholders: Optional[List[MetadataStakeholders]] = None
     quality: Optional[List[MetadataQuality]] = None
     sla: Optional[MetadataSla] = None
-    # Lifecycle kontrak (#103, standard_version 0.5.0). Spec: keduanya YES
-    # required; tetap Optional di lapis Pydantic sampai FE wizard expose
-    # input (PR-C) — pola sama seperti field SLA lain di audit #102.
-    effective_date: Optional[str] = None
-    expiry_date: Optional[str] = None
+    # Lifecycle kontrak (#103, standard_version 0.5.0). PR-C tighten ke
+    # required setelah FE wizard expose input. Compat shim di model_validator
+    # auto-promote legacy `sla.effective_date` / `sla.end_of_contract` agar
+    # API client lama tetap jalan.
+    effective_date: str
+    expiry_date: str
     prev_contract: Optional[str] = None
     contract_reference: Optional[List[MetadataContractReference]] = None
 

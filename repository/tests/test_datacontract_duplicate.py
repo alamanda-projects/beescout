@@ -14,6 +14,8 @@ VALID_CONTRACT = {
         "type": "dataset",
         "name": "Test Kontrak",
         "owner": "tim_test",
+        "effective_date": "2024-01-01",
+        "expiry_date": "2025-12-31",
     },
     "model": [],
     "ports": [],
