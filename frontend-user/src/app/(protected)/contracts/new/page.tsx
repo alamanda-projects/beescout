@@ -77,7 +77,10 @@ const schema = z.object({
     description: z.string().optional(),
     is_primary: z.boolean().optional(),
     is_nullable: z.boolean().optional(),
+    is_partition: z.boolean().optional(),
+    is_clustered: z.boolean().optional(),
     is_pii: z.boolean().optional(),
+    is_audit: z.boolean().optional(),
     is_mandatory: z.boolean().optional(),
     quality: z.array(z.object({
       code: z.string().min(1),
@@ -211,7 +214,8 @@ function ContractReview({ data, retentionValue, retentionUnit }: {
         ) : model.map((c, i) => {
           const flags = [
             c.is_primary && 'PK', c.is_nullable && 'nullable',
-            c.is_pii && 'PII', c.is_mandatory && 'wajib',
+            c.is_partition && 'partition', c.is_clustered && 'clustered',
+            c.is_pii && 'PII', c.is_audit && 'audit', c.is_mandatory && 'wajib',
           ].filter(Boolean) as string[]
           const qn = (c.quality ?? []).length
           return (
@@ -689,7 +693,7 @@ export default function NewContractPage() {
                     <CardDescription>Definisikan kolom-kolom dalam data contract ini</CardDescription>
                   </div>
                   <Button type="button" variant="outline" size="sm"
-                    onClick={() => addColumn({ column: '', business_name: '', logical_type: '', physical_type: '', description: '', is_primary: false, is_nullable: true, is_pii: false, is_mandatory: false, quality: [] })}>
+                    onClick={() => addColumn({ column: '', business_name: '', logical_type: '', physical_type: '', description: '', is_primary: false, is_nullable: true, is_partition: false, is_clustered: false, is_pii: false, is_audit: false, is_mandatory: false, quality: [] })}>
                     <Plus size={14} className="mr-1" />Tambah Kolom
                   </Button>
                 </div>
@@ -763,7 +767,10 @@ export default function NewContractPage() {
                         {([
                           { key: 'is_primary', label: 'Primary Key' },
                           { key: 'is_nullable', label: 'Nullable' },
+                          { key: 'is_partition', label: 'Partisi' },
+                          { key: 'is_clustered', label: 'Cluster' },
                           { key: 'is_pii', label: 'Data PII' },
+                          { key: 'is_audit', label: 'Audit' },
                           { key: 'is_mandatory', label: 'Wajib' },
                         ] as const).map(({ key, label }) => (
                           <div key={key} className="flex items-center gap-2">

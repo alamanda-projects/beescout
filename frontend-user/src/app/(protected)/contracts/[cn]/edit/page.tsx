@@ -72,7 +72,10 @@ const schema = z.object({
     description: z.string().optional(),
     is_primary: z.boolean().optional(),
     is_nullable: z.boolean().optional(),
+    is_partition: z.boolean().optional(),
+    is_clustered: z.boolean().optional(),
     is_pii: z.boolean().optional(),
+    is_audit: z.boolean().optional(),
     is_mandatory: z.boolean().optional(),
   })).optional(),
   // Koneksi opsional — field lenient supaya baris kosong tidak memblokir
@@ -189,7 +192,10 @@ export default function EditContractPage() {
         description: col.description ?? '',
         is_primary: !!col.is_primary,
         is_nullable: !!col.is_nullable,
+        is_partition: !!col.is_partition,
+        is_clustered: !!col.is_clustered,
         is_pii: !!col.is_pii,
+        is_audit: !!col.is_audit,
         is_mandatory: !!col.is_mandatory,
       })),
       ports: (contract.ports ?? []).map((p: any) => ({
@@ -601,7 +607,7 @@ export default function EditContractPage() {
                   <CardDescription>Definisi kolom dalam data contract</CardDescription>
                 </div>
                 <Button type="button" variant="outline" size="sm"
-                  onClick={() => addColumn({ column: '', business_name: '', logical_type: '', physical_type: '', description: '', is_primary: false, is_nullable: true, is_pii: false, is_mandatory: false })}>
+                  onClick={() => addColumn({ column: '', business_name: '', logical_type: '', physical_type: '', description: '', is_primary: false, is_nullable: true, is_partition: false, is_clustered: false, is_pii: false, is_audit: false, is_mandatory: false })}>
                   <Plus size={14} className="mr-1" />Tambah Kolom
                 </Button>
               </div>
@@ -675,7 +681,10 @@ export default function EditContractPage() {
                       {([
                         { key: 'is_primary', label: 'Primary Key' },
                         { key: 'is_nullable', label: 'Nullable' },
+                        { key: 'is_partition', label: 'Partisi' },
+                        { key: 'is_clustered', label: 'Cluster' },
                         { key: 'is_pii', label: 'Data PII' },
+                        { key: 'is_audit', label: 'Audit' },
                         { key: 'is_mandatory', label: 'Wajib' },
                       ] as const).map(({ key, label }) => (
                         <div key={key} className="flex items-center gap-2">

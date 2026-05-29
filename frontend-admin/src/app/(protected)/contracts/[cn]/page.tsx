@@ -166,9 +166,12 @@ export default function AdminContractDetailPage() {
                       <TableHead>Nama Bisnis</TableHead>
                       <TableHead>Tipe</TableHead>
                       <TableHead className="text-center">PK</TableHead>
-                      <TableHead className="text-center">PII</TableHead>
-                      <TableHead className="text-center">Wajib</TableHead>
                       <TableHead className="text-center">Nullable</TableHead>
+                      <TableHead className="text-center">Partisi</TableHead>
+                      <TableHead className="text-center">Cluster</TableHead>
+                      <TableHead className="text-center">PII</TableHead>
+                      <TableHead className="text-center">Audit</TableHead>
+                      <TableHead className="text-center">Wajib</TableHead>
                       <TableHead>Deskripsi</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -179,9 +182,12 @@ export default function AdminContractDetailPage() {
                         <TableCell className="text-sm">{col.business_name ?? '-'}</TableCell>
                         <TableCell><Badge variant="outline" className="text-xs font-mono">{col.logical_type ?? '-'}</Badge></TableCell>
                         <TableCell className="text-center"><BoolCell value={col.is_primary} /></TableCell>
-                        <TableCell className="text-center"><BoolCell value={col.is_pii} /></TableCell>
-                        <TableCell className="text-center"><BoolCell value={col.is_mandatory} /></TableCell>
                         <TableCell className="text-center"><BoolCell value={col.is_nullable} /></TableCell>
+                        <TableCell className="text-center"><BoolCell value={col.is_partition} /></TableCell>
+                        <TableCell className="text-center"><BoolCell value={col.is_clustered} /></TableCell>
+                        <TableCell className="text-center"><BoolCell value={col.is_pii} /></TableCell>
+                        <TableCell className="text-center"><BoolCell value={col.is_audit} /></TableCell>
+                        <TableCell className="text-center"><BoolCell value={col.is_mandatory} /></TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-xs">{col.description ?? '-'}</TableCell>
                       </TableRow>
                     ))}
