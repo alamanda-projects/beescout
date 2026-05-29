@@ -127,6 +127,7 @@ async def test_filter_list_developer_sees_only_team_scope(client, override_token
             "contract_number": "CN-1",
             "metadata": {
                 "version": "1.0", "type": "CSV", "name": "Sales", "owner": "marketing",
+                "effective_date": "2024-01-01", "expiry_date": "2025-12-31",
                 "stakeholders": [{"name": "Mas Dimas", "username": "dimas", "role": "consumer"}],
             },
             "model": [], "ports": [], "examples": {"type": None, "data": None},
@@ -136,6 +137,7 @@ async def test_filter_list_developer_sees_only_team_scope(client, override_token
             "contract_number": "CN-2",
             "metadata": {
                 "version": "1.0", "type": "CSV", "name": "Other", "owner": "x",
+                "effective_date": "2024-01-01", "expiry_date": "2025-12-31",
                 "consumer": [{"name": "marketing"}],  # not penjualan
             },
             "model": [], "ports": [], "examples": {"type": None, "data": None},
@@ -166,6 +168,7 @@ async def test_filter_list_producer_team_now_sees_contract(client, override_toke
             "contract_number": "CN-3",
             "metadata": {
                 "version": "1.0", "type": "CSV", "name": "X", "owner": "y",
+                "effective_date": "2024-01-01", "expiry_date": "2025-12-31",
                 "stakeholders": [{"name": "Ari Producer", "username": "ari", "role": "producer"}],
             },
             "model": [], "ports": [], "examples": {"type": None, "data": None},

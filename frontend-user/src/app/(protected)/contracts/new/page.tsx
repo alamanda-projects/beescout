@@ -38,6 +38,9 @@ const schema = z.object({
     name: z.string().min(1, 'Wajib diisi'),
     owner: z.string().min(1, 'Wajib diisi'),
     consumption_mode: z.string().optional(),
+    // Lifecycle kontrak (#103, standard_version 0.5.0) — top-level metadata.
+    effective_date: z.string().min(1, 'Tanggal mulai wajib diisi'),
+    expiry_date: z.string().min(1, 'Tanggal berakhir wajib diisi'),
     description: z.object({
       purpose: z.string().optional(),
       usage: z.string().optional(),
@@ -176,6 +179,8 @@ function ContractReview({ data, retentionValue, retentionUnit }: {
         <ReviewRow label="Versi" value={data.metadata?.version} />
         <ReviewRow label="Standar" value={data.standard_version} />
         <ReviewRow label="Mode Konsumsi" value={data.metadata?.consumption_mode} />
+        <ReviewRow label="Tanggal Mulai Berlaku" value={data.metadata?.effective_date} />
+        <ReviewRow label="Tanggal Berakhir" value={data.metadata?.expiry_date} />
         <ReviewRow label="Tujuan" value={data.metadata?.description?.purpose} />
         <ReviewRow label="Cara Penggunaan" value={data.metadata?.description?.usage} />
       </ReviewSection>
@@ -276,6 +281,8 @@ export default function NewContractPage() {
         name: '',
         owner: '',
         consumption_mode: '',
+        effective_date: '',
+        expiry_date: '',
         description: { purpose: '', usage: '' },
         sla: { availability: '', frequency: '', retention: '', cron: '' },
         stakeholders: [],
@@ -314,7 +321,7 @@ export default function NewContractPage() {
     // Index = step. Hanya step 0 (Informasi Dasar) punya field wajib;
     // SLA/Pemangku/Struktur Data/Koneksi semuanya opsional.
     const fieldsPerStep: (keyof FormData | string)[][] = [
-      ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner'],
+      ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner', 'metadata.effective_date', 'metadata.expiry_date'],
       [], [], [], [],
     ]
     const valid = await form.trigger((fieldsPerStep[step] ?? []) as any)
@@ -499,6 +506,21 @@ export default function NewContractPage() {
                       {CONSUMPTION_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Tanggal Mulai Berlaku *</Label>
+                  <Input type="date" {...register('metadata.effective_date')} />
+                  {errors.metadata?.effective_date && <p className="text-xs text-destructive">{errors.metadata.effective_date.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Tanggal Berakhir *</Label>
+                  <Input type="date" {...register('metadata.expiry_date')} />
+                  {errors.metadata?.expiry_date && <p className="text-xs text-destructive">{errors.metadata.expiry_date.message}</p>}
                 </div>
               </div>
 

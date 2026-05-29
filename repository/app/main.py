@@ -967,6 +967,14 @@ async def insert_datacontract(
     user_status = current_user["sts"]
     await access_verification(user_level, user_status, grplvlall)
 
+    # Write-time spec enforcement (#103): Pydantic Metadata Optional agar
+    # read path lenient untuk kontrak legacy, tapi write tetap strict.
+    if not data.metadata.effective_date or not data.metadata.expiry_date:
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
+        )
+
     payload = data.dict()
     payload["created_by"] = current_user["usr"]
     payload["managers"] = []
@@ -1007,6 +1015,13 @@ async def update_datacontract(
         is_manager = username in (existing.get("managers") or [])
         if not is_owner and not is_manager:
             raise HTTPException(status_code=403, detail=random.choice(usrnotallowed))
+
+    # Write-time spec enforcement (#103): sama dgn /add.
+    if not data.metadata.effective_date or not data.metadata.expiry_date:
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
+        )
 
     try:
         payload = data.dict()
@@ -1083,7 +1098,11 @@ async def get_datacontract(current_user: dict = Depends(token_verification)):
             {"_id": 0}
         ).to_list(None)
 
-    return [All(**doc) for doc in docs] if docs else []
+    # Read path lenient: kontrak legacy bisa missing field yang sekarang
+    # mandatory di spec (mis. effective_date #103, bool flags #102). Pydantic
+    # re-validate di sini akan 500 untuk satu doc rusak → seluruh list gagal.
+    # Cukup return raw dicts; FE handle missing field dengan ??.
+    return docs or []
 
 
 @app.get("/datacontract/mine", tags=["datacontract"])
@@ -1099,7 +1118,8 @@ async def get_my_contracts(current_user: dict = Depends(token_verification)):
         {"_id": 0}
     ).to_list(None)
 
-    return [All(**doc) for doc in docs] if docs else []
+    # Lihat catatan di /datacontract/lists — read path lenient.
+    return docs or []
 
 
 @app.get("/datacontract/metadata", tags=["datacontract"])
@@ -1522,6 +1542,23 @@ async def validate_yaml_import(
             if not metadata.get(mf):
                 errors.append({"field": f"metadata.{mf}",
                                 "message": f"Field wajib 'metadata.{mf}' tidak ditemukan atau kosong."})
+
+        # Lifecycle kontrak (#103, standard_version 0.5.0). Terima legacy
+        # `metadata.sla.effective_date` / `metadata.sla.end_of_contract`
+        # sebagai pengganti — Pydantic compat shim akan auto-promote.
+        sla_for_period = metadata.get("sla") or {}
+        if not metadata.get("effective_date") and not sla_for_period.get("effective_date"):
+            errors.append({
+                "field": "metadata.effective_date",
+                "message": "Field wajib 'metadata.effective_date' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tanggal mulai berlakunya kontrak (ISO-8601, contoh: 2026-01-01).",
+            })
+        if not metadata.get("expiry_date") and not sla_for_period.get("end_of_contract"):
+            errors.append({
+                "field": "metadata.expiry_date",
+                "message": "Field wajib 'metadata.expiry_date' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tanggal berakhirnya kontrak (ISO-8601, contoh: 2027-12-31).",
+            })
 
         if not data.get("contract_number"):
             warnings.append({"field": "contract_number",

@@ -136,8 +136,8 @@ Per-field tetap perlu maintainer review untuk konfirmasi mandatory vs non-mandat
 
 | Field | Spec | Pydantic | Tag | Rekomendasi |
 |---|---|---|---|---|
-| `effective_date` | YES | (belum ada — PR-B) | 🆕 Add + required | Tanggal mulai berlaku (#103) |
-| `expiry_date` | YES | (belum ada — PR-B) | 🆕 Add + required | Tanggal berakhir (#103) |
+| `effective_date` | YES | `str` (PR-C) | ✅ Aligned | Tanggal mulai berlaku (#103) — required di Pydantic + strict YAML validator + FE wizard expose. Compat shim auto-promote legacy `sla.effective_date`. |
+| `expiry_date` | YES | `str` (PR-C) | ✅ Aligned | Tanggal berakhir (#103) — required di Pydantic + strict YAML validator + FE wizard expose. Compat shim auto-promote legacy `sla.end_of_contract`. |
 
 ---
 

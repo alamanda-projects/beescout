@@ -5,7 +5,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic, getUsers } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
@@ -36,6 +36,9 @@ const schema = z.object({
     name: z.string().min(1, 'Wajib diisi'),
     owner: z.string().min(1, 'Wajib diisi'),
     consumption_mode: z.string().optional(),
+    // Lifecycle kontrak (#103) — top-level, bukan di sla.
+    effective_date: z.string().min(1, 'Tanggal mulai wajib diisi'),
+    expiry_date: z.string().min(1, 'Tanggal berakhir wajib diisi'),
     description: z.object({
       purpose: z.string().optional(),
       usage: z.string().optional(),
@@ -96,6 +99,7 @@ const SECTIONS = ['Informasi Dasar', 'SLA & Pemangku', 'Struktur Data', 'Koneksi
 export default function EditContractPage() {
   const { cn } = useParams<{ cn: string }>()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [step, setStep] = useState(0)
   const [activeSection, setActiveSection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -123,7 +127,7 @@ export default function EditContractPage() {
     defaultValues: {
       standard_version: '1.0',
       contract_number: '',
-      metadata: { version: '', type: '', name: '', owner: '', consumption_mode: '', description: { purpose: '', usage: '' }, sla: { availability: '', frequency: '', retention: '', cron: '' }, stakeholders: [], quality: [] },
+      metadata: { version: '', type: '', name: '', owner: '', consumption_mode: '', effective_date: '', expiry_date: '', description: { purpose: '', usage: '' }, sla: { availability: '', frequency: '', retention: '', cron: '' }, stakeholders: [], quality: [] },
       model: [],
       ports: [],
     },
@@ -148,6 +152,13 @@ export default function EditContractPage() {
       setRetentionValue(retentionStr)
     }
 
+    // #103: terima top-level (new shape) atau legacy sla.effective_date/end_of_contract,
+    // ambil 10 char pertama agar cocok dengan <input type="date"> (YYYY-MM-DD).
+    const toDateInput = (v: unknown): string =>
+      typeof v === 'string' && v.length >= 10 ? v.slice(0, 10) : ''
+    const effectiveRaw = (m as any).effective_date ?? (m.sla as any)?.effective_date
+    const expiryRaw = (m as any).expiry_date ?? (m.sla as any)?.end_of_contract
+
     form.reset({
       standard_version: contract.standard_version ?? '1.0',
       contract_number: contract.contract_number,
@@ -157,6 +168,8 @@ export default function EditContractPage() {
         name: m.name ?? '',
         owner: m.owner ?? '',
         consumption_mode: m.consumption_mode ?? '',
+        effective_date: toDateInput(effectiveRaw),
+        expiry_date: toDateInput(expiryRaw),
         description: {
           purpose: m.description?.purpose ?? '',
           usage: (m.description as any)?.usage ?? '',
@@ -264,6 +277,10 @@ export default function EditContractPage() {
         examples: (contract as any)?.examples ?? { type: null, data: null },
       }
       await updateContract(cn, payload)
+      // Detail page cache 'contract' bisa stale (mis. tab YAML masih
+      // tampilkan data lama). Mark stale TANPA await — kalau refetch
+      // throw karena alasan apa pun, jangan ganggu success path.
+      queryClient.invalidateQueries({ queryKey: ['contract', cn] })
       toast.success('Data contract berhasil diperbarui!')
       router.push(`/contracts/${cn}`)
     } catch (err: unknown) {
@@ -438,6 +455,19 @@ export default function EditContractPage() {
                       </Select>
                     )}
                   />
+                </div>
+              </div>
+              <Separator />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Tanggal Mulai Berlaku *</Label>
+                  <Input type="date" {...register('metadata.effective_date')} />
+                  {errors.metadata?.effective_date && <p className="text-xs text-destructive">{errors.metadata.effective_date.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Tanggal Berakhir *</Label>
+                  <Input type="date" {...register('metadata.expiry_date')} />
+                  {errors.metadata?.expiry_date && <p className="text-xs text-destructive">{errors.metadata.expiry_date.message}</p>}
                 </div>
               </div>
               <Separator />

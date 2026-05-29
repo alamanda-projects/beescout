@@ -119,6 +119,8 @@ export default function ContractDetailPage() {
                 <InfoRow label="Versi" value={metadata?.version} />
                 <InfoRow label="Standar Versi" value={contract.standard_version} />
                 <InfoRow label="Mode Konsumsi" value={metadata?.consumption_mode} />
+                <InfoRow label="Tanggal Mulai Berlaku" value={(metadata as any)?.effective_date ?? (metadata?.sla as any)?.effective_date} />
+                <InfoRow label="Tanggal Berakhir" value={(metadata as any)?.expiry_date ?? (metadata?.sla as any)?.end_of_contract} />
                 {metadata?.description?.purpose && (
                   <>
                     <Separator />
