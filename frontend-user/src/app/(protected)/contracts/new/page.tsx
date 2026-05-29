@@ -51,11 +51,14 @@ const schema = z.object({
       retention: z.string().optional(),
       cron: z.string().optional(),
     }).optional(),
+    // #114 T1.3 — date_in wajib (spec YES), date_out opsional (spec NO)
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
       email: z.string().optional(),
       username: z.string().optional(),    // ADR-0004
+      date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
+      date_out: z.string().optional(),
     })).optional(),
     quality: z.array(z.object({
       code: z.string().min(1, 'Kode wajib diisi'),
@@ -597,7 +600,7 @@ export default function NewContractPage() {
                     <CardDescription>Orang-orang yang terlibat dalam kontrak ini</CardDescription>
                   </div>
                   <Button type="button" variant="outline" size="sm"
-                    onClick={() => addStakeholder({ name: '', role: '', email: '', username: undefined })}>
+                    onClick={() => addStakeholder({ name: '', role: '', email: '', username: undefined, date_in: new Date().toISOString().slice(0, 10), date_out: '' })}>
                     <Plus size={14} className="mr-1" />Tambah
                   </Button>
                 </div>
@@ -674,6 +677,17 @@ export default function NewContractPage() {
                       {needsUsername && !usernameVal && (
                         <p className="text-[11px] text-amber-700">Tanpa akun, stakeholder ini tidak dihitung sebagai approver Owner/Producer/Consumer.</p>
                       )}
+                    </div>
+                    {/* #114 T1.3 — Tanggal in/out */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tanggal Mulai *</Label>
+                        <Input type="date" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.date_in`)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tanggal Berakhir <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                        <Input type="date" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.date_out`)} />
+                      </div>
                     </div>
                   </div>
                   )

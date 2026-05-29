@@ -54,6 +54,10 @@ const schema = z.object({
       role: z.string().min(1, 'Peran wajib diisi'),
       email: z.string().optional(),
       username: z.string().optional(),    // ADR-0004
+      // #114 T1.3 — date_in wajib di spec; pre-fill akan auto-stamp today
+      // untuk kontrak legacy yang stakeholder-nya belum punya.
+      date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
+      date_out: z.string().optional(),
     })).optional(),
     // Hot-fix #92: konsumen team di-track di form state supaya auto-sync
     // dari stakeholder consumer bisa push data_domain-nya. Edit page juga
@@ -188,6 +192,11 @@ export default function EditContractPage() {
           role: s.role ?? '',
           email: s.email ?? '',
           username: s.username ?? undefined,
+          // #114 T1.3 — normalize ISO timestamp ke YYYY-MM-DD untuk <input type="date">.
+          // Kontrak legacy yang stakeholder belum punya date_in: stamp today
+          // supaya zod required tidak block, & user bisa over-ride sebelum save.
+          date_in: toDateInput(s.date_in) || new Date().toISOString().slice(0, 10),
+          date_out: toDateInput(s.date_out),
         })),
         // #92: round-trip metadata.consumer[] supaya nilai existing tidak
         // hilang silent saat submit (form sebelumnya tidak punya field ini).
@@ -540,7 +549,7 @@ export default function EditContractPage() {
                     <CardDescription>Orang-orang yang terlibat dalam kontrak ini</CardDescription>
                   </div>
                   <Button type="button" variant="outline" size="sm"
-                    onClick={() => addStakeholder({ name: '', role: '', email: '', username: undefined })}>
+                    onClick={() => addStakeholder({ name: '', role: '', email: '', username: undefined, date_in: new Date().toISOString().slice(0, 10), date_out: '' })}>
                     <Plus size={14} className="mr-1" />Tambah
                   </Button>
                 </div>
@@ -624,6 +633,17 @@ export default function EditContractPage() {
                       {needsUsername && !usernameVal && (
                         <p className="text-[11px] text-amber-700">Tanpa akun, stakeholder ini tidak dihitung sebagai approver Owner/Producer/Consumer.</p>
                       )}
+                    </div>
+                    {/* #114 T1.3 — Tanggal in/out */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tanggal Mulai *</Label>
+                        <Input type="date" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.date_in`)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tanggal Berakhir <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                        <Input type="date" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.date_out`)} />
+                      </div>
                     </div>
                   </div>
                   )
