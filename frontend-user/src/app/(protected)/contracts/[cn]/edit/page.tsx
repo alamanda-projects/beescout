@@ -5,7 +5,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic } from '@/lib/api/contracts'
 import { getDomainsBasic } from '@/lib/api/domains'
 import { getMe } from '@/lib/api/auth'
@@ -93,6 +93,7 @@ const SECTIONS = ['Informasi Dasar', 'SLA & Pemangku', 'Struktur Data', 'Koneksi
 export default function EditContractPage() {
   const { cn } = useParams<{ cn: string }>()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [activeSection, setActiveSection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
@@ -243,6 +244,9 @@ export default function EditContractPage() {
         examples: (contract as any)?.examples ?? { type: null, data: null },
       }
       await updateContract(cn, payload)
+      // Detail page cache 'contract' bisa stale (mis. tab YAML masih
+      // tampilkan data lama). Invalidate sebelum redirect agar refetch.
+      await queryClient.invalidateQueries({ queryKey: ['contract', cn] })
       toast.success('Perubahan berhasil diajukan dan menunggu persetujuan')
       router.push(`/contracts/${cn}`)
     } catch (err: unknown) {
