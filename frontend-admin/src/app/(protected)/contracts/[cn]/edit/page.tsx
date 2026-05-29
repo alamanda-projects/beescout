@@ -278,8 +278,9 @@ export default function EditContractPage() {
       }
       await updateContract(cn, payload)
       // Detail page cache 'contract' bisa stale (mis. tab YAML masih
-      // tampilkan data lama). Invalidate sebelum redirect agar refetch.
-      await queryClient.invalidateQueries({ queryKey: ['contract', cn] })
+      // tampilkan data lama). Mark stale TANPA await — kalau refetch
+      // throw karena alasan apa pun, jangan ganggu success path.
+      queryClient.invalidateQueries({ queryKey: ['contract', cn] })
       toast.success('Data contract berhasil diperbarui!')
       router.push(`/contracts/${cn}`)
     } catch (err: unknown) {
