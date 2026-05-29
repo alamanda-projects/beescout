@@ -94,12 +94,15 @@ class Metadata(BaseModel):
     stakeholders: Optional[List[MetadataStakeholders]] = None
     quality: Optional[List[MetadataQuality]] = None
     sla: Optional[MetadataSla] = None
-    # Lifecycle kontrak (#103, standard_version 0.5.0). PR-C tighten ke
-    # required setelah FE wizard expose input. Compat shim di model_validator
-    # auto-promote legacy `sla.effective_date` / `sla.end_of_contract` agar
-    # API client lama tetap jalan.
-    effective_date: str
-    expiry_date: str
+    # Lifecycle kontrak (#103, standard_version 0.5.0). Optional di lapis
+    # Pydantic agar read path (mis. /datacontract/lists) tidak crash untuk
+    # kontrak legacy yang tidak punya field ini sama sekali. Enforcement
+    # required terjadi di tiga lapis lain: FE zod (input wizard), strict
+    # YAML validator (import YAML), write-time check di handler /add &
+    # /update (lihat main.py). Compat shim auto-promote legacy
+    # `sla.effective_date` / `sla.end_of_contract`.
+    effective_date: Optional[str] = None
+    expiry_date: Optional[str] = None
     prev_contract: Optional[str] = None
     contract_reference: Optional[List[MetadataContractReference]] = None
 

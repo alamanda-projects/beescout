@@ -1,28 +1,26 @@
 """
-Tests untuk compat shim & required Metadata.effective_date / expiry_date (#103).
+Tests untuk compat shim Metadata.effective_date / expiry_date (#103).
 
-PR-C: keduanya wajib di Pydantic top-level. Compat shim tetap aktif:
-payload lama dengan `sla.effective_date` / `sla.end_of_contract` di-promote
-ke top-level otomatis sebelum validasi.
+Lapis Pydantic Optional supaya read path lenient terhadap kontrak legacy
+yang tidak punya field ini. Required enforcement ada di:
+- FE zod (form wizard)
+- Strict YAML validator (Layer 2 di main.py)
+- Write-time check di handler /datacontract/add & /update
+
+Compat shim tetap aktif: payload lama dengan `sla.effective_date` /
+`sla.end_of_contract` di-promote ke top-level otomatis.
 """
-
-import pytest
-from pydantic import ValidationError
 
 from app.model.metadata import Metadata
 
 
 def _base_metadata(**overrides) -> dict:
-    """Metadata minimal yang valid (4 required field), lalu di-override.
-    Sejak PR-C, effective_date & expiry_date juga wajib — caller perlu
-    inject keduanya kecuali sedang menguji error path."""
+    """Metadata minimal yang valid (4 required field), lalu di-override."""
     base = {
         "version": "1.0.0",
         "type": "CSV",
         "name": "customer list",
         "owner": "marketing",
-        "effective_date": "2024-01-01",
-        "expiry_date": "2025-12-31",
     }
     base.update(overrides)
     return base
@@ -50,17 +48,13 @@ def test_legacy_sla_fields_promoted_to_toplevel():
     assert getattr(m.sla, "end_of_contract", None) is None
 
 
-def test_legacy_sla_only_one_field_errors_without_other():
-    """Hanya end_of_contract di legacy → expiry_date terpromote, tapi
-    effective_date kosong → required error (PR-C tighten)."""
-    raw = {
-        "version": "1.0.0", "type": "CSV", "name": "customer list", "owner": "marketing",
-        "sla": {"frequency": 4, "end_of_contract": "2025-12-31"},
-    }
-    with pytest.raises(ValidationError) as exc:
-        Metadata.model_validate(raw)
-    msg = str(exc.value)
-    assert "effective_date" in msg
+def test_legacy_sla_only_one_field_promoted():
+    """Hanya end_of_contract di legacy → expiry_date terpromote, effective_date
+    tetap None (Optional di lapis Pydantic — enforcement di layer atas)."""
+    raw = _base_metadata(sla={"frequency": 4, "end_of_contract": "2025-12-31"})
+    m = Metadata.model_validate(raw)
+    assert m.effective_date is None
+    assert m.expiry_date == "2025-12-31"
 
 
 # ── Top-level wins kalau ada konflik ─────────────────────────────────────────
@@ -104,14 +98,11 @@ def test_no_sla_block_at_all():
     assert m.sla is None
 
 
-def test_empty_period_now_raises_validation_error():
-    """PR-C: keduanya wajib. Payload tanpa effective_date & expiry_date di
-    manapun (top-level maupun legacy sla.*) harus gagal validasi."""
-    raw = {
-        "version": "1.0.0", "type": "CSV", "name": "customer list", "owner": "marketing",
-    }
-    with pytest.raises(ValidationError) as exc:
-        Metadata.model_validate(raw)
-    msg = str(exc.value)
-    assert "effective_date" in msg
-    assert "expiry_date" in msg
+def test_empty_period_valid_at_pydantic_layer():
+    """Lapis Pydantic Optional — tidak error kalau kontrak legacy tanpa
+    period field. Required enforcement ada di FE zod + YAML validator +
+    handler check di /add & /update (lihat docstring modul)."""
+    raw = _base_metadata()
+    m = Metadata.model_validate(raw)
+    assert m.effective_date is None
+    assert m.expiry_date is None

@@ -967,6 +967,14 @@ async def insert_datacontract(
     user_status = current_user["sts"]
     await access_verification(user_level, user_status, grplvlall)
 
+    # Write-time spec enforcement (#103): Pydantic Metadata Optional agar
+    # read path lenient untuk kontrak legacy, tapi write tetap strict.
+    if not data.metadata.effective_date or not data.metadata.expiry_date:
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
+        )
+
     payload = data.dict()
     payload["created_by"] = current_user["usr"]
     payload["managers"] = []
@@ -1007,6 +1015,13 @@ async def update_datacontract(
         is_manager = username in (existing.get("managers") or [])
         if not is_owner and not is_manager:
             raise HTTPException(status_code=403, detail=random.choice(usrnotallowed))
+
+    # Write-time spec enforcement (#103): sama dgn /add.
+    if not data.metadata.effective_date or not data.metadata.expiry_date:
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
+        )
 
     try:
         payload = data.dict()
@@ -1083,7 +1098,11 @@ async def get_datacontract(current_user: dict = Depends(token_verification)):
             {"_id": 0}
         ).to_list(None)
 
-    return [All(**doc) for doc in docs] if docs else []
+    # Read path lenient: kontrak legacy bisa missing field yang sekarang
+    # mandatory di spec (mis. effective_date #103, bool flags #102). Pydantic
+    # re-validate di sini akan 500 untuk satu doc rusak → seluruh list gagal.
+    # Cukup return raw dicts; FE handle missing field dengan ??.
+    return docs or []
 
 
 @app.get("/datacontract/mine", tags=["datacontract"])
@@ -1099,7 +1118,8 @@ async def get_my_contracts(current_user: dict = Depends(token_verification)):
         {"_id": 0}
     ).to_list(None)
 
-    return [All(**doc) for doc in docs] if docs else []
+    # Lihat catatan di /datacontract/lists — read path lenient.
+    return docs or []
 
 
 @app.get("/datacontract/metadata", tags=["datacontract"])
