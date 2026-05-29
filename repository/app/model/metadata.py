@@ -5,7 +5,7 @@
 # # # Function: BaseModel Data Contract - Metadata section
 # # # =======================
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Optional, Union
 
 # # # ----------------------- Model Hierarchy
@@ -28,13 +28,14 @@ class MetadataSla(BaseModel):
     frequency_cron: Optional[str] = None
     retention: Optional[int] = None
     retention_unit: Optional[str] = None
-    effective_date: Optional[str] = None
-    end_of_contract: Optional[str] = None
     # UI aliases (#102): tidak ada di BeeScout spec — dipakai FE wizard untuk
     # convenience input. `availability` = string ringkas "99.9%"; `cron` =
     # alias `frequency_cron`. Konsolidasi ke field spec di Phase 2 PR-B.
     availability: Optional[str] = None
     cron: Optional[str] = None
+    # NB: `effective_date` & `end_of_contract` dipindah ke Metadata top-level
+    # sebagai `effective_date` & `expiry_date` di standard_version 0.5.0 (#103).
+    # Payload lama tetap diterima via Metadata.model_validator (auto-promote).
 
 
 class MetadataQualityCustom(BaseModel):
@@ -93,5 +94,30 @@ class Metadata(BaseModel):
     stakeholders: Optional[List[MetadataStakeholders]] = None
     quality: Optional[List[MetadataQuality]] = None
     sla: Optional[MetadataSla] = None
+    # Lifecycle kontrak (#103, standard_version 0.5.0). Spec: keduanya YES
+    # required; tetap Optional di lapis Pydantic sampai FE wizard expose
+    # input (PR-C) — pola sama seperti field SLA lain di audit #102.
+    effective_date: Optional[str] = None
+    expiry_date: Optional[str] = None
     prev_contract: Optional[str] = None
     contract_reference: Optional[List[MetadataContractReference]] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _promote_legacy_period(cls, data):
+        """Backward-compat (#103): payload lama yang menaruh `effective_date`
+        & `end_of_contract` di `sla.*` di-promote ke top-level sebelum
+        validasi. Membuat FE/API client lama tetap bekerja sampai mereka
+        update ke shape baru."""
+        if not isinstance(data, dict):
+            return data
+        sla = data.get("sla")
+        if not isinstance(sla, dict):
+            return data
+        if data.get("effective_date") in (None, "") and sla.get("effective_date"):
+            data["effective_date"] = sla["effective_date"]
+        if data.get("expiry_date") in (None, "") and sla.get("end_of_contract"):
+            data["expiry_date"] = sla["end_of_contract"]
+        sla.pop("effective_date", None)
+        sla.pop("end_of_contract", None)
+        return data
