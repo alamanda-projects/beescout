@@ -19,7 +19,7 @@
 |---|---|---|---|
 | Data Contract | Kontrak Data | Kesepakatan formal antara pihak yang menyediakan data dan yang memakai, berisi struktur, kualitas, dan komitmen layanan | Kontrak Data |
 | Data Producer | Penyedia Data | Pihak/sistem yang menghasilkan data dan bertanggung jawab atas kualitasnya | Penyedia Data |
-| Data Consumer | Pengguna Data | Pihak/sistem yang memakai data untuk analisis, laporan, atau pipeline lanjutan | Pengguna Data |
+| Data Consumer | Pengguna Data | Pihak/sistem yang memakai data untuk analisis, laporan, atau pipeline lanjutan. **Dua representasi berbeda** (ADR-0007): `metadata.consumer[]` = field **documentary** (nama tim + `use_case`, "siapa pakai untuk apa") yang **tidak** menentukan akses; `metadata.stakeholders[role=consumer]` = per-orang ber-`username` yang **menentukan** akses-view + approval. Lihat baris _Data Domain_. | Pengguna Data |
 | Stewardship | Tata Kelola | Aktivitas menjaga kualitas, kepatuhan, dan akuntabilitas data | Tata Kelola |
 | Data Steward | Pengelola Data | Orang yang bertanggung jawab atas kualitas dan dokumentasi sebuah dataset (persona Bu Retno) | Pengelola Data |
 | Schema | Struktur Data | Definisi kolom-kolom data: nama, tipe, constraint | Struktur Data |
@@ -48,7 +48,7 @@
 | RBAC (Role-Based Access Control) | Hak Akses Berdasarkan Peran | Sistem keamanan: hak akses ditentukan berdasarkan peran user | (umumnya di docs/dev, jarang di UI) |
 | Role / Group Access | Peran (sistem) | Kategori user di sistem: `root`, `admin`, `developer`, `business_user` (alias `user`). **Beda dari Stakeholder Role** — yang ini melekat ke akun user, bukan ke kontrak. | Peran |
 | Stakeholder Role | Peran (di Kontrak) | Fungsi user terhadap **kontrak spesifik**: `owner`, `producer`, `consumer`, `reviewer`. **Bukan job title.** 1 user dengan jabatan sama bisa berbeda role di kontrak berbeda (mis. Mas Dimas jadi `producer` di Kontrak A, `consumer` di Kontrak B). Spec: [`/data-contract/docs/README.md`](../data-contract/docs/README.md) line 94. | Pemilik / Produser / Konsumen / Pengawas |
-| Data Domain | Domain Data | Pengelompokan data berdasarkan unit bisnis (mis. penjualan, marketing, finance) | Domain Data |
+| Data Domain | Domain Data | Pengelompokan data berdasarkan unit bisnis (mis. penjualan, marketing, finance), tersimpan di tiap user sebagai `data_domain`. **Kunci akses-view kontrak** (ADR-0007): sebuah kontrak terlihat oleh tim bila ada `stakeholders[role∈(consumer,producer)]` ber-`username` yang `data_domain`-nya = slug tim — diturunkan oleh `derive_team_scope()`. `metadata.consumer[].name` **tidak** lagi dipakai untuk akses (#94 Phase 3). | Domain Data |
 | Service Account | Akun Layanan | Akun khusus untuk sistem-ke-sistem (bukan manusia), pakai key bukan password | Akun Layanan / SA |
 | JWT | Token Sesi | Tanda bukti login dalam bentuk string ber-enkripsi | (tersembunyi di cookie, jarang ditampilkan) |
 
