@@ -26,3 +26,36 @@ export const emailField = () =>
     (v) => v === '' || z.string().email().safeParse(v).success,
     { message: 'Format email tidak valid' },
   )
+
+/**
+ * Username: 3–50 karakter, hanya huruf/angka/garis bawah (tanpa spasi atau
+ * simbol). Dipakai saat membuat akun baru (user create, setup root pertama).
+ */
+export const usernameField = () =>
+  z.string()
+    .min(3, 'Minimal 3 karakter')
+    .max(50, 'Maksimal 50 karakter')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Hanya huruf, angka, dan garis bawah')
+
+/**
+ * Password kuat: min 8 karakter dengan huruf besar, kecil, angka, dan
+ * karakter khusus. Dipakai saat set password (user create, setup).
+ */
+export const strongPassword = (msg = 'Minimal 8 karakter') =>
+  z.string()
+    .min(8, msg)
+    .regex(/[A-Z]/, 'Harus ada huruf besar')
+    .regex(/[a-z]/, 'Harus ada huruf kecil')
+    .regex(/[0-9]/, 'Harus ada angka')
+    .regex(/[^A-Za-z0-9]/, 'Harus ada karakter khusus')
+
+/**
+ * Password opsional yang divalidasi kekuatan-nya HANYA bila diisi — untuk
+ * form edit user (kosong = tidak mengubah password). Pakai refine supaya
+ * field kosong lolos tanpa memicu rule strength.
+ */
+export const optionalStrongPassword = () =>
+  z.string().refine(
+    (v) => v === '' || strongPassword().safeParse(v).success,
+    { message: 'Min. 8 karakter dengan huruf besar, kecil, angka, dan karakter khusus' },
+  )

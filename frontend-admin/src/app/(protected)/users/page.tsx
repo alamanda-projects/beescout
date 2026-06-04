@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { usernameField, strongPassword, optionalStrongPassword } from '@/lib/zod-helpers'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getMe } from '@/lib/api/auth'
 import { createUser, getUsers, updateUser, deleteUser, getDomains } from '@/lib/api/admin'
@@ -23,12 +24,8 @@ import { Loader2, UserPlus, Info, CheckCircle2, Users, Search, Pencil, Trash2, X
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 const createSchema = z.object({
-  username: z.string().min(3, 'Minimal 3 karakter').max(50),
-  password: z.string().min(8, 'Minimal 8 karakter')
-    .regex(/[A-Z]/, 'Harus ada huruf besar')
-    .regex(/[a-z]/, 'Harus ada huruf kecil')
-    .regex(/[0-9]/, 'Harus ada angka')
-    .regex(/[^A-Za-z0-9]/, 'Harus ada karakter khusus'),
+  username: usernameField(),
+  password: strongPassword(),
   name: z.string().min(1, 'Nama wajib diisi'),
   group_access: z.string().min(1, 'Pilih peran'),
   data_domain: z.string().min(1, 'Domain wajib diisi'),
@@ -39,7 +36,7 @@ const editSchema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
   group_access: z.string().min(1, 'Pilih peran'),
   data_domain: z.string().min(1, 'Domain wajib diisi'),
-  password: z.string().optional(),
+  password: optionalStrongPassword(),
 })
 
 type CreateFormData = z.infer<typeof createSchema>
@@ -159,6 +156,7 @@ function EditPanel({
               <div className="space-y-1">
                 <Label className="text-xs">Password Baru <span className="text-muted-foreground">(opsional)</span></Label>
                 <Input type="password" className="h-8 text-xs" placeholder="Kosongkan jika tidak diubah" {...register('password')} />
+                {errors.password && <p className="text-[10px] text-destructive">{errors.password.message}</p>}
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-1">
