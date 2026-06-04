@@ -129,6 +129,37 @@ async def test_add_contract_ok_when_stakeholder_has_email(client, auth_bypass):
 
 
 @pytest.mark.asyncio
+async def test_add_contract_returns_422_when_model_type_missing(client, auth_bypass):
+    """#102 PR-B slice 3: kolom ber-name tanpa logical_type/physical_type → 422."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+
+    payload = {**VALID_CONTRACT,
+               "model": [{"column": "id", "logical_type": "UUID"}]}  # physical_type hilang
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 422, response.text
+    assert "physical_type" in response.text or "logical_type" in response.text
+    mocks["dgr"].insert_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_add_contract_ok_when_model_types_present(client, auth_bypass):
+    """Kolom lengkap (logical + physical) → lolos write-check."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+    mocks["dgr"].insert_one.return_value = None
+
+    payload = {**VALID_CONTRACT,
+               "model": [{"column": "id", "logical_type": "UUID",
+                          "physical_type": "VARCHAR(36)"}]}
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 200, response.text
+    mocks["dgr"].insert_one.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_add_contract_returns_409_on_duplicate_key_race(client, auth_bypass):
     """
     Race condition: find_one melaporkan kosong, tapi insert_one race-condition

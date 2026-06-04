@@ -74,8 +74,8 @@ const schema = z.object({
   model: z.array(z.object({
     column: z.string().min(1, 'Nama kolom wajib diisi'),
     business_name: z.string().optional(),
-    logical_type: z.string().optional(),
-    physical_type: z.string().optional(),
+    logical_type: requiredString('Tipe Data Bisnis wajib diisi'),
+    physical_type: requiredString('Tipe Data Teknis wajib diisi'),
     description: z.string().optional(),
     is_primary: z.boolean().optional(),
     is_nullable: z.boolean().optional(),
@@ -665,7 +665,7 @@ export default function EditContractPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <Label className="text-xs">Tipe Data Bisnis</Label>
+                          <Label className="text-xs">Tipe Data Bisnis *</Label>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button type="button" aria-label="Penjelasan Tipe Data Bisnis"
@@ -677,11 +677,12 @@ export default function EditContractPage() {
                           </Tooltip>
                         </div>
                         <Input placeholder="Contoh: Tanggal, Nama, Nilai..." className="h-8 text-xs" {...register(`model.${i}.logical_type`)} />
+                        {errors.model?.[i]?.logical_type && <p className="text-[10px] text-destructive">{errors.model[i]?.logical_type?.message}</p>}
                         <p className="text-[10px] text-muted-foreground">{DATA_TYPE_HELP.logical.examples}</p>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <Label className="text-xs">Tipe Data Teknis</Label>
+                          <Label className="text-xs">Tipe Data Teknis *</Label>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button type="button" aria-label="Penjelasan Tipe Data Teknis"
@@ -693,6 +694,7 @@ export default function EditContractPage() {
                           </Tooltip>
                         </div>
                         <Input placeholder="Contoh: VARCHAR(255), INT, DATE..." className="h-8 text-xs font-mono" {...register(`model.${i}.physical_type`)} />
+                        {errors.model?.[i]?.physical_type && <p className="text-[10px] text-destructive">{errors.model[i]?.physical_type?.message}</p>}
                         <p className="text-[10px] text-muted-foreground">{DATA_TYPE_HELP.physical.examples}</p>
                       </div>
                     </div>
