@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { emailField } from '@/lib/zod-helpers'
+import { emailField, requiredString } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic } from '@/lib/api/contracts'
@@ -41,10 +41,12 @@ const schema = z.object({
     // Lifecycle kontrak (#103) — top-level metadata.
     effective_date: z.string().min(1, 'Tanggal mulai wajib diisi'),
     expiry_date: z.string().min(1, 'Tanggal berakhir wajib diisi'),
+    // #102 PR-B: spec-YES → wajib (purpose: alasan dataset ada; usage: cara
+    // pakai). Enforcement berlapis (FE zod + write-time check di main.py).
     description: z.object({
-      purpose: z.string().optional(),
-      usage: z.string().optional(),
-    }).optional(),
+      purpose: requiredString('Tujuan wajib diisi'),
+      usage: requiredString('Cara penggunaan wajib diisi'),
+    }),
     sla: z.object({
       availability: z.string().optional(),
       frequency: z.string().optional(),
@@ -457,12 +459,14 @@ export default function EditContractPage() {
               </div>
               <Separator />
               <div className="space-y-1.5">
-                <Label>Tujuan</Label>
+                <Label>Tujuan *</Label>
                 <Textarea rows={3} {...register('metadata.description.purpose')} />
+                {errors.metadata?.description?.purpose && <p className="text-xs text-destructive">{errors.metadata.description.purpose.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Cara Penggunaan</Label>
+                <Label>Cara Penggunaan *</Label>
                 <Textarea rows={3} {...register('metadata.description.usage')} />
+                {errors.metadata?.description?.usage && <p className="text-xs text-destructive">{errors.metadata.description.usage.message}</p>}
               </div>
             </CardContent>
           </Card>

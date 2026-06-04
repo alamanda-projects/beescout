@@ -16,6 +16,8 @@ VALID_CONTRACT = {
         "owner": "tim_test",
         "effective_date": "2024-01-01",
         "expiry_date": "2025-12-31",
+        # #102 PR-B: description wajib di write-path.
+        "description": {"purpose": "Analisis penjualan", "usage": "private"},
     },
     "model": [],
     "ports": [],
@@ -62,6 +64,35 @@ async def test_add_contract_returns_409_when_contract_number_exists(client, auth
 
     response = await ac.post("/datacontract/add", json=VALID_CONTRACT)
     assert response.status_code == 409
+    mocks["dgr"].insert_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_add_contract_returns_422_when_description_missing(client, auth_bypass):
+    """#102 PR-B: write-time enforcement — metadata.description.purpose & usage
+    wajib. Tanpa keduanya → 422, insert tidak dipanggil."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+
+    payload = {**VALID_CONTRACT, "metadata": {**VALID_CONTRACT["metadata"]}}
+    payload["metadata"].pop("description", None)
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 422, response.text
+    mocks["dgr"].insert_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_add_contract_returns_422_when_usage_blank(client, auth_bypass):
+    """purpose ada tapi usage kosong → tetap 422 (kedua field wajib)."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+
+    payload = {**VALID_CONTRACT, "metadata": {**VALID_CONTRACT["metadata"],
+               "description": {"purpose": "ada", "usage": "   "}}}
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 422, response.text
     mocks["dgr"].insert_one.assert_not_called()
 
 

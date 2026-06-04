@@ -267,9 +267,20 @@ Shadow class di `all.py` skipped (intentional wrapping pattern; bukan bug).
 
 ### PR-B — Make required group (sesuai spec)
 
-**Status**: menunggu maintainer flag override-relax di decision sheet (kalau ada). Tanpa flag → semua 🔴 field jadi required sesuai default.
+**Status**: 🚧 in-progress. Maintainer setuju "no override" (semua 🔴 → required).
 
-Scope:
+**Pendekatan final (revisi dari draft "Pydantic required + migration")**: ikut pola berlapis yang sudah ada di codebase (#103, #114-T1.3, lihat docstring `metadata.py` Metadata) — **Pydantic tetap `Optional` (lenient read, tanpa migration)**, enforcement required di **write-path** (`/datacontract/add` & `/update`) + **FE zod**. Ini menghindari breakage read kontrak legacy & migration berisiko. **YAML validator** = #102 Phase 3 (terpisah).
+
+Di-ship per slice (PR kecil, review mobile):
+
+- ✅ **Slice 1 — `metadata.description.purpose` + `usage`** (PR #124): FE zod required + label `*` + error inline (4 form) + step-0 trigger; write-time 422 di add/update; test. Tanpa migration (friksi edit legacy hanya 2 field).
+- ⏳ **Slice 2 — `stakeholders.email` required** (saat ini opsional+format via #122) — perlu pertimbangan backfill kontrak legacy tanpa email.
+- ⏳ **Slice 3 — `model.logical_type` + `physical_type`** (sudah di-expose wizard) — friksi sedang.
+- ⏳ **Slice 4 — `model.description`** (per-kolom, friksi tinggi) → butuh backfill migration.
+- ⏳ **Slice 5 — SLA spec fields** (`availability_*`, `frequency_unit`, `retention_unit`) → wizard pakai UI alias, perlu refactor expose field spec dulu.
+- ⏳ `stakeholders.date_in` ✅ sudah (#114 T1.3); `model.is_*` flags = boolean default, tidak butuh write-check.
+
+Scope draft awal (untuk referensi):
 - Update Pydantic model: spec-YES jadi required (atau dengan default value untuk bool yang punya safe default mis. `is_partition=false`).
 - Update FE zod schema + form wizard di 4 page (admin+user × new+edit). Field yang **belum di-expose** dan jadi required:
   - `description.purpose` & `description.usage` (wizard belum ada step "Deskripsi" eksplisit)

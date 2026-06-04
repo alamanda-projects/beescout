@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { emailField } from '@/lib/zod-helpers'
+import { emailField, requiredString } from '@/lib/zod-helpers'
 import { useRouter } from 'next/navigation'
 import { addContract, generateContractNumber, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
@@ -42,10 +42,12 @@ const schema = z.object({
     // bukan di sla. Format ISO (YYYY-MM-DD dari <input type="date">).
     effective_date: z.string().min(1, 'Tanggal mulai wajib diisi'),
     expiry_date: z.string().min(1, 'Tanggal berakhir wajib diisi'),
+    // #102 PR-B: spec-YES → wajib (purpose: alasan dataset ada; usage: cara
+    // pakai). Enforcement berlapis (FE zod + write-time check di main.py).
     description: z.object({
-      purpose: z.string().optional(),
-      usage: z.string().optional(),
-    }).optional(),
+      purpose: requiredString('Tujuan wajib diisi'),
+      usage: requiredString('Cara penggunaan wajib diisi'),
+    }),
     sla: z.object({
       availability: z.string().optional(),
       frequency: z.string().optional(),
@@ -339,7 +341,7 @@ export default function NewContractPage() {
     // Index = step. Hanya step 0 (Informasi Dasar) punya field wajib;
     // SLA/Pemangku/Struktur Data/Koneksi semuanya opsional.
     const fieldsPerStep: (keyof FormData | string)[][] = [
-      ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner', 'metadata.effective_date', 'metadata.expiry_date'],
+      ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner', 'metadata.effective_date', 'metadata.expiry_date', 'metadata.description.purpose', 'metadata.description.usage'],
       [], [], [], [],
     ]
     const valid = await form.trigger((fieldsPerStep[step] ?? []) as any)
@@ -551,14 +553,16 @@ export default function NewContractPage() {
               <Separator />
 
               <div className="space-y-1.5">
-                <Label>Tujuan</Label>
+                <Label>Tujuan *</Label>
                 <Textarea placeholder="Jelaskan tujuan penggunaan data contract ini..." rows={3}
                   {...register('metadata.description.purpose')} />
+                {errors.metadata?.description?.purpose && <p className="text-xs text-destructive">{errors.metadata.description.purpose.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Cara Penggunaan</Label>
+                <Label>Cara Penggunaan *</Label>
                 <Textarea placeholder="Bagaimana cara menggunakan data ini?" rows={3}
                   {...register('metadata.description.usage')} />
+                {errors.metadata?.description?.usage && <p className="text-xs text-destructive">{errors.metadata.description.usage.message}</p>}
               </div>
             </CardContent>
           </Card>
