@@ -974,6 +974,14 @@ async def insert_datacontract(
             status_code=422,
             detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
         )
+    # #114 T1.3 — stakeholders[].date_in wajib (spec YES). Cek per entry
+    # yang ber-name (skip baris kosong).
+    for i, s in enumerate(data.metadata.stakeholders or []):
+        if s.name and not s.date_in:
+            raise HTTPException(
+                status_code=422,
+                detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
+            )
 
     payload = data.dict()
     payload["created_by"] = current_user["usr"]
@@ -1022,6 +1030,13 @@ async def update_datacontract(
             status_code=422,
             detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
         )
+    # #114 T1.3 — stakeholders[].date_in wajib (spec YES).
+    for i, s in enumerate(data.metadata.stakeholders or []):
+        if s.name and not s.date_in:
+            raise HTTPException(
+                status_code=422,
+                detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
+            )
 
     try:
         payload = data.dict()
@@ -1575,6 +1590,14 @@ async def validate_yaml_import(
                     "field": f"metadata.stakeholders[{i}].role",
                     "message": f"Nilai role '{s['role']}' tidak valid.",
                     "suggestion": f"Ganti dengan salah satu: {', '.join(sorted(valid_roles))}",
+                })
+            # #114 T1.3 — date_in wajib di spec untuk track kapan stakeholder
+            # bergabung. Hanya check entry yang punya name (skip baris kosong).
+            if s.get("name") and not s.get("date_in"):
+                errors.append({
+                    "field": f"metadata.stakeholders[{i}].date_in",
+                    "message": "Field wajib 'date_in' tidak ditemukan atau kosong.",
+                    "suggestion": "Isi tanggal mulai bergabungnya stakeholder (ISO-8601, contoh: 2024-01-01).",
                 })
 
         sla = metadata.get("sla") or {}

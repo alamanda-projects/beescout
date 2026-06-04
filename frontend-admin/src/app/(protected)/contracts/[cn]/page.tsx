@@ -134,7 +134,7 @@ export default function AdminContractDetailPage() {
                 <CardContent>
                   <Table>
                     <TableHeader>
-                      <TableRow><TableHead>Nama</TableHead><TableHead>Peran</TableHead><TableHead>Email</TableHead><TableHead>Mulai</TableHead></TableRow>
+                      <TableRow><TableHead>Nama</TableHead><TableHead>Peran</TableHead><TableHead>Email</TableHead><TableHead>Mulai</TableHead><TableHead>Berakhir</TableHead></TableRow>
                     </TableHeader>
                     <TableBody>
                       {metadata.stakeholders.map((s: Stakeholder, i: number) => (
@@ -143,6 +143,7 @@ export default function AdminContractDetailPage() {
                           <TableCell>{getStakeholderRoleLabel(s.role)}</TableCell>
                           <TableCell className="text-muted-foreground">{s.email ?? '-'}</TableCell>
                           <TableCell className="text-muted-foreground">{formatDate(s.date_in)}</TableCell>
+                          <TableCell className="text-muted-foreground">{s.date_out ? formatDate(s.date_out) : <span className="text-emerald-600 text-xs">aktif</span>}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
