@@ -11,6 +11,9 @@ import { z } from 'zod'
  * cron, dst). Saat ini baru `emailField` yang dipakai (Phase 3a-i).
  */
 
+/** String wajib diisi — pesan Bahasa Indonesia default. */
+export const requiredString = (msg = 'Wajib diisi') => z.string().min(1, msg)
+
 /**
  * Email opsional yang format-nya divalidasi HANYA bila diisi.
  *

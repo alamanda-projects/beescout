@@ -1003,6 +1003,15 @@ async def insert_datacontract(
             status_code=422,
             detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
         )
+    # #102 PR-B: spec-YES metadata.description (purpose + usage) wajib. Pydantic
+    # tetap Optional supaya read path lenient untuk kontrak legacy; enforcement
+    # berlapis di write-path + FE zod (YAML validator menyusul di Phase 3 #102).
+    _desc = data.metadata.description
+    if not _desc or not (_desc.purpose or "").strip() or not (_desc.usage or "").strip():
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.description.purpose dan metadata.description.usage wajib diisi (#102).",
+        )
     # #114 T1.3 — stakeholders[].date_in wajib (spec YES). Cek per entry
     # yang ber-name (skip baris kosong).
     for i, s in enumerate(data.metadata.stakeholders or []):
@@ -1060,6 +1069,15 @@ async def update_datacontract(
         raise HTTPException(
             status_code=422,
             detail="metadata.effective_date dan metadata.expiry_date wajib diisi (#103).",
+        )
+    # #102 PR-B: spec-YES metadata.description (purpose + usage) wajib. Pydantic
+    # tetap Optional supaya read path lenient untuk kontrak legacy; enforcement
+    # berlapis di write-path + FE zod (YAML validator menyusul di Phase 3 #102).
+    _desc = data.metadata.description
+    if not _desc or not (_desc.purpose or "").strip() or not (_desc.usage or "").strip():
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.description.purpose dan metadata.description.usage wajib diisi (#102).",
         )
     # #114 T1.3 — stakeholders[].date_in wajib (spec YES).
     for i, s in enumerate(data.metadata.stakeholders or []):
