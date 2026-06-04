@@ -6,8 +6,9 @@ node_modules/
 # disable file
 *.disable
 
-# claude
-.claude
+# claude — abaikan semua kecuali skills tim (di-share via git)
+.claude/*
+!.claude/skills/
 
 # Local YAML
 *-local.yml
