@@ -125,14 +125,16 @@ async def access_verification_filter(
 async def derive_team_scope(contract: dict) -> set:
     """ADR-0007: tim yang punya akses (view) ke kontrak.
 
-    Source of truth: `metadata.stakeholders[*]` dengan role consumer/producer
-    dan `username` terisi → lookup user → `data_domain`. Mendukung simetri
-    producer (sebelumnya hanya consumer yang ter-filter).
+    Source of truth tunggal: `metadata.stakeholders[*]` dengan role
+    consumer/producer dan `username` terisi → lookup user → `data_domain`.
+    Mendukung simetri producer (sebelumnya hanya consumer yang ter-filter).
 
-    Phase 1 backward-compat: kalau jalur stakeholders tidak menghasilkan
-    scope apa pun (kontrak legacy / username tidak match user aktif),
-    fallback baca `metadata.consumer[].name`. Fallback dihapus di Phase 3
-    setelah migration legacy selesai.
+    Phase 3 (#94): fallback ke `metadata.consumer[].name` sudah dihapus —
+    migration legacy (`migrate_consumer_to_stakeholders.py`) telah dijalankan
+    & diverifikasi di production. `metadata.consumer[]` kini murni field
+    documentary (`use_case`), tidak lagi dipakai untuk access-control.
+    Kontrak tanpa stakeholder consumer/producer ber-username → scope kosong
+    (hanya admin/root yang melihatnya).
     """
     metadata = contract.get("metadata") or {}
     stakeholders = metadata.get("stakeholders") or []
@@ -140,18 +142,15 @@ async def derive_team_scope(contract: dict) -> set:
         s.get("username") for s in stakeholders
         if s.get("role") in ("consumer", "producer") and s.get("username")
     ]
-    if usernames:
-        cursor = usrcollection.find(
-            {"username": {"$in": usernames}, "is_active": True},
-            {"_id": 0, "username": 1, "data_domain": 1},
-        )
-        users = await cursor.to_list(None)
-        scope = {u["data_domain"] for u in users if u.get("data_domain")}
-        if scope:
-            return scope
+    if not usernames:
+        return set()
 
-    legacy = [m.get("name") for m in (metadata.get("consumer") or [])]
-    return {n for n in legacy if n}
+    cursor = usrcollection.find(
+        {"username": {"$in": usernames}, "is_active": True},
+        {"_id": 0, "username": 1, "data_domain": 1},
+    )
+    users = await cursor.to_list(None)
+    return {u["data_domain"] for u in users if u.get("data_domain")}
 
 
 # # Function to verify the token & sakey

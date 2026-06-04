@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic, getUsers } from '@/lib/api/admin'
+import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import QualityRulesEditor from '@/components/quality/QualityRulesEditor'
@@ -116,12 +116,6 @@ export default function EditContractPage() {
   const { data: userOptions = [] } = useQuery({ queryKey: ['users-basic'], queryFn: getUsersBasic })
   // Katalog domain untuk dropdown Pemilik (#73).
   const { data: domainOptions = [] } = useQuery({ queryKey: ['domains-basic'], queryFn: getDomainsBasic })
-  // Detail user untuk lookup data_domain saat auto-sync konsumen (#92 hot-fix).
-  const { data: usersDetail = [] } = useQuery({ queryKey: ['users-detail'], queryFn: getUsers })
-  const domainByUsername = useMemo(
-    () => new Map(usersDetail.map(u => [u.username, u.data_domain])),
-    [usersDetail],
-  )
 
   const { data: contract, isLoading } = useQuery({
     queryKey: ['contract', cn],
@@ -198,8 +192,8 @@ export default function EditContractPage() {
           date_in: toDateInput(s.date_in) || new Date().toISOString().slice(0, 10),
           date_out: toDateInput(s.date_out),
         })),
-        // #92: round-trip metadata.consumer[] supaya nilai existing tidak
-        // hilang silent saat submit (form sebelumnya tidak punya field ini).
+        // Round-trip metadata.consumer[] (field documentary use_case, ADR-0007)
+        // supaya nilai existing tidak hilang silent saat submit.
         consumer: ((m as any).consumer ?? []).map((c: any) => ({
           name: c.name ?? '',
           use_case: c.use_case ?? '',
@@ -242,18 +236,6 @@ export default function EditContractPage() {
   const { fields: ports, append: addPort, remove: removePort } = useFieldArray({ control: form.control, name: 'ports' })
   const { fields: qualityRules, append: addQuality, remove: removeQuality } = useFieldArray({ control: form.control, name: 'metadata.quality' })
 
-  // Hot-fix #92: kalau stakeholder ber-role consumer + punya username, push
-  // data_domain user-nya ke metadata.consumer[] (jika belum ada). Tidak
-  // pernah auto-remove — lebih aman terlalu permisif.
-  const syncConsumerTeam = (username: string | undefined, role: string) => {
-    if (role !== 'consumer' || !username) return
-    const team = domainByUsername.get(username)
-    if (!team) return
-    const current = form.getValues('metadata.consumer') ?? []
-    if (current.some(c => c.name === team)) return
-    form.setValue('metadata.consumer', [...current, { name: team, use_case: '' }])
-    toast.info(`Tim "${team}" otomatis ditambahkan ke Konsumen.`)
-  }
 
   const [retentionValue, setRetentionValue] = useState('')
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
@@ -575,9 +557,6 @@ export default function EditContractPage() {
                         value={role}
                         onValueChange={(v) => {
                           setValue(`metadata.stakeholders.${i}.role`, v)
-                          // #92 auto-sync: kalau jadi consumer & username
-                          // sudah dipilih, push team-nya ke consumer[].
-                          syncConsumerTeam(usernameVal || undefined, v)
                         }}
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih peran" /></SelectTrigger>
@@ -616,8 +595,6 @@ export default function EditContractPage() {
                         onValueChange={(v) => {
                           const newUsername = v === '__none__' ? undefined : v
                           setValue(`metadata.stakeholders.${i}.username`, newUsername)
-                          // #92 auto-sync untuk role consumer.
-                          syncConsumerTeam(newUsername, role)
                         }}
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih akun" /></SelectTrigger>

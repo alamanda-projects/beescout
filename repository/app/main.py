@@ -46,8 +46,37 @@ from app.core.verificator import (
 )
 from app.info.app_info import *
 from decouple import config
+import logging
 import random
 import yaml
+
+logger = logging.getLogger("beescout")
+
+
+def _warn_consumer_without_stakeholders(data) -> None:
+    """ADR-0007 (#94) mitigasi: dorong admin lengkapi stakeholders.
+
+    Sejak Phase 3, akses-view kontrak derive dari `stakeholders[role IN
+    (consumer, producer)]` (lihat `derive_team_scope`). `metadata.consumer[]`
+    kini documentary saja. Bila admin mengisi `consumer[]` tapi tidak ada
+    stakeholder consumer/producer ber-username, tim itu tidak akan melihat
+    kontrak — log warning agar bisa ditindaklanjuti. Non-blocking.
+    """
+    metadata = data.metadata
+    consumers = getattr(metadata, "consumer", None) or []
+    if not any(getattr(c, "name", None) for c in consumers):
+        return
+    has_access_stakeholder = any(
+        getattr(s, "role", None) in ("consumer", "producer") and getattr(s, "username", None)
+        for s in (getattr(metadata, "stakeholders", None) or [])
+    )
+    if not has_access_stakeholder:
+        logger.warning(
+            "Kontrak %s punya metadata.consumer[] tapi tanpa stakeholder "
+            "consumer/producer ber-username — tim consumer tidak akan melihat "
+            "kontrak ini (ADR-0007).",
+            getattr(data, "contract_number", "<unknown>"),
+        )
 
 # Origins allowed to make cross-origin requests (comma-separated in env)
 _raw_origins = config("ALLOWED_ORIGINS", default="http://localhost:3000,http://localhost:3001")
@@ -983,6 +1012,8 @@ async def insert_datacontract(
                 detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
             )
 
+    _warn_consumer_without_stakeholders(data)
+
     payload = data.dict()
     payload["created_by"] = current_user["usr"]
     payload["managers"] = []
@@ -1037,6 +1068,8 @@ async def update_datacontract(
                 status_code=422,
                 detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
             )
+
+    _warn_consumer_without_stakeholders(data)
 
     try:
         payload = data.dict()

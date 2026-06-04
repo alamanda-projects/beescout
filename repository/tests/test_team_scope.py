@@ -1,10 +1,14 @@
 """
-Tests for ADR-0007 Phase 1 (#94): derive_team_scope helper + integration di
+Tests for ADR-0007 derive_team_scope helper + integration di
 /datacontract/filter list mode + access_verification_filter.
 
 Sumber kebenaran scope visibilitas: metadata.stakeholders[role IN
-(consumer, producer)].username → user.data_domain. Fallback ke
-metadata.consumer[].name selama Phase 1 (backward-compat kontrak legacy).
+(consumer, producer)].username → user.data_domain.
+
+Phase 3 (#94): fallback ke metadata.consumer[].name SUDAH DIHAPUS — migration
+legacy sudah dijalankan & diverifikasi di production. Kontrak tanpa stakeholder
+consumer/producer ber-username aktif → scope kosong (hanya admin/root yang
+melihatnya). `metadata.consumer[]` kini murni documentary (use_case).
 """
 
 import pytest
@@ -55,7 +59,7 @@ async def test_derive_scope_from_stakeholders(client):
                 {"username": "indah", "role": "producer"},
                 {"username": "bambang", "role": "owner"},  # owner: tidak ikut scope
             ],
-            "consumer": [{"name": "harus-diabaikan"}],  # tidak fallback karena stakeholders jalan
+            "consumer": [{"name": "harus-diabaikan"}],  # documentary — tidak pernah jadi scope
         }
     }
     scope = await derive_team_scope(contract)
@@ -63,9 +67,9 @@ async def test_derive_scope_from_stakeholders(client):
 
 
 @pytest.mark.asyncio
-async def test_derive_scope_fallback_to_consumer_legacy(client):
-    """Kontrak legacy tanpa stakeholders ber-username → fallback baca
-    metadata.consumer[].name (Phase 1 backward-compat)."""
+async def test_derive_scope_legacy_consumer_no_longer_visible(client):
+    """Phase 3: kontrak legacy tanpa stakeholders ber-username → scope KOSONG.
+    Fallback ke metadata.consumer[].name sudah dihapus (migration prod selesai)."""
     _, mocks = client
     from app.core.verificator import derive_team_scope
 
@@ -77,13 +81,13 @@ async def test_derive_scope_fallback_to_consumer_legacy(client):
         }
     }
     scope = await derive_team_scope(contract)
-    assert scope == {"penjualan", "analytics"}
+    assert scope == set()
 
 
 @pytest.mark.asyncio
-async def test_derive_scope_fallback_when_stakeholder_user_inactive(client):
-    """Username di stakeholders ada, tapi user di DB inactive → fallback ke
-    consumer[] supaya kontrak tidak hilang dari user lain di tim itu."""
+async def test_derive_scope_inactive_stakeholder_user_no_fallback(client):
+    """Username di stakeholders ada, tapi user di DB inactive → scope KOSONG.
+    Phase 3: tidak ada lagi fallback ke consumer[]."""
     _, mocks = client
     from app.core.verificator import derive_team_scope
 
@@ -96,7 +100,7 @@ async def test_derive_scope_fallback_when_stakeholder_user_inactive(client):
         }
     }
     scope = await derive_team_scope(contract)
-    assert scope == {"penjualan"}
+    assert scope == set()
 
 
 @pytest.mark.asyncio
@@ -117,10 +121,12 @@ async def test_derive_scope_empty_when_no_source(client):
 @pytest.mark.asyncio
 async def test_filter_list_developer_sees_only_team_scope(client, override_token):
     """Developer tim 'penjualan' → hanya melihat kontrak yang scope-nya
-    mengandung 'penjualan' (lewat stakeholder atau fallback consumer[])."""
+    mengandung 'penjualan' via stakeholder. Phase 3: kontrak legacy yang hanya
+    punya consumer[]='penjualan' (tanpa stakeholder ber-username) TIDAK terlihat."""
     ac, mocks = client
 
-    # Dua kontrak: satu via stakeholders, satu via consumer[] legacy.
+    # Dua kontrak: CN-1 via stakeholders (terlihat), CN-2 legacy consumer[]
+    # 'penjualan' tanpa stakeholder ber-username → tidak terlihat (fallback gone).
     mocks["dgr"].find = MagicMock(return_value=_cursor([
         {
             "standard_version": "1.0",
@@ -138,7 +144,7 @@ async def test_filter_list_developer_sees_only_team_scope(client, override_token
             "metadata": {
                 "version": "1.0", "type": "CSV", "name": "Other", "owner": "x",
                 "effective_date": "2024-01-01", "expiry_date": "2025-12-31",
-                "consumer": [{"name": "marketing"}],  # not penjualan
+                "consumer": [{"name": "penjualan"}],  # legacy-only → tak lagi terlihat
             },
             "model": [], "ports": [], "examples": {"type": None, "data": None},
         },

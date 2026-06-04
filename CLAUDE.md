@@ -56,7 +56,7 @@ Use the plan mode (Claude Code) or write a plan file to `.github/` / comment on 
 - **`retention`** is stored as `int` + separate `retention_unit: str` (values: `tahun | bulan | pekan | hari | jam`). Never combine into one string.
 - **JWT tokens** live in httpOnly cookies — never localStorage. Default access token expiry: 180 minutes (3 hours).
 - **MongoDB collections** are configured via env (`MONGODB_COL_*`). Common ones: `dgr` (contracts), `dgrusr` (users), `approvals`, `domains` (standardised team domains — see below). See `core/connection.py`.
-- **`data_domain` is an access key** — it must match contract `metadata.consumer[].name` via exact string. The `domains` collection (managed via `/domain/*`, admin only) is the curated source of valid slugs. New user create/edit validates `data_domain` against it through `validate_data_domain()` in `main.py` — but validation is **skipped while the `domains` collection is empty** (backward compatible). Slugs are lowercase, hyphenated (`slugify_domain()`); domains are soft-deleted (`is_active: false`), never hard-deleted.
+- **`data_domain` is an access key** — a contract is visible to a team when one of its `metadata.stakeholders[]` with `role` ∈ (`consumer`, `producer`) has a `username` whose user's `data_domain` equals the team slug (ADR-0007 / `derive_team_scope()`). `metadata.consumer[].name` is documentary only and **no longer** used for access (the legacy exact-string match was removed in #94 Phase 3). The `domains` collection (managed via `/domain/*`, admin only) is the curated source of valid slugs. New user create/edit validates `data_domain` against it through `validate_data_domain()` in `main.py` — but validation is **skipped while the `domains` collection is empty** (backward compatible). Slugs are lowercase, hyphenated (`slugify_domain()`); domains are soft-deleted (`is_active: false`), never hard-deleted.
 - **Role gating dependencies**: use the helpers in `main.py` — `require_root`, `require_admin`, `require_any`. Don't re-implement role checks inline.
 - **Endpoint naming**: lowercase + slash-separated noun + verb (e.g., `/datacontract/lists`, `/user/create`, `/approval/{id}/vote`).
 
@@ -66,10 +66,12 @@ Use the plan mode (Claude Code) or write a plan file to `.github/` / comment on 
 |---|---|---|---|
 | `root` | Admin | All contracts | Plus user management of non-root |
 | `admin` | Admin | All contracts | Acts as steward |
-| `developer` | User | Contracts where user's team is in `metadata.consumer[]` | Technical lens (`eng` mode); plus generate SA keys |
-| `user` | User | Contracts where user's team is in `metadata.consumer[]` | Business lens (`biz` mode) |
+| `developer` | User | Contracts where user's team is a consumer/producer **stakeholder** | Technical lens (`eng` mode); plus generate SA keys |
+| `user` | User | Contracts where user's team is a consumer/producer **stakeholder** | Business lens (`biz` mode) |
 
-> **Important**: `developer` and `user` share the **same scope** — both see contracts where their team (user's `data_domain`) is listed as a consumer. A team is the unit, containing both technical and business members. They differ in mindset/UI mode, not in access. Cross-team visibility is the steward's (`admin`) responsibility. See [docs/personas.md](docs/personas.md).
+> **Important**: `developer` and `user` share the **same scope** — both see contracts where their team (user's `data_domain`) is derived from a `metadata.stakeholders[]` entry with `role` ∈ (`consumer`, `producer`) and a linked `username`. A team is the unit, containing both technical and business members. They differ in mindset/UI mode, not in access. Cross-team visibility is the steward's (`admin`) responsibility. See [docs/personas.md](docs/personas.md).
+>
+> **Access derives from stakeholders, not `metadata.consumer[]`** (ADR-0007, #94). The single source of truth is `derive_team_scope()` in [`verificator.py`](repository/app/core/verificator.py): it maps `stakeholders[role IN (consumer,producer)].username → user.data_domain`. `metadata.consumer[]` is **documentary only** (`use_case` — who uses the data for what) and is **never** read for access-control. Producer teams get symmetric visibility for free. A contract with no consumer/producer stakeholder bearing an active `username` is visible only to `admin`/`root`.
 >
 > Note: `/datacontract/lists` additionally surfaces contracts where the user is `created_by` or in `managers` — this is the "my responsibilities" lens (separate from the consumer-team scope above).
 

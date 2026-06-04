@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { addContract, generateContractNumber, getUsersBasic, getDomainsBasic, getUsers } from '@/lib/api/admin'
+import { addContract, generateContractNumber, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
 import { useQuery } from '@tanstack/react-query'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
@@ -63,10 +63,9 @@ const schema = z.object({
       date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
       date_out: z.string().optional(),
     })).optional(),
-    // Hot-fix #92: tim konsumen di-track di form state supaya saat user
-    // menambah stakeholder ber-role consumer dengan username, data_domain-nya
-    // bisa otomatis di-push ke sini (tanpa step UI eksplisit). Solusi permanen
-    // menunggu ADR-0007 (#93).
+    // ADR-0007 (#94): `consumer[]` field documentary (use_case) — siapa pakai
+    // data untuk apa. BUKAN access-control; visibilitas kontrak derive dari
+    // stakeholders[role=consumer/producer] di backend (derive_team_scope).
     consumer: z.array(z.object({
       name: z.string(),
       use_case: z.string().optional(),
@@ -287,25 +286,6 @@ export default function NewContractPage() {
   const { data: userOptions = [] } = useQuery({ queryKey: ['users-basic'], queryFn: getUsersBasic })
   // Katalog domain untuk dropdown Pemilik (#73).
   const { data: domainOptions = [] } = useQuery({ queryKey: ['domains-basic'], queryFn: getDomainsBasic })
-  // Detail user untuk lookup data_domain saat auto-sync konsumen (#92 hot-fix).
-  const { data: usersDetail = [] } = useQuery({ queryKey: ['users-detail'], queryFn: getUsers })
-  const domainByUsername = useMemo(
-    () => new Map(usersDetail.map(u => [u.username, u.data_domain])),
-    [usersDetail],
-  )
-
-  // Hot-fix #92: kalau stakeholder ber-role consumer + punya username, push
-  // data_domain user-nya ke metadata.consumer[] (jika belum ada). Tidak
-  // pernah auto-remove — lebih aman terlalu permisif.
-  const syncConsumerTeam = (username: string | undefined, role: string) => {
-    if (role !== 'consumer' || !username) return
-    const team = domainByUsername.get(username)
-    if (!team) return
-    const current = form.getValues('metadata.consumer') ?? []
-    if (current.some(c => c.name === team)) return
-    form.setValue('metadata.consumer', [...current, { name: team, use_case: '' }])
-    toast.info(`Tim "${team}" otomatis ditambahkan ke Konsumen.`)
-  }
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -658,9 +638,6 @@ export default function NewContractPage() {
                         value={role}
                         onValueChange={(v) => {
                           setValue(`metadata.stakeholders.${i}.role`, v)
-                          // #92 auto-sync: kalau diubah jadi consumer & username
-                          // sudah dipilih, push team-nya ke metadata.consumer[].
-                          syncConsumerTeam(usernameVal || undefined, v)
                         }}
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih peran" /></SelectTrigger>
@@ -699,9 +676,6 @@ export default function NewContractPage() {
                         onValueChange={(v) => {
                           const newUsername = v === '__none__' ? undefined : v
                           setValue(`metadata.stakeholders.${i}.username`, newUsername)
-                          // #92 auto-sync: kalau role consumer, push team
-                          // user yang baru dipilih ke metadata.consumer[].
-                          syncConsumerTeam(newUsername, role)
                         }}
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pilih akun" /></SelectTrigger>
