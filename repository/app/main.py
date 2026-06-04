@@ -1028,6 +1028,21 @@ async def insert_datacontract(
                 detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
             )
 
+    # #102 PR-B slice 3: model.logical_type & physical_type spec-YES → wajib
+    # per kolom ber-name (presence check; FE zod yang validasi input).
+    for i, col in enumerate(data.model or []):
+        if col.column and (
+            not (col.logical_type or "").strip()
+            or not (col.physical_type or "").strip()
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"model[{i}] (kolom '{col.column}'): logical_type & "
+                    "physical_type wajib diisi (#102)."
+                ),
+            )
+
     _warn_consumer_without_stakeholders(data)
 
     payload = data.dict()
@@ -1099,6 +1114,21 @@ async def update_datacontract(
             raise HTTPException(
                 status_code=422,
                 detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
+            )
+
+    # #102 PR-B slice 3: model.logical_type & physical_type spec-YES → wajib
+    # per kolom ber-name (presence check; FE zod yang validasi input).
+    for i, col in enumerate(data.model or []):
+        if col.column and (
+            not (col.logical_type or "").strip()
+            or not (col.physical_type or "").strip()
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"model[{i}] (kolom '{col.column}'): logical_type & "
+                    "physical_type wajib diisi (#102)."
+                ),
             )
 
     _warn_consumer_without_stakeholders(data)
