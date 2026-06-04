@@ -274,7 +274,7 @@ Shadow class di `all.py` skipped (intentional wrapping pattern; bukan bug).
 Di-ship per slice (PR kecil, review mobile):
 
 - ✅ **Slice 1 — `metadata.description.purpose` + `usage`** (PR #124): FE zod required + label `*` + error inline (4 form) + step-0 trigger; write-time 422 di add/update; test. Tanpa migration (friksi edit legacy hanya 2 field).
-- ⏳ **Slice 2 — `stakeholders.email` required** (saat ini opsional+format via #122) — perlu pertimbangan backfill kontrak legacy tanpa email.
+- ✅ **Slice 2 — `stakeholders.email` required** (PR #126): helper `requiredEmailField` + 4 form (label `*`, error inline sudah dari #122); write-time 422 di add/update (presence check per stakeholder ber-name, mirror pola `date_in`); test. **Tanpa backfill** (tidak inject email palsu) — friksi: edit kontrak legacy tanpa email stakeholder wajib mengisi. Backfill placeholder = follow-up bila maintainer minta.
 - ⏳ **Slice 3 — `model.logical_type` + `physical_type`** (sudah di-expose wizard) — friksi sedang.
 - ⏳ **Slice 4 — `model.description`** (per-kolom, friksi tinggi) → butuh backfill migration.
 - ⏳ **Slice 5 — SLA spec fields** (`availability_*`, `frequency_unit`, `retention_unit`) → wizard pakai UI alias, perlu refactor expose field spec dulu.

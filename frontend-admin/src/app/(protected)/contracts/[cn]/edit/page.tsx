@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { emailField, requiredString } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
@@ -55,7 +55,7 @@ const schema = z.object({
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
-      email: emailField(),
+      email: requiredEmailField(),
       username: z.string().optional(),    // ADR-0004
       // #114 T1.3 — date_in wajib di spec; pre-fill akan auto-stamp today
       // untuk kontrak legacy yang stakeholder-nya belum punya.
@@ -578,7 +578,7 @@ export default function EditContractPage() {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Email</Label>
+                      <Label className="text-xs">Email *</Label>
                       <div className="flex gap-1">
                         <Input className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.email`)} />
                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 shrink-0"

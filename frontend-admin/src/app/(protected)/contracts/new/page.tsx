@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { emailField, requiredString } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString } from '@/lib/zod-helpers'
 import { useRouter } from 'next/navigation'
 import { addContract, generateContractNumber, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
@@ -57,7 +57,7 @@ const schema = z.object({
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
-      email: emailField(),
+      email: requiredEmailField(),
       // ADR-0004: link ke dgrusr.username — wajib bila stakeholder ini
       // ingin menjadi approver Producer/Consumer.
       username: z.string().optional(),
@@ -663,7 +663,7 @@ export default function NewContractPage() {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Email</Label>
+                      <Label className="text-xs">Email *</Label>
                       <div className="flex gap-1">
                         <Input placeholder="email@domain.com" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.email`)} />
                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50 shrink-0"

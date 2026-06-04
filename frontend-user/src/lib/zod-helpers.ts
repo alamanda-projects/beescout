@@ -29,3 +29,10 @@ export const emailField = () =>
     (v) => v === '' || z.string().email().safeParse(v).success,
     { message: 'Format email tidak valid' },
   )
+
+/**
+ * Email wajib + format valid (#102 PR-B). Kosong → "Email wajib diisi";
+ * diisi tapi bukan email valid → "Format email tidak valid".
+ */
+export const requiredEmailField = () =>
+  z.string().min(1, 'Email wajib diisi').email('Format email tidak valid')

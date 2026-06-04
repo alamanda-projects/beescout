@@ -1020,6 +1020,13 @@ async def insert_datacontract(
                 status_code=422,
                 detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
             )
+        # #102 PR-B: email stakeholder spec-YES → wajib (presence check; format
+        # divalidasi FE zod). Skip baris kosong (tanpa name).
+        if s.name and not (s.email or "").strip():
+            raise HTTPException(
+                status_code=422,
+                detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
+            )
 
     _warn_consumer_without_stakeholders(data)
 
@@ -1085,6 +1092,13 @@ async def update_datacontract(
             raise HTTPException(
                 status_code=422,
                 detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
+            )
+        # #102 PR-B: email stakeholder spec-YES → wajib (presence check; format
+        # divalidasi FE zod). Skip baris kosong (tanpa name).
+        if s.name and not (s.email or "").strip():
+            raise HTTPException(
+                status_code=422,
+                detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
             )
 
     _warn_consumer_without_stakeholders(data)

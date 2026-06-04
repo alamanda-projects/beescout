@@ -31,6 +31,13 @@ export const emailField = () =>
   )
 
 /**
+ * Email wajib + format valid (#102 PR-B). Kosong → "Email wajib diisi";
+ * diisi tapi bukan email valid → "Format email tidak valid".
+ */
+export const requiredEmailField = () =>
+  z.string().min(1, 'Email wajib diisi').email('Format email tidak valid')
+
+/**
  * Username: 3–50 karakter, hanya huruf & angka (tanpa spasi atau karakter
  * khusus apa pun — termasuk garis bawah). Dipakai saat membuat akun baru
  * (user create, setup root pertama).

@@ -97,6 +97,38 @@ async def test_add_contract_returns_422_when_usage_blank(client, auth_bypass):
 
 
 @pytest.mark.asyncio
+async def test_add_contract_returns_422_when_stakeholder_email_missing(client, auth_bypass):
+    """#102 PR-B slice 2: stakeholder ber-name tanpa email → 422."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+
+    payload = {**VALID_CONTRACT, "metadata": {**VALID_CONTRACT["metadata"],
+               "stakeholders": [{"name": "Pak X", "role": "owner",
+                                 "date_in": "2024-01-01"}]}}
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 422, response.text
+    assert "email" in response.text.lower()
+    mocks["dgr"].insert_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_add_contract_ok_when_stakeholder_has_email(client, auth_bypass):
+    """Stakeholder lengkap (name + email + date_in) → lolos write-check."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+    mocks["dgr"].insert_one.return_value = None
+
+    payload = {**VALID_CONTRACT, "metadata": {**VALID_CONTRACT["metadata"],
+               "stakeholders": [{"name": "Pak X", "role": "owner",
+                                 "email": "x@beescout.id", "date_in": "2024-01-01"}]}}
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 200, response.text
+    mocks["dgr"].insert_one.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_add_contract_returns_409_on_duplicate_key_race(client, auth_bypass):
     """
     Race condition: find_one melaporkan kosong, tapi insert_one race-condition
