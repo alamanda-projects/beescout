@@ -28,14 +28,15 @@ export const emailField = () =>
   )
 
 /**
- * Username: 3–50 karakter, hanya huruf/angka/garis bawah (tanpa spasi atau
- * simbol). Dipakai saat membuat akun baru (user create, setup root pertama).
+ * Username: 3–50 karakter, hanya huruf & angka (tanpa spasi atau karakter
+ * khusus apa pun — termasuk garis bawah). Dipakai saat membuat akun baru
+ * (user create, setup root pertama).
  */
 export const usernameField = () =>
   z.string()
     .min(3, 'Minimal 3 karakter')
     .max(50, 'Maksimal 50 karakter')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Hanya huruf, angka, dan garis bawah')
+    .regex(/^[a-zA-Z0-9]+$/, 'Hanya huruf dan angka, tanpa karakter khusus')
 
 /**
  * Password kuat: min 8 karakter dengan huruf besar, kecil, angka, dan
