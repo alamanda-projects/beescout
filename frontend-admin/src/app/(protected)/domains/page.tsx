@@ -36,7 +36,10 @@ function slugPreview(raw: string): string {
 
 // ─── Schema ─────────────────────────────────────────────────────────────────
 const createSchema = z.object({
-  name: z.string().min(1, 'Nama domain wajib diisi').max(60),
+  // Auto-slugify (lihat slugPreview). Refine: pastikan slug hasil tidak kosong
+  // — input hanya spasi lolos min(1) tapi menghasilkan slug kosong (#114).
+  name: z.string().min(1, 'Nama domain wajib diisi').max(60)
+    .refine((v) => slugPreview(v).length > 0, 'Nama harus mengandung huruf atau angka'),
   label: z.string().min(1, 'Label wajib diisi').max(80),
   description: z.string().max(200).optional(),
 })

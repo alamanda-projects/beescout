@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { usernameField, strongPassword } from '@/lib/zod-helpers'
 import { useQuery } from '@tanstack/react-query'
 import { createRootAccount, getSetupStatus } from '@/lib/api/auth'
 import { Button } from '@/components/ui/button'
@@ -16,13 +17,9 @@ import { toast } from 'sonner'
 import { CheckCircle2, Loader2, ShieldCheck, ShieldPlus } from 'lucide-react'
 
 const schema = z.object({
-  username: z.string().min(3, 'Minimal 3 karakter').max(50, 'Maksimal 50 karakter'),
+  username: usernameField(),
   name: z.string().min(1, 'Nama wajib diisi'),
-  password: z.string().min(8, 'Minimal 8 karakter')
-    .regex(/[A-Z]/, 'Harus ada huruf besar')
-    .regex(/[a-z]/, 'Harus ada huruf kecil')
-    .regex(/[0-9]/, 'Harus ada angka')
-    .regex(/[^A-Za-z0-9]/, 'Harus ada karakter khusus'),
+  password: strongPassword(),
   confirmPassword: z.string().min(1, 'Konfirmasi password wajib diisi'),
   import_sample_contracts: z.boolean(),
   import_catalog_rules: z.boolean(),
