@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { emailField } from '@/lib/zod-helpers'
 import { useRouter } from 'next/navigation'
 import { addContract, generateContractNumber, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
@@ -54,7 +55,7 @@ const schema = z.object({
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
-      email: z.string().optional(),
+      email: emailField(),
       // ADR-0004: link ke dgrusr.username — wajib bila stakeholder ini
       // ingin menjadi approver Producer/Consumer.
       username: z.string().optional(),
@@ -433,7 +434,11 @@ export default function NewContractPage() {
       <StepIndicator current={step} />
 
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, () => {
+          // Jangan biarkan tombol Simpan "diam" saat validasi gagal — mis.
+          // format email stakeholder tidak valid (#114).
+          toast.error('Ada field yang belum valid. Periksa kembali tiap langkah form (mis. format email).')
+        })}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
       >
 
@@ -662,6 +667,7 @@ export default function NewContractPage() {
                           <Trash2 size={13} />
                         </Button>
                       </div>
+                      {errors.metadata?.stakeholders?.[i]?.email && <p className="text-xs text-destructive mt-1">{errors.metadata.stakeholders[i]?.email?.message}</p>}
                     </div>
                     </div>
                     <div className="space-y-1">
