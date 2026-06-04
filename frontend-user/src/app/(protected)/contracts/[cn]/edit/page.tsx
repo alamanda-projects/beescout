@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { emailField } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic } from '@/lib/api/contracts'
@@ -55,7 +56,7 @@ const schema = z.object({
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
-      email: z.string().optional(),
+      email: emailField(),
       username: z.string().optional(),    // ADR-0004
       date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
       date_out: z.string().optional(),
@@ -566,6 +567,7 @@ export default function EditContractPage() {
                           <Trash2 size={13} />
                         </Button>
                       </div>
+                      {errors.metadata?.stakeholders?.[i]?.email && <p className="text-xs text-destructive mt-1">{errors.metadata.stakeholders[i]?.email?.message}</p>}
                     </div>
                     </div>
                     <div className="space-y-1">
