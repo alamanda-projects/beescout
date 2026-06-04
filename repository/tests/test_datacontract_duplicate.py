@@ -144,15 +144,33 @@ async def test_add_contract_returns_422_when_model_type_missing(client, auth_byp
 
 
 @pytest.mark.asyncio
-async def test_add_contract_ok_when_model_types_present(client, auth_bypass):
-    """Kolom lengkap (logical + physical) → lolos write-check."""
+async def test_add_contract_returns_422_when_model_description_missing(client, auth_bypass):
+    """#102 PR-B slice 4: kolom ber-name dengan tipe lengkap tapi tanpa
+    description → 422."""
+    ac, mocks = client
+    mocks["dgr"].find_one.return_value = None
+
+    payload = {**VALID_CONTRACT,
+               "model": [{"column": "id", "logical_type": "UUID",
+                          "physical_type": "VARCHAR(36)"}]}  # description hilang
+
+    response = await ac.post("/datacontract/add", json=payload)
+    assert response.status_code == 422, response.text
+    assert "description" in response.text
+    mocks["dgr"].insert_one.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_add_contract_ok_when_model_complete(client, auth_bypass):
+    """Kolom lengkap (logical + physical + description) → lolos write-check."""
     ac, mocks = client
     mocks["dgr"].find_one.return_value = None
     mocks["dgr"].insert_one.return_value = None
 
     payload = {**VALID_CONTRACT,
                "model": [{"column": "id", "logical_type": "UUID",
-                          "physical_type": "VARCHAR(36)"}]}
+                          "physical_type": "VARCHAR(36)",
+                          "description": "Identitas unik baris"}]}
 
     response = await ac.post("/datacontract/add", json=payload)
     assert response.status_code == 200, response.text
