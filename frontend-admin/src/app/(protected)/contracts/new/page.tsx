@@ -90,7 +90,7 @@ const schema = z.object({
     business_name: z.string().optional(),
     logical_type: requiredString('Tipe Data Bisnis wajib diisi'),
     physical_type: requiredString('Tipe Data Teknis wajib diisi'),
-    description: z.string().optional(),
+    description: requiredString('Deskripsi kolom wajib diisi'),
     is_primary: z.boolean().optional(),
     is_nullable: z.boolean().optional(),
     is_partition: z.boolean().optional(),
@@ -799,8 +799,9 @@ export default function NewContractPage() {
                     </div>
                   </TooltipProvider>
                   <div className="space-y-1">
-                    <Label className="text-xs">Deskripsi</Label>
+                    <Label className="text-xs">Deskripsi *</Label>
                     <Input placeholder="Penjelasan singkat kolom ini" className="h-8 text-xs" {...register(`model.${i}.description`)} />
+                    {errors.model?.[i]?.description && <p className="text-[10px] text-destructive">{errors.model[i]?.description?.message}</p>}
                   </div>
                   <TooltipProvider delayDuration={150}>
                     <div className="flex gap-6 flex-wrap">

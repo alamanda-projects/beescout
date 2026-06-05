@@ -199,6 +199,10 @@ migrate-consumer-to-stakeholders:
 migrate-period-to-toplevel:
 	$(call _run_script,migrate_period_to_toplevel)
 
+# Backfill model[].description kosong dengan penanda dari nama (#102 PR-B slice 4).
+migrate-backfill-model-description:
+	$(call _run_script,migrate_backfill_model_description)
+
 # Backfill approvers_by_role di approval lama (PR #70 / ADR-0004).
 migrate-approval-roles:
 	$(call _run_script,migrate_approval_roles)

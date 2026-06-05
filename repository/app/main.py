@@ -1028,18 +1028,20 @@ async def insert_datacontract(
                 detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
             )
 
-    # #102 PR-B slice 3: model.logical_type & physical_type spec-YES → wajib
-    # per kolom ber-name (presence check; FE zod yang validasi input).
+    # #102 PR-B slice 3+4: model.logical_type, physical_type & description
+    # spec-YES → wajib per kolom ber-name (presence check; FE zod validasi
+    # input). Kontrak legacy: backfill via scripts/migrate_backfill_model_description.
     for i, col in enumerate(data.model or []):
         if col.column and (
             not (col.logical_type or "").strip()
             or not (col.physical_type or "").strip()
+            or not (col.description or "").strip()
         ):
             raise HTTPException(
                 status_code=422,
                 detail=(
-                    f"model[{i}] (kolom '{col.column}'): logical_type & "
-                    "physical_type wajib diisi (#102)."
+                    f"model[{i}] (kolom '{col.column}'): logical_type, "
+                    "physical_type & description wajib diisi (#102)."
                 ),
             )
 
@@ -1116,18 +1118,20 @@ async def update_datacontract(
                 detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
             )
 
-    # #102 PR-B slice 3: model.logical_type & physical_type spec-YES → wajib
-    # per kolom ber-name (presence check; FE zod yang validasi input).
+    # #102 PR-B slice 3+4: model.logical_type, physical_type & description
+    # spec-YES → wajib per kolom ber-name (presence check; FE zod validasi
+    # input). Kontrak legacy: backfill via scripts/migrate_backfill_model_description.
     for i, col in enumerate(data.model or []):
         if col.column and (
             not (col.logical_type or "").strip()
             or not (col.physical_type or "").strip()
+            or not (col.description or "").strip()
         ):
             raise HTTPException(
                 status_code=422,
                 detail=(
-                    f"model[{i}] (kolom '{col.column}'): logical_type & "
-                    "physical_type wajib diisi (#102)."
+                    f"model[{i}] (kolom '{col.column}'): logical_type, "
+                    "physical_type & description wajib diisi (#102)."
                 ),
             )
 
