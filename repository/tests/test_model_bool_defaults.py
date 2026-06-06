@@ -53,18 +53,16 @@ def test_load_column_all_bool_explicit():
     assert col.is_clustered is True
 
 
-# ── Strict: tidak boleh null ──────────────────────────────────────────────────
+# ── Lenient-read: None di-coerce ke safe default (bukan rejected) ─────────────
+# Pola codebase: FE zod yang cegah null dikirim; Pydantic lenient-read supaya
+# kontrak legacy dengan None di MongoDB tetap bisa di-baca (bug 500 fix).
 
 
-def test_reject_explicit_null_for_required_bool():
-    """POST dengan is_pii=None → 422 (mencegah null leak)."""
-    with pytest.raises(Exception):  # ValidationError
-        Model(column="user_id", is_pii=None)
-
-
-def test_reject_explicit_null_for_required_bool_partition():
-    with pytest.raises(Exception):
-        Model(column="user_id", is_partition=None)
+def test_none_coerced_to_default_for_bool_fields():
+    """None dari MongoDB legacy → di-coerce ke default, tidak ValidationError."""
+    col = Model(column="user_id", is_pii=None, is_partition=None)
+    assert col.is_pii is False
+    assert col.is_partition is False
 
 
 # ── Round-trip: dump kembalikan field eksplisit ───────────────────────────────
