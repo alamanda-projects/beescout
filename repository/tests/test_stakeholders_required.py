@@ -247,9 +247,14 @@ metadata:
   owner: tim_test
   effective_date: '2024-01-01'
   expiry_date: '2025-12-31'
+  description:
+    purpose: Untuk analisis penjualan
+    usage: private
   stakeholders:
     - name: Tim Sales
       role: consumer
+      email: tim.sales@example.com
+      date_in: '2024-01-01'
 model: []
 ports: []
 """
