@@ -54,6 +54,7 @@ const schema = z.object({
       retention: z.string().optional(),
       cron: z.string().optional(),
     }).optional(),
+    // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib.
     // #114 T1.3 — date_in wajib (spec YES), date_out opsional (spec NO)
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
@@ -62,7 +63,12 @@ const schema = z.object({
       username: z.string().optional(),    // ADR-0004
       date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
       date_out: z.string().optional(),
-    })).optional(),
+    }))
+      .min(1, 'Minimal 1 pemangku kepentingan wajib ditambahkan')
+      .refine(
+        (arr) => arr.some((s) => s.role === 'consumer' || s.role === 'producer'),
+        { message: 'Minimal 1 pemangku kepentingan harus berperan sebagai consumer atau producer agar tim terkait dapat melihat kontrak' }
+      ),
     quality: z.array(z.object({
       code: z.string().min(1, 'Kode wajib diisi'),
       dimension: z.string().optional(),
@@ -424,10 +430,10 @@ export default function NewContractPage() {
       <StepIndicator current={step} />
 
       <form
-        onSubmit={form.handleSubmit(onSubmit, () => {
-          // Jangan biarkan tombol Simpan "diam" saat validasi gagal — mis.
-          // format email stakeholder tidak valid (#114).
-          toast.error('Ada field yang belum valid. Periksa kembali tiap langkah form (mis. format email).')
+        onSubmit={form.handleSubmit(onSubmit, (errs) => {
+          const sErr = (errs as any)?.metadata?.stakeholders
+          const sMsg = sErr?.message ?? sErr?.root?.message
+          toast.error(sMsg ?? 'Ada field yang belum valid. Periksa kembali tiap langkah form (mis. format email).')
         })}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
       >
@@ -615,6 +621,11 @@ export default function NewContractPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>Wajib:</strong> minimal 1 pemangku kepentingan dengan peran <strong>Consumer</strong> atau <strong>Producer</strong> agar tim terkait dapat melihat kontrak.
+                  </p>
+                </div>
                 {stakeholders.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">Belum ada pemangku kepentingan. Klik &quot;Tambah&quot; untuk menambah.</p>
                 )}

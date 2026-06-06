@@ -18,6 +18,9 @@ VALID_CONTRACT = {
         "expiry_date": "2025-12-31",
         # #102 PR-B: description wajib di write-path.
         "description": {"purpose": "Analisis penjualan", "usage": "private"},
+        # ADR-0007: minimal 1 stakeholder dengan role consumer/producer
+        # wajib di write path. Tanpa ini /add raise 422.
+        "stakeholders": [{"name": "Tim Konsumen", "role": "consumer"}],
     },
     "model": [],
     "ports": [],
