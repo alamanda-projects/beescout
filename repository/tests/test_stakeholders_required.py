@@ -28,6 +28,8 @@ def _base_contract(stakeholders=None):
             "owner": "tim_test",
             "effective_date": "2024-01-01",
             "expiry_date": "2025-12-31",
+            # #102 PR-B: description wajib di write-path.
+            "description": {"purpose": "Test purpose", "usage": "private"},
             "stakeholders": stakeholders if stakeholders is not None else [],
         },
         "model": [],
@@ -78,7 +80,7 @@ async def test_add_rejects_owner_only(client, auth_bypass):
     ac, mocks = client
     mocks["dgr"].find_one.return_value = None
 
-    payload = _base_contract(stakeholders=[{"name": "Pak X", "role": "owner"}])
+    payload = _base_contract(stakeholders=[{"name": "Pak X", "role": "owner", "email": "pak.x@example.com", "date_in": "2024-01-01"}])
     res = await ac.post("/datacontract/add", json=payload)
     assert res.status_code == 422
     mocks["dgr"].insert_one.assert_not_called()
@@ -90,7 +92,7 @@ async def test_add_rejects_reviewer_only(client, auth_bypass):
     ac, mocks = client
     mocks["dgr"].find_one.return_value = None
 
-    payload = _base_contract(stakeholders=[{"name": "Bu R", "role": "reviewer"}])
+    payload = _base_contract(stakeholders=[{"name": "Bu R", "role": "reviewer", "email": "bu.r@example.com", "date_in": "2024-01-01"}])
     res = await ac.post("/datacontract/add", json=payload)
     assert res.status_code == 422
     mocks["dgr"].insert_one.assert_not_called()
@@ -102,7 +104,7 @@ async def test_add_accepts_consumer_stakeholder(client, auth_bypass):
     ac, mocks = client
     mocks["dgr"].find_one.return_value = None
 
-    payload = _base_contract(stakeholders=[{"name": "Tim Sales", "role": "consumer"}])
+    payload = _base_contract(stakeholders=[{"name": "Tim Sales", "role": "consumer", "email": "tim.sales@example.com", "date_in": "2024-01-01"}])
     res = await ac.post("/datacontract/add", json=payload)
     assert res.status_code == 200, res.text
     mocks["dgr"].insert_one.assert_awaited_once()
@@ -114,7 +116,7 @@ async def test_add_accepts_producer_stakeholder(client, auth_bypass):
     ac, mocks = client
     mocks["dgr"].find_one.return_value = None
 
-    payload = _base_contract(stakeholders=[{"name": "Tim Eng", "role": "producer"}])
+    payload = _base_contract(stakeholders=[{"name": "Tim Eng", "role": "producer", "email": "tim.eng@example.com", "date_in": "2024-01-01"}])
     res = await ac.post("/datacontract/add", json=payload)
     assert res.status_code == 200, res.text
     mocks["dgr"].insert_one.assert_awaited_once()
@@ -127,9 +129,9 @@ async def test_add_accepts_mixed_with_consumer(client, auth_bypass):
     mocks["dgr"].find_one.return_value = None
 
     payload = _base_contract(stakeholders=[
-        {"name": "Pak X", "role": "owner"},
-        {"name": "Bu R", "role": "reviewer"},
-        {"name": "Tim Sales", "role": "consumer"},
+        {"name": "Pak X", "role": "owner", "email": "pak.x@example.com", "date_in": "2024-01-01"},
+        {"name": "Bu R", "role": "reviewer", "email": "bu.r@example.com", "date_in": "2024-01-01"},
+        {"name": "Tim Sales", "role": "consumer", "email": "tim.sales@example.com", "date_in": "2024-01-01"},
     ])
     res = await ac.post("/datacontract/add", json=payload)
     assert res.status_code == 200, res.text
@@ -151,7 +153,7 @@ async def test_update_rejects_stripped_stakeholders(client, auth_bypass):
         "metadata": {"stakeholders": [{"name": "Tim Sales", "role": "consumer"}]},
     }
 
-    payload = _base_contract(stakeholders=[{"name": "Pak X", "role": "owner"}])
+    payload = _base_contract(stakeholders=[{"name": "Pak X", "role": "owner", "email": "pak.x@example.com", "date_in": "2024-01-01"}])
     payload["contract_number"] = "TEST_SH_001"
     res = await ac.put(
         "/datacontract/update",
@@ -172,7 +174,7 @@ async def test_update_accepts_when_consumer_kept(client, auth_bypass):
         "metadata": {"stakeholders": [{"name": "Tim Sales", "role": "consumer"}]},
     }
 
-    payload = _base_contract(stakeholders=[{"name": "Tim Sales 2", "role": "consumer"}])
+    payload = _base_contract(stakeholders=[{"name": "Tim Sales 2", "role": "consumer", "email": "tim.sales2@example.com", "date_in": "2024-01-01"}])
     payload["contract_number"] = "TEST_SH_001"
     res = await ac.put(
         "/datacontract/update",
