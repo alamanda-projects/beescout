@@ -1708,6 +1708,21 @@ async def validate_yaml_import(
             warnings.append({"field": "contract_number",
                              "message": "contract_number tidak ada — akan digenerate otomatis oleh sistem."})
 
+        # #102 Phase 3: description.purpose + usage wajib (mirrors write-path #102 PR-B slice 1).
+        _desc = metadata.get("description") or {}
+        if not (_desc.get("purpose") or "").strip():
+            errors.append({
+                "field": "metadata.description.purpose",
+                "message": "Field wajib 'metadata.description.purpose' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tujuan/konteks kontrak (mis. 'Untuk analisis penjualan bulanan tim sales').",
+            })
+        if not (_desc.get("usage") or "").strip():
+            errors.append({
+                "field": "metadata.description.usage",
+                "message": "Field wajib 'metadata.description.usage' tidak ditemukan atau kosong.",
+                "suggestion": "Isi mode penggunaan: 'private' atau 'public'.",
+            })
+
         # Strict ke BeeScout spec (data-contract/docs/README.md line 94):
         # enum closed 4 nilai. role = fungsi terhadap kontrak (bukan job
         # title user). 1 user dengan job title sama bisa beda role di
@@ -1728,6 +1743,26 @@ async def validate_yaml_import(
                     "message": "Field wajib 'date_in' tidak ditemukan atau kosong.",
                     "suggestion": "Isi tanggal mulai bergabungnya stakeholder (ISO-8601, contoh: 2024-01-01).",
                 })
+            # #102 Phase 3: email wajib per stakeholder ber-name (mirrors write-path #102 PR-B slice 2).
+            if s.get("name") and not (s.get("email") or "").strip():
+                errors.append({
+                    "field": f"metadata.stakeholders[{i}].email",
+                    "message": "Field wajib 'email' tidak ditemukan atau kosong.",
+                    "suggestion": "Isi alamat email stakeholder.",
+                })
+
+        # ADR-0007 / #102 Phase 3: minimal 1 stakeholder consumer/producer
+        # agar kontrak tidak yatim (invisible ke semua role selain admin).
+        sh_roles_yaml = {(s or {}).get("role") for s in (metadata.get("stakeholders") or [])}
+        if not sh_roles_yaml.intersection(VISIBILITY_STAKEHOLDER_ROLES):
+            errors.append({
+                "field": "metadata.stakeholders",
+                "message": (
+                    "Minimal 1 stakeholder harus berperan sebagai 'consumer' atau 'producer' "
+                    "agar tim terkait dapat melihat kontrak."
+                ),
+                "suggestion": "Tambahkan entri di metadata.stakeholders dengan role: consumer atau role: producer.",
+            })
 
         sla = metadata.get("sla") or {}
         if "retention" in sla and not isinstance(sla["retention"], int):
@@ -1750,6 +1785,27 @@ async def validate_yaml_import(
         if not col.get("column"):
             errors.append({"field": f"model[{i}].column",
                            "message": "Nama kolom tidak boleh kosong."})
+        # #102 Phase 3: logical_type, physical_type & description wajib per kolom
+        # ber-name (mirrors write-path #102 PR-B slices 3+4).
+        col_name = col.get("column") or f"[{i}]"
+        if col.get("column") and not (col.get("logical_type") or "").strip():
+            errors.append({
+                "field": f"model[{i}].logical_type",
+                "message": f"Kolom '{col_name}': field wajib 'logical_type' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tipe data bisnis kolom (mis. 'String', 'UUID', 'Integer').",
+            })
+        if col.get("column") and not (col.get("physical_type") or "").strip():
+            errors.append({
+                "field": f"model[{i}].physical_type",
+                "message": f"Kolom '{col_name}': field wajib 'physical_type' tidak ditemukan atau kosong.",
+                "suggestion": "Isi tipe data teknis kolom (mis. 'VARCHAR(255)', 'INT', 'BIGINT').",
+            })
+        if col.get("column") and not (col.get("description") or "").strip():
+            errors.append({
+                "field": f"model[{i}].description",
+                "message": f"Kolom '{col_name}': field wajib 'description' tidak ditemukan atau kosong.",
+                "suggestion": "Isi deskripsi bisnis kolom — apa maknanya untuk pengguna non-teknis.",
+            })
         for j, q in enumerate(col.get("quality") or []):
             if not q.get("dimension"):
                 errors.append({
@@ -1806,12 +1862,48 @@ async def import_yaml_contract(
     if not isinstance(data, dict):
         raise HTTPException(status_code=422, detail="File YAML tidak valid.")
 
-    # Write-time spec enforcement (ADR-0007): minimal 1 stakeholder dengan
-    # role consumer/producer. YAML import jalur sendiri (bypass Pydantic),
-    # jadi cek manual via dict access.
+    # Write-time enforcement (#102 Phase 3): mirrors /datacontract/add checks
+    # agar YAML import tidak bisa bypass validasi yang berlaku di write-path biasa.
+    _meta_imp = data.get("metadata") or {}
+
+    _desc_imp = _meta_imp.get("description") or {}
+    if not (_desc_imp.get("purpose") or "").strip() or not (_desc_imp.get("usage") or "").strip():
+        raise HTTPException(
+            status_code=422,
+            detail="metadata.description.purpose dan metadata.description.usage wajib diisi (#102).",
+        )
+
+    for i, s in enumerate(_meta_imp.get("stakeholders") or []):
+        if s.get("name") and not s.get("date_in"):
+            raise HTTPException(
+                status_code=422,
+                detail=f"metadata.stakeholders[{i}].date_in wajib diisi (#114).",
+            )
+        if s.get("name") and not (s.get("email") or "").strip():
+            raise HTTPException(
+                status_code=422,
+                detail=f"metadata.stakeholders[{i}].email wajib diisi (#102).",
+            )
+
+    for i, col in enumerate(data.get("model") or []):
+        if col.get("column") and (
+            not (col.get("logical_type") or "").strip()
+            or not (col.get("physical_type") or "").strip()
+            or not (col.get("description") or "").strip()
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"model[{i}] (kolom '{col['column']}'): logical_type, "
+                    "physical_type & description wajib diisi (#102)."
+                ),
+            )
+
+    # ADR-0007: minimal 1 stakeholder dengan role consumer/producer.
+    # YAML import jalur sendiri (bypass Pydantic), jadi cek manual via dict access.
     sh_roles = {
         (s or {}).get("role")
-        for s in ((data.get("metadata") or {}).get("stakeholders") or [])
+        for s in (_meta_imp.get("stakeholders") or [])
     }
     if not sh_roles.intersection(VISIBILITY_STAKEHOLDER_ROLES):
         raise HTTPException(
