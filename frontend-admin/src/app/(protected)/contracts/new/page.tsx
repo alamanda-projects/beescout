@@ -51,6 +51,9 @@ const schema = z.object({
       retention: z.string().optional(),
       cron: z.string().optional(),
     }).optional(),
+    // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib
+    // agar kontrak tidak yatim. Enforcement juga di backend (POST /add &
+    // PUT /update).
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
@@ -58,7 +61,12 @@ const schema = z.object({
       // ADR-0004: link ke dgrusr.username — wajib bila stakeholder ini
       // ingin menjadi approver Producer/Consumer.
       username: z.string().optional(),
-    })).optional(),
+    }))
+      .min(1, 'Minimal 1 pemangku kepentingan wajib ditambahkan')
+      .refine(
+        (arr) => arr.some((s) => s.role === 'consumer' || s.role === 'producer'),
+        { message: 'Minimal 1 pemangku kepentingan harus berperan sebagai consumer atau producer agar tim terkait dapat melihat kontrak' }
+      ),
     // Hot-fix #92: tim konsumen di-track di form state supaya saat user
     // menambah stakeholder ber-role consumer dengan username, data_domain-nya
     // bisa otomatis di-push ke sini (tanpa step UI eksplisit). Solusi permanen
@@ -449,7 +457,13 @@ export default function NewContractPage() {
       <StepIndicator current={step} />
 
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, (errs) => {
+          // Surface error stakeholders spesifik (ADR-0007) ke toast supaya
+          // user tidak bingung saat submit "diam-diam" gagal validasi.
+          const sErr = (errs as any)?.metadata?.stakeholders
+          const sMsg = sErr?.message ?? sErr?.root?.message
+          toast.error(sMsg ?? 'Ada field wajib yang belum terisi. Periksa kembali tiap langkah form.')
+        })}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
       >
 
@@ -634,6 +648,11 @@ export default function NewContractPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>Wajib:</strong> minimal 1 pemangku kepentingan dengan peran <strong>Consumer</strong> atau <strong>Producer</strong> agar tim terkait dapat melihat kontrak.
+                  </p>
+                </div>
                 {stakeholders.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">Belum ada pemangku kepentingan. Klik &quot;Tambah&quot; untuk menambah.</p>
                 )}

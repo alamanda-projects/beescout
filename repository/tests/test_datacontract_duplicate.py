@@ -16,6 +16,9 @@ VALID_CONTRACT = {
         "owner": "tim_test",
         "effective_date": "2024-01-01",
         "expiry_date": "2025-12-31",
+        # ADR-0007: minimal 1 stakeholder dengan role consumer/producer
+        # wajib di write path. Tanpa ini /add raise 422.
+        "stakeholders": [{"name": "Tim Konsumen", "role": "consumer"}],
     },
     "model": [],
     "ports": [],
