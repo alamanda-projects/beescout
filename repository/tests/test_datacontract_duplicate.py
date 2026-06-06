@@ -18,6 +18,10 @@ VALID_CONTRACT = {
         "expiry_date": "2025-12-31",
         # #102 PR-B: description wajib di write-path.
         "description": {"purpose": "Analisis penjualan", "usage": "private"},
+        # ADR-0007: minimal 1 stakeholder dengan role consumer/producer
+        # wajib di write path. Tanpa ini /add raise 422.
+        # #114/#102: date_in dan email juga wajib untuk stakeholder ber-name.
+        "stakeholders": [{"name": "Tim Konsumen", "role": "consumer", "email": "konsumen@example.com", "date_in": "2024-01-01"}],
     },
     "model": [],
     "ports": [],
@@ -120,8 +124,10 @@ async def test_add_contract_ok_when_stakeholder_has_email(client, auth_bypass):
     mocks["dgr"].insert_one.return_value = None
 
     payload = {**VALID_CONTRACT, "metadata": {**VALID_CONTRACT["metadata"],
-               "stakeholders": [{"name": "Pak X", "role": "owner",
-                                 "email": "x@beescout.id", "date_in": "2024-01-01"}]}}
+               "stakeholders": [
+                   {"name": "Pak X", "role": "owner", "email": "x@beescout.id", "date_in": "2024-01-01"},
+                   {"name": "Tim Sales", "role": "consumer", "email": "sales@beescout.id", "date_in": "2024-01-01"},
+               ]}}
 
     response = await ac.post("/datacontract/add", json=payload)
     assert response.status_code == 200, response.text

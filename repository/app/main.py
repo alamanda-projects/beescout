@@ -105,6 +105,17 @@ dc_404_notfound = HTTPException(status_code=404, detail=dcnotfound)
 botnotallowed = [usr_403_optimus, usr_403_megatron, usr_403_grimlock]
 hmnnotallowed = [usr_403_optimus2, usr_403_megatron2, usr_403_grimlock2]
 
+# Stakeholder visibility roles — minimal 1 entri dengan salah satu role
+# berikut wajib di metadata.stakeholders pada write path (ADR-0007).
+# Pydantic Metadata.stakeholders tetap Optional agar read path lenient
+# untuk kontrak legacy; enforcement terjadi di handler /datacontract/add,
+# /datacontract/update, dan /contracts/import-yaml.
+VISIBILITY_STAKEHOLDER_ROLES = ("consumer", "producer")
+VISIBILITY_STAKEHOLDER_REQ_MSG = (
+    "metadata.stakeholders wajib berisi minimal 1 entri dengan role "
+    "'consumer' atau 'producer' agar tim terkait dapat melihat kontrak."
+)
+
 app = FastAPI(
     title=app_title,
     description=app_description,
@@ -1047,6 +1058,16 @@ async def insert_datacontract(
 
     _warn_consumer_without_stakeholders(data)
 
+    # Write-time spec enforcement (ADR-0007): minimal 1 stakeholder dengan
+    # role consumer/producer agar kontrak tidak "yatim" (invisible ke
+    # semua role selain admin). Lihat VISIBILITY_STAKEHOLDER_ROLES di atas.
+    sh_roles = {s.role for s in (data.metadata.stakeholders or [])}
+    if not sh_roles.intersection(VISIBILITY_STAKEHOLDER_ROLES):
+        raise HTTPException(
+            status_code=422,
+            detail=VISIBILITY_STAKEHOLDER_REQ_MSG,
+        )
+
     payload = data.dict()
     payload["created_by"] = current_user["usr"]
     payload["managers"] = []
@@ -1136,6 +1157,15 @@ async def update_datacontract(
             )
 
     _warn_consumer_without_stakeholders(data)
+
+    # Write-time spec enforcement (ADR-0007): sama dgn /add — mencegah
+    # workaround "create lalu hapus stakeholder via edit".
+    sh_roles = {s.role for s in (data.metadata.stakeholders or [])}
+    if not sh_roles.intersection(VISIBILITY_STAKEHOLDER_ROLES):
+        raise HTTPException(
+            status_code=422,
+            detail=VISIBILITY_STAKEHOLDER_REQ_MSG,
+        )
 
     try:
         payload = data.dict()
@@ -1775,6 +1805,19 @@ async def import_yaml_contract(
 
     if not isinstance(data, dict):
         raise HTTPException(status_code=422, detail="File YAML tidak valid.")
+
+    # Write-time spec enforcement (ADR-0007): minimal 1 stakeholder dengan
+    # role consumer/producer. YAML import jalur sendiri (bypass Pydantic),
+    # jadi cek manual via dict access.
+    sh_roles = {
+        (s or {}).get("role")
+        for s in ((data.get("metadata") or {}).get("stakeholders") or [])
+    }
+    if not sh_roles.intersection(VISIBILITY_STAKEHOLDER_ROLES):
+        raise HTTPException(
+            status_code=422,
+            detail=VISIBILITY_STAKEHOLDER_REQ_MSG,
+        )
 
     if not data.get("contract_number"):
         data["contract_number"] = await cn_generator()

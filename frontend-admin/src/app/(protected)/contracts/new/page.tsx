@@ -54,6 +54,9 @@ const schema = z.object({
       retention: z.string().optional(),
       cron: z.string().optional(),
     }).optional(),
+    // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib
+    // agar kontrak tidak yatim. Enforcement juga di backend (POST /add &
+    // PUT /update).
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
       role: z.string().min(1, 'Peran wajib diisi'),
@@ -65,7 +68,12 @@ const schema = z.object({
       // date_out NO (untuk track kapan keluar). #114 T1.3.
       date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
       date_out: z.string().optional(),
-    })).optional(),
+    }))
+      .min(1, 'Minimal 1 pemangku kepentingan wajib ditambahkan')
+      .refine(
+        (arr) => arr.some((s) => s.role === 'consumer' || s.role === 'producer'),
+        { message: 'Minimal 1 pemangku kepentingan harus berperan sebagai consumer atau producer agar tim terkait dapat melihat kontrak' }
+      ),
     // ADR-0007 (#94): `consumer[]` field documentary (use_case) — siapa pakai
     // data untuk apa. BUKAN access-control; visibilitas kontrak derive dari
     // stakeholders[role=consumer/producer] di backend (derive_team_scope).
@@ -436,10 +444,10 @@ export default function NewContractPage() {
       <StepIndicator current={step} />
 
       <form
-        onSubmit={form.handleSubmit(onSubmit, () => {
-          // Jangan biarkan tombol Simpan "diam" saat validasi gagal — mis.
-          // format email stakeholder tidak valid (#114).
-          toast.error('Ada field yang belum valid. Periksa kembali tiap langkah form (mis. format email).')
+        onSubmit={form.handleSubmit(onSubmit, (errs) => {
+          const sErr = (errs as any)?.metadata?.stakeholders
+          const sMsg = sErr?.message ?? sErr?.root?.message
+          toast.error(sMsg ?? 'Ada field yang belum valid. Periksa kembali tiap langkah form (mis. format email).')
         })}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') e.preventDefault() }}
       >
@@ -627,6 +635,11 @@ export default function NewContractPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>Wajib:</strong> minimal 1 pemangku kepentingan dengan peran <strong>Consumer</strong> atau <strong>Producer</strong> agar tim terkait dapat melihat kontrak.
+                  </p>
+                </div>
                 {stakeholders.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">Belum ada pemangku kepentingan. Klik &quot;Tambah&quot; untuk menambah.</p>
                 )}
