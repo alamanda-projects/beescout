@@ -70,3 +70,20 @@ export const optionalStrongPassword = () =>
     (v) => v === '' || strongPassword().safeParse(v).success,
     { message: 'Min. 8 karakter dengan huruf besar, kecil, angka, dan karakter khusus' },
   )
+
+/**
+ * Integer wajib untuk field numerik SLA (#102 PR-B slice 5).
+ * String kosong atau undefined → error; angka bulat valid (termasuk 0) → lolos.
+ * Menggunakan preprocess agar empty string dari <input type="number"> tidak
+ * ter-coerce ke 0 secara silent.
+ */
+export const requiredInt = (msg = 'Wajib diisi', min?: number, max?: number) =>
+  z.preprocess(
+    (v) => (v === '' || v == null ? undefined : Number(v)),
+    z.number({ required_error: msg, invalid_type_error: msg })
+      .int()
+      .superRefine((n, ctx) => {
+        if (min != null && n < min) ctx.addIssue({ code: z.ZodIssueCode.too_small, minimum: min, type: 'number', inclusive: true, message: `Min ${min}` })
+        if (max != null && n > max) ctx.addIssue({ code: z.ZodIssueCode.too_big, maximum: max, type: 'number', inclusive: true, message: `Maks ${max}` })
+      }),
+  )

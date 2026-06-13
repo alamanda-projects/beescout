@@ -22,6 +22,8 @@ VALID_CONTRACT = {
         # wajib di write path. Tanpa ini /add raise 422.
         # #114/#102: date_in dan email juga wajib untuk stakeholder ber-name.
         "stakeholders": [{"name": "Tim Konsumen", "role": "consumer", "email": "konsumen@example.com", "date_in": "2024-01-01"}],
+        # #102 PR-B slice 5: SLA spec-YES fields wajib di write-path.
+        "sla": {"availability_start": 6, "availability_end": 18, "availability_unit": "h", "frequency": 4, "frequency_unit": "h"},
     },
     "model": [],
     "ports": [],

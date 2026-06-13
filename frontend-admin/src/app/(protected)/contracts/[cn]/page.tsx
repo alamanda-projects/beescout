@@ -120,10 +120,16 @@ export default function AdminContractDetailPage() {
               <Card>
                 <CardHeader className="pb-3"><CardTitle className="text-base">SLA</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
-                  <InfoRow label="Ketersediaan" value={metadata.sla.availability} />
-                  <InfoRow label="Frekuensi" value={metadata.sla.frequency} />
-                  <InfoRow label="Retensi" value={metadata.sla.retention} />
-                  <InfoRow label="Jadwal Cron" value={metadata.sla.cron} />
+                  {metadata.sla.availability_start != null && metadata.sla.availability_end != null
+                    ? <InfoRow label="Ketersediaan" value={`${metadata.sla.availability_start}–${metadata.sla.availability_end} ${metadata.sla.availability_unit === 'h' ? 'jam' : metadata.sla.availability_unit === 'd' ? 'hari' : (metadata.sla.availability_unit ?? '')}`} />
+                    : metadata.sla.availability != null ? <InfoRow label="Ketersediaan" value={metadata.sla.availability} /> : null
+                  }
+                  {metadata.sla.frequency != null
+                    ? <InfoRow label="Frekuensi" value={`${metadata.sla.frequency} ${metadata.sla.frequency_unit === 'm' ? 'menit' : metadata.sla.frequency_unit === 'h' ? 'jam' : metadata.sla.frequency_unit === 'd' ? 'hari' : (metadata.sla.frequency_unit ?? '')}`} />
+                    : null
+                  }
+                  {metadata.sla.retention != null && <InfoRow label="Retensi" value={`${metadata.sla.retention}${metadata.sla.retention_unit ? ' ' + metadata.sla.retention_unit : ''}`} />}
+                  {(metadata.sla.frequency_cron ?? metadata.sla.cron) && <InfoRow label="Jadwal Cron" value={metadata.sla.frequency_cron ?? metadata.sla.cron} />}
                 </CardContent>
               </Card>
             )}

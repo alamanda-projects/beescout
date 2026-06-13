@@ -1068,6 +1068,27 @@ async def insert_datacontract(
             detail=VISIBILITY_STAKEHOLDER_REQ_MSG,
         )
 
+    # #102 PR-B slice 5: SLA spec-YES fields wajib di write-path.
+    # Pydantic tetap Optional (read-path lenient); enforcement berlapis
+    # di sini + FE zod (#134).
+    _sla = data.metadata.sla
+    _sla_missing = []
+    if _sla is None or _sla.availability_start is None:
+        _sla_missing.append("availability_start")
+    if _sla is None or _sla.availability_end is None:
+        _sla_missing.append("availability_end")
+    if _sla is None or not (_sla.availability_unit or "").strip():
+        _sla_missing.append("availability_unit")
+    if _sla is None or _sla.frequency is None:
+        _sla_missing.append("frequency")
+    if _sla is None or not (_sla.frequency_unit or "").strip():
+        _sla_missing.append("frequency_unit")
+    if _sla_missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Field SLA wajib diisi: {', '.join(_sla_missing)} (#102).",
+        )
+
     payload = data.dict()
     payload["created_by"] = current_user["usr"]
     payload["managers"] = []
@@ -1165,6 +1186,25 @@ async def update_datacontract(
         raise HTTPException(
             status_code=422,
             detail=VISIBILITY_STAKEHOLDER_REQ_MSG,
+        )
+
+    # #102 PR-B slice 5: SLA spec-YES wajib — mirrors /add check.
+    _sla_u = data.metadata.sla
+    _sla_u_missing = []
+    if _sla_u is None or _sla_u.availability_start is None:
+        _sla_u_missing.append("availability_start")
+    if _sla_u is None or _sla_u.availability_end is None:
+        _sla_u_missing.append("availability_end")
+    if _sla_u is None or not (_sla_u.availability_unit or "").strip():
+        _sla_u_missing.append("availability_unit")
+    if _sla_u is None or _sla_u.frequency is None:
+        _sla_u_missing.append("frequency")
+    if _sla_u is None or not (_sla_u.frequency_unit or "").strip():
+        _sla_u_missing.append("frequency_unit")
+    if _sla_u_missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Field SLA wajib diisi: {', '.join(_sla_u_missing)} (#102).",
         )
 
     try:
@@ -1771,6 +1811,21 @@ async def validate_yaml_import(
                 "message": f"'retention' harus berupa angka bulat (integer), ditemukan: {type(sla['retention']).__name__}",
                 "suggestion": "Ubah nilai retention menjadi angka: retention: 1 (bukan '1 tahun').",
             })
+        # #102 PR-B slice 5: SLA spec-YES fields wajib (mirrors write-path #134).
+        for _sla_field in ("availability_start", "availability_end", "frequency"):
+            if sla.get(_sla_field) is None:
+                errors.append({
+                    "field": f"metadata.sla.{_sla_field}",
+                    "message": f"Field wajib 'metadata.sla.{_sla_field}' tidak ditemukan atau kosong.",
+                    "suggestion": f"Isi field {_sla_field} dengan nilai integer.",
+                })
+        for _sla_unit in ("availability_unit", "frequency_unit"):
+            if not (sla.get(_sla_unit) or "").strip():
+                errors.append({
+                    "field": f"metadata.sla.{_sla_unit}",
+                    "message": f"Field wajib 'metadata.sla.{_sla_unit}' tidak ditemukan atau kosong.",
+                    "suggestion": f"Isi field {_sla_unit}: availability_unit: 'h' atau 'd'; frequency_unit: 'm', 'h', atau 'd'.",
+                })
 
         valid_dims = {"completeness", "validity", "accuracy", "security"}
         for i, q in enumerate(metadata.get("quality") or []):
@@ -1898,6 +1953,21 @@ async def import_yaml_contract(
                     "physical_type & description wajib diisi (#102)."
                 ),
             )
+
+    # #102 PR-B slice 5: SLA spec-YES fields wajib di YAML import — mirrors /add.
+    _sla_imp = _meta_imp.get("sla") or {}
+    _sla_imp_missing = []
+    for _f in ("availability_start", "availability_end", "frequency"):
+        if _sla_imp.get(_f) is None:
+            _sla_imp_missing.append(_f)
+    for _f in ("availability_unit", "frequency_unit"):
+        if not (_sla_imp.get(_f) or "").strip():
+            _sla_imp_missing.append(_f)
+    if _sla_imp_missing:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Field SLA wajib diisi: {', '.join(_sla_imp_missing)} (#102).",
+        )
 
     # ADR-0007: minimal 1 stakeholder dengan role consumer/producer.
     # YAML import jalur sendiri (bypass Pydantic), jadi cek manual via dict access.
