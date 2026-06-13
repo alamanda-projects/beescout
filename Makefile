@@ -66,8 +66,13 @@ reset-db:
 # ── DB access dari Mac host (untuk Compass, TablePlus, dll.) ─────────────────
 # Pakai docker-compose.local.yml (gitignored). Port 27017 di-bind ke 127.0.0.1
 # saja (loopback). Koneksi: localhost:27017, user=admin, authDB=admin.
+# File override dibuat otomatis dari .example bila belum ada.
 
 db-expose:
+	@test -f docker-compose.local.yml || { \
+		cp docker-compose.local.yml.example docker-compose.local.yml; \
+		echo "→ docker-compose.local.yml dibuat dari .example"; \
+	}
 	docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db
 	@echo "✓ MongoDB tersedia di localhost:27017 (auth: admin / MONGODB_PASS dari .env, authSource=admin)"
 
