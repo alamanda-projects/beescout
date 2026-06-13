@@ -142,6 +142,10 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Local-only Docker override (expose MongoDB ke host — lihat `make db-expose`).
+# Sengaja tidak di-commit: melemahkan default produksi (db internal:true).
+docker-compose.local.yml
+
 # Environments
 .env
 .venv
