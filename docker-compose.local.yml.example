@@ -1,0 +1,39 @@
+# =======================
+# docker-compose.local.yml — LOKAL SAJA (di-ignore git)
+# Expose MongoDB port 27017 ke host Mac untuk akses langsung dari
+# DB client (Compass, TablePlus, mongosh) — override production compose.
+#
+# Ini TEMPLATE. `make db-expose` otomatis menyalin file ini menjadi
+# docker-compose.local.yml (yang gitignored) bila belum ada. Boleh juga
+# disalin manual: cp docker-compose.local.yml.example docker-compose.local.yml
+#
+# Pakai data volume yang sama dengan production (beescout-data),
+# bukan ephemeral dev data. Jangan dipakai di production.
+#
+# Jalankan:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db
+#
+# Koneksi:
+#   Host     : localhost
+#   Port     : 27017
+#   Username : admin
+#   Password : (dari .env MONGODB_PASS)
+#   Auth DB  : admin
+#   URI      : mongodb://admin:<PASS>@localhost:27017/dgrdb?authSource=admin
+# =======================
+
+name: beescout
+
+services:
+  db:
+    ports:
+      - "127.0.0.1:27017:27017"
+    # internal-net pakai internal:true → Docker blokir NAT dari host.
+    # Tambah network non-internal supaya port 27017 bisa di-bind ke Mac.
+    networks:
+      internal-net: {}     # tetap terhubung ke backend (tidak diganti)
+      local-access: {}     # bridge biasa untuk port publishing ke host
+
+networks:
+  local-access:
+    driver: bridge
