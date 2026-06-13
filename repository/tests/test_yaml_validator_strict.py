@@ -45,6 +45,16 @@ def _minimal_yaml(
             "type": "CSV",
             "effective_date": "2024-01-01",
             "expiry_date": "2025-12-31",
+            # #102 PR-B slice 5: SLA spec-YES fields wajib.
+            "sla": {
+                "availability_start": 6,
+                "availability_end": 18,
+                "availability_unit": "h",
+                "frequency": 4,
+                "frequency_unit": "h",
+                "retention": 1,
+                "retention_unit": "y",
+            },
         },
         "model": mdl,
         "ports": [],

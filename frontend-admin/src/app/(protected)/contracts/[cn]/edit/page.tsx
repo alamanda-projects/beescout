@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { requiredEmailField, requiredString } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString, requiredInt } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
@@ -46,12 +46,16 @@ const schema = z.object({
       purpose: requiredString('Tujuan wajib diisi'),
       usage: requiredString('Cara penggunaan wajib diisi'),
     }),
+    // #102 PR-B slice 5: SLA spec-YES → wajib. Pydantic tetap Optional.
     sla: z.object({
-      availability: z.string().optional(),
-      frequency: z.string().optional(),
+      availability_start: requiredInt('Jam mulai wajib diisi', 0, 23),
+      availability_end: requiredInt('Jam selesai wajib diisi', 0, 23),
+      availability_unit: z.enum(['h', 'd'], { required_error: 'Unit wajib dipilih' }),
+      frequency: requiredInt('Interval frekuensi wajib diisi', 0),
+      frequency_unit: z.enum(['m', 'h', 'd'], { required_error: 'Unit wajib dipilih' }),
+      frequency_cron: z.string().optional(),
       retention: z.string().optional(),
-      cron: z.string().optional(),
-    }).optional(),
+    }),
     // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib
     // — sama dengan create. Mencegah workaround "create lalu hapus
     // stakeholder via edit". Backend juga validate di PUT /update.
@@ -139,7 +143,7 @@ export default function EditContractPage() {
     defaultValues: {
       standard_version: '1.0',
       contract_number: '',
-      metadata: { version: '', type: '', name: '', owner: '', consumption_mode: '', effective_date: '', expiry_date: '', description: { purpose: '', usage: '' }, sla: { availability: '', frequency: '', retention: '', cron: '' }, stakeholders: [], quality: [] },
+      metadata: { version: '', type: '', name: '', owner: '', consumption_mode: '', effective_date: '', expiry_date: '', description: { purpose: '', usage: '' }, sla: { availability_start: undefined as any, availability_end: undefined as any, availability_unit: 'h' as 'h' | 'd', frequency: undefined as any, frequency_unit: 'h' as 'm' | 'h' | 'd', frequency_cron: '', retention: '' }, stakeholders: [], quality: [] },
       model: [],
       ports: [],
     },
@@ -187,10 +191,13 @@ export default function EditContractPage() {
           usage: (m.description as any)?.usage ?? '',
         },
         sla: {
-          availability: (m.sla as any)?.availability ?? '',
-          frequency: String((m.sla as any)?.frequency ?? ''),
+          availability_start: (m.sla as any)?.availability_start ?? undefined as any,
+          availability_end: (m.sla as any)?.availability_end ?? undefined as any,
+          availability_unit: ((m.sla as any)?.availability_unit ?? 'h') as 'h' | 'd',
+          frequency: (m.sla as any)?.frequency ?? undefined as any,
+          frequency_unit: ((m.sla as any)?.frequency_unit ?? 'h') as 'm' | 'h' | 'd',
+          frequency_cron: (m.sla as any)?.frequency_cron ?? (m.sla as any)?.cron ?? '',
           retention: retentionStr,
-          cron: (m.sla as any)?.cron ?? (m.sla as any)?.frequency_cron ?? '',
         },
         stakeholders: (m.stakeholders ?? []).map((s: any) => ({
           name: s.name ?? '',
@@ -252,12 +259,22 @@ export default function EditContractPage() {
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
 
   useEffect(() => {
-    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '')
+    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: false })
   }, [retentionValue, retentionUnit])
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
     try {
+      const sla = data.metadata.sla as any
+      const slaPayload = {
+        availability_start: sla?.availability_start,
+        availability_end: sla?.availability_end,
+        availability_unit: sla?.availability_unit,
+        frequency: sla?.frequency,
+        frequency_unit: sla?.frequency_unit,
+        ...(sla?.frequency_cron ? { frequency_cron: sla.frequency_cron } : {}),
+        ...(retentionValue ? { retention: parseInt(retentionValue, 10), retention_unit: retentionUnit } : {}),
+      }
       const payload = {
         ...data,
         metadata: {
@@ -268,9 +285,7 @@ export default function EditContractPage() {
             purpose: data.metadata.description?.purpose || undefined,
             usage: data.metadata.description?.usage || undefined,
           },
-          sla: Object.fromEntries(
-            Object.entries(data.metadata.sla ?? {}).filter(([, v]) => v)
-          ),
+          sla: slaPayload,
         },
         model: data.model?.filter(c => c.column) ?? [],
         // Backend (PortsProperties) memakai field `property`, bukan `name`.
@@ -502,39 +517,69 @@ export default function EditContractPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">SLA (Tingkat Layanan)</CardTitle>
-                <CardDescription>Semua field opsional</CardDescription>
+                <CardDescription>Ketersediaan, frekuensi, dan retensi data wajib diisi</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Ketersediaan</Label>
-                  <Input placeholder="Contoh: 99.9%" {...register('metadata.sla.availability')} />
+                  <Label>Ketersediaan *</Label>
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <span className="text-sm text-slate-500 whitespace-nowrap">Jam mulai</span>
+                    <Input type="number" min={0} max={23} className="w-20" placeholder="0–23"
+                      {...register('metadata.sla.availability_start')} />
+                    <span className="text-sm text-slate-500 whitespace-nowrap">Jam selesai</span>
+                    <Input type="number" min={0} max={23} className="w-20" placeholder="0–23"
+                      {...register('metadata.sla.availability_end')} />
+                    <Controller name="metadata.sla.availability_unit" control={form.control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="w-24"><SelectValue placeholder="Unit" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="h">Jam</SelectItem>
+                            <SelectItem value="d">Hari</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )} />
+                  </div>
+                  {errors.metadata?.sla?.availability_start && <p className="text-xs text-destructive">{errors.metadata.sla.availability_start.message}</p>}
+                  {errors.metadata?.sla?.availability_end && <p className="text-xs text-destructive">{errors.metadata.sla.availability_end.message}</p>}
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Frekuensi Update</Label>
-                  <Input placeholder="Contoh: Harian, Jam 06.00" {...register('metadata.sla.frequency')} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Retensi Data</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="Jumlah"
-                      className="w-24"
-                      value={retentionValue}
-                      onChange={(e) => setRetentionValue(e.target.value)}
-                    />
-                    <Select value={retentionUnit} onValueChange={setRetentionUnit}>
-                      <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {RETENTION_UNITS.map(u => <SelectItem key={u} value={u} className="capitalize">{u}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Frekuensi Update *</Label>
+                    <div className="flex gap-2">
+                      <Input type="number" min={0} className="w-24" placeholder="Interval"
+                        {...register('metadata.sla.frequency')} />
+                      <Controller name="metadata.sla.frequency_unit" control={form.control}
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger className="flex-1"><SelectValue placeholder="Unit" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="m">Menit</SelectItem>
+                              <SelectItem value="h">Jam</SelectItem>
+                              <SelectItem value="d">Hari</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )} />
+                    </div>
+                    {errors.metadata?.sla?.frequency && <p className="text-xs text-destructive">{errors.metadata.sla.frequency.message}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Retensi Data *</Label>
+                    <div className="flex gap-2">
+                      <Input type="number" min="1" placeholder="Jumlah" className="w-24"
+                        value={retentionValue} onChange={(e) => setRetentionValue(e.target.value)} />
+                      <Select value={retentionUnit} onValueChange={setRetentionUnit}>
+                        <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {RETENTION_UNITS.map(u => <SelectItem key={u} value={u} className="capitalize">{u}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Jadwal Cron</Label>
-                  <Input placeholder="Contoh: 0 6 * * *" {...register('metadata.sla.cron')} />
+                  <Label>Jadwal Cron <span className="text-slate-400 text-xs">(opsional)</span></Label>
+                  <Input placeholder="Contoh: 0 6 * * *" {...register('metadata.sla.frequency_cron')} />
                 </div>
               </CardContent>
             </Card>

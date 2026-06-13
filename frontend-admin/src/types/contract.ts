@@ -28,9 +28,17 @@ export interface Quality {
 }
 
 export interface SLA {
+  // Spec fields (required at write-time) — #102 PR-B slice 5
+  availability_start?: number
+  availability_end?: number
+  availability_unit?: string   // 'h' | 'd'
+  frequency?: number
+  frequency_unit?: string      // 'm' | 'h' | 'd'
+  frequency_cron?: string
+  retention?: number
+  retention_unit?: string
+  // Legacy UI aliases — lenient on read for old contracts
   availability?: string
-  frequency?: string
-  retention?: string
   cron?: string
 }
 

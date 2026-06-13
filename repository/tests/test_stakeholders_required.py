@@ -30,6 +30,8 @@ def _base_contract(stakeholders=None):
             "expiry_date": "2025-12-31",
             # #102 PR-B: description wajib di write-path.
             "description": {"purpose": "Test purpose", "usage": "private"},
+            # #102 PR-B slice 5: SLA spec-YES fields wajib.
+            "sla": {"availability_start": 6, "availability_end": 18, "availability_unit": "h", "frequency": 4, "frequency_unit": "h"},
             "stakeholders": stakeholders if stakeholders is not None else [],
         },
         "model": [],
@@ -218,9 +220,20 @@ metadata:
   owner: tim_test
   effective_date: '2024-01-01'
   expiry_date: '2025-12-31'
+  description:
+    purpose: Untuk analisis
+    usage: private
+  sla:
+    availability_start: 6
+    availability_end: 18
+    availability_unit: h
+    frequency: 4
+    frequency_unit: h
   stakeholders:
     - name: Pak X
       role: owner
+      email: pak.x@example.com
+      date_in: '2024-01-01'
 model: []
 ports: []
 """
@@ -250,6 +263,12 @@ metadata:
   description:
     purpose: Untuk analisis penjualan
     usage: private
+  sla:
+    availability_start: 6
+    availability_end: 18
+    availability_unit: h
+    frequency: 4
+    frequency_unit: h
   stakeholders:
     - name: Tim Sales
       role: consumer
