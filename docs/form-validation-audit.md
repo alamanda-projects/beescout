@@ -93,7 +93,7 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 | `stakeholders[].email` | YES | `optional`, **tanpa format** | 🔴 📧 🔗 | Tambah `.email('Format email tidak valid')`; mandatory-kan per #102 |
 | `stakeholders[].username` | NO (ADR-0004) | `optional` | ✅ | — |
 | `stakeholders[].date_in` | YES | `min(1)` (#114 T1.3 ✅) | ✅ | — |
-| `stakeholders[].date_out` | NO | `optional` | ✅ | Kalau diisi → refine `date_out >= date_in` |
+| `stakeholders[].date_out` | NO | `optional` + refine `>= date_in` (#114 ✅) | ✅ | Cross-field divalidasi saat submit (error inline di field) |
 
 ### Step "Konsumen" (consumer[] — documentary, ADR-0007)
 
