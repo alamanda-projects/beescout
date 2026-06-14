@@ -69,7 +69,7 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 | `metadata.owner` | YES | `min(1)` | ✅ | — |
 | `metadata.consumption_mode` | NO | `optional` | ✅ | — |
 | `metadata.effective_date` | YES | `min(1)` (#103) | ✅ | — |
-| `metadata.expiry_date` | YES | `min(1)` (#103) | ✅ | Tambah refine `expiry_date >= effective_date` (cross-field) — kandidat Phase 3 |
+| `metadata.expiry_date` | YES | `min(1)` + refine `>= effective_date` (#114 ✅) | ✅ | Cross-field divalidasi saat submit (error di slot `expiry_date`) |
 | `metadata.description.purpose` | YES | `optional` | 🔴 🔗 | Wajib per spec (#102). Wizard belum ada field eksplisit di sebagian path |
 | `metadata.description.usage` | YES | `optional` | 🔴 🔗 | Wajib (`private`/`public`); default `private` |
 
