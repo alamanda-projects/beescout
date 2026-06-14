@@ -29,8 +29,11 @@ class All(BaseModel):
     contract_number: str
     metadata: Metadata  # -> merujuk ke ./metadata.py
     model: List[Model]  # -> merujuk ke ./model.py
-    ports: List[Ports]  # -> merujuk ke ./ports.py
-    examples: Examples  # -> merujuk ke ./examples.py
+    # ports & examples dilengkapi belakangan (lifecycle), jadi Optional —
+    # lenient read/write. Kontrak yang belum punya (mis. hasil import ODCS,
+    # #100) tetap bisa disimpan & dibaca tanpa 500. Sejalan dgn pola #129.
+    ports: Optional[List[Ports]] = None  # -> merujuk ke ./ports.py
+    examples: Optional[Examples] = None  # -> merujuk ke ./examples.py
     created_by: Optional[str] = None      # username pembuat kontrak
     managers: Optional[List[str]] = None  # username yang ditugaskan sebagai pengelola
     approval_status: Optional[str] = None # None | "pending" | "approved" | "rejected"

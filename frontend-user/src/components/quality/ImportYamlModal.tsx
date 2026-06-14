@@ -95,6 +95,8 @@ function ImportYamlModal({ context, contractNumber, onPrefill, onClose }: ModalP
   const [modalState, setModalState] = useState<ModalState>('idle')
   const [result, setResult] = useState<YamlValidationResult | null>(null)
   const [importing, setImporting] = useState(false)
+  // #100: format sumber YAML — BeeScout native atau ODCS (dikonversi backend).
+  const [sourceFormat, setSourceFormat] = useState<'beescout' | 'odcs'>('beescout')
 
   // ── File handling ────────────────────────────────────────────────────────────
   const handleFile = useCallback((f: File) => {
@@ -136,7 +138,7 @@ function ImportYamlModal({ context, contractNumber, onPrefill, onClose }: ModalP
     setResult(null)
 
     try {
-      const res = await validateYaml(targetFile)
+      const res = await validateYaml(targetFile, sourceFormat)
       setResult(res)
       setModalState(res.valid ? 'success' : 'error')
     } catch (err: unknown) {
@@ -168,7 +170,7 @@ function ImportYamlModal({ context, contractNumber, onPrefill, onClose }: ModalP
 
     setImporting(true)
     try {
-      const saved = await importYaml(targetFile)
+      const saved = await importYaml(targetFile, sourceFormat)
       toast.success(`Kontrak "${saved.metadata?.name}" berhasil diimport.`)
       onClose()
       router.push(`/contracts/${saved.contract_number}`)
@@ -209,6 +211,28 @@ function ImportYamlModal({ context, contractNumber, onPrefill, onClose }: ModalP
             <AlertCircle size={13} className="shrink-0 mt-0.5" />
             File harus berformat YAML dan sesuai standar Open Data Contract Standard (ODCS). Validasi dijalankan otomatis sebelum import.
           </div>
+
+          {/* Format sumber (#100) — idle only */}
+          {(modalState === 'idle' || modalState === 'validating') && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-500">Format sumber:</span>
+              {(['beescout', 'odcs'] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => { setSourceFormat(f); setResult(null); setModalState('idle') }}
+                  className={cn(
+                    'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
+                    sourceFormat === f
+                      ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
+                      : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50',
+                  )}
+                >
+                  {f === 'beescout' ? 'BeeScout' : 'ODCS'}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Upload zone — idle only */}
           {(modalState === 'idle' || modalState === 'validating') && (
