@@ -88,7 +88,11 @@ const schema = z.object({
       impact: z.string().optional(),
       severity: z.string().optional(),
     })).optional(),
-  }),
+  }).refine(
+    // #114: tanggal berakhir tidak boleh sebelum tanggal mulai (ISO → bandingkan string).
+    (m) => !m.effective_date || !m.expiry_date || m.expiry_date >= m.effective_date,
+    { message: 'Tanggal berakhir harus sama atau setelah tanggal mulai', path: ['expiry_date'] },
+  ),
   model: z.array(z.object({
     column: z.string().min(1, 'Nama kolom wajib diisi'),
     business_name: z.string().optional(),
