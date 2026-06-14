@@ -81,8 +81,8 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 |---|---|---|---|---|
 | `sla.availability` (alias) | YES (→ start/end/unit) | `optional` | 🔴 🔗 | Tunggu #102 PR-B refactor expose field spec; lalu mandatory-kan |
 | `sla.frequency` (alias) | YES (→ frequency + unit) | `optional` | 🔴 🔗 | Sama |
-| `sla.retention` (alias) | YES (→ retention + unit) | `optional` | 🔴 🔗 | Sama. Catatan: backend simpan `retention:int` + `retention_unit:str` terpisah (CLAUDE.md) |
-| `sla.cron` | NO | `optional` | 📧 | Kalau diisi → validasi sintaks crontab |
+| `sla.retention` | YES | `min(1)` (#114 3a ✅) | ✅ | Wajib (melengkapi #135). Backend simpan `retention:int` + `retention_unit:str` terpisah (CLAUDE.md) |
+| `sla.cron` (`frequency_cron`) | NO | `cronField()` (#114 3a ✅) | ✅ | Validasi sintaks crontab saat diisi |
 
 ### Step "Pemangku" (stakeholders[])
 
@@ -99,8 +99,8 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 
 | Field | Required | zod saat ini | Tag | Rekomendasi |
 |---|---|---|---|---|
-| `consumer[].name` | YES (kalau entry ada) | `z.string()` (tanpa `min(1)`) | 🔴 | Entry tanpa nama tidak masuk akal — `min(1)` |
-| `consumer[].use_case` | YES | `optional` | 🔴 🔗 | Spec wajib (alasan entry ada) |
+| `consumer[].name` | YES (kalau entry ada) | `requiredString` (#114 3a ✅) | ✅ | UI consumer kini di-expose di step Pemangku (4 file) + tampil di halaman detail. Baris kosong dibuang saat submit |
+| `consumer[].use_case` | NO (documentary) | `optional` | ✅ | Textarea opsional di UI consumer baru |
 
 ### Step "Struktur Data" (model[])
 

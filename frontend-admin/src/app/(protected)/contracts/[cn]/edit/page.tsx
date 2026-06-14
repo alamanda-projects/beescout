@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { requiredEmailField, requiredString, requiredInt } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString, requiredInt, cronField } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
@@ -53,8 +53,8 @@ const schema = z.object({
       availability_unit: z.enum(['h', 'd'], { required_error: 'Unit wajib dipilih' }),
       frequency: requiredInt('Interval frekuensi wajib diisi', 0),
       frequency_unit: z.enum(['m', 'h', 'd'], { required_error: 'Unit wajib dipilih' }),
-      frequency_cron: z.string().optional(),
-      retention: z.string().optional(),
+      frequency_cron: cronField(),
+      retention: z.string().min(1, 'Retensi data wajib diisi'),
     }),
     // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib
     // — sama dengan create. Mencegah workaround "create lalu hapus
@@ -78,7 +78,7 @@ const schema = z.object({
     // dari stakeholder consumer bisa push data_domain-nya. Edit page juga
     // perlu agar nilai existing tidak silent-drop saat submit.
     consumer: z.array(z.object({
-      name: z.string(),
+      name: requiredString('Nama konsumen wajib diisi'),
       use_case: z.string().optional(),
     })).optional(),
     quality: z.array(z.object({
@@ -250,6 +250,7 @@ export default function EditContractPage() {
   }, [contract, form])
 
   const { fields: stakeholders, append: addStakeholder, remove: removeStakeholder } = useFieldArray({ control: form.control, name: 'metadata.stakeholders' })
+  const { fields: consumers, append: addConsumer, remove: removeConsumer } = useFieldArray({ control: form.control, name: 'metadata.consumer' })
   const { fields: columns, append: addColumn, remove: removeColumn } = useFieldArray({ control: form.control, name: 'model' })
   const { fields: ports, append: addPort, remove: removePort } = useFieldArray({ control: form.control, name: 'ports' })
   const { fields: qualityRules, append: addQuality, remove: removeQuality } = useFieldArray({ control: form.control, name: 'metadata.quality' })
@@ -259,7 +260,7 @@ export default function EditContractPage() {
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
 
   useEffect(() => {
-    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: false })
+    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: form.formState.isSubmitted })
   }, [retentionValue, retentionUnit])
 
   const onSubmit = async (data: FormData) => {
@@ -280,6 +281,7 @@ export default function EditContractPage() {
         metadata: {
           ...data.metadata,
           stakeholders: data.metadata.stakeholders?.filter(s => s.name) ?? [],
+          consumer: (data.metadata.consumer ?? []).filter(c => c.name?.trim()),
           quality: data.metadata.quality?.filter(q => q.code) ?? [],
           description: {
             purpose: data.metadata.description?.purpose || undefined,
@@ -575,11 +577,13 @@ export default function EditContractPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {errors.metadata?.sla?.retention && <p className="text-xs text-destructive">{errors.metadata.sla.retention.message}</p>}
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Jadwal Cron <span className="text-slate-400 text-xs">(opsional)</span></Label>
                   <Input placeholder="Contoh: 0 6 * * *" {...register('metadata.sla.frequency_cron')} />
+                  {errors.metadata?.sla?.frequency_cron && <p className="text-xs text-destructive">{errors.metadata.sla.frequency_cron.message}</p>}
                 </div>
               </CardContent>
             </Card>
@@ -692,6 +696,50 @@ export default function EditContractPage() {
                   </div>
                   )
                 })}
+              </CardContent>
+            </Card>
+
+            {/* Konsumen — documentary (ADR-0007): catatan siapa memakai data &
+                untuk apa. BUKAN access-control (itu dari stakeholders). */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Konsumen (Dokumentasi)</CardTitle>
+                    <CardDescription>Catatan siapa memakai data ini &amp; untuk apa — opsional, tidak memengaruhi akses kontrak.</CardDescription>
+                  </div>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => addConsumer({ name: '', use_case: '' })}>
+                    <Plus size={14} className="mr-1" />Tambah
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {consumers.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">Belum ada konsumen terdokumentasi. Opsional — klik &quot;Tambah&quot; untuk mencatat pemakai data.</p>
+                )}
+                {consumers.map((field, i) => (
+                  <div key={field.id} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Konsumen #{i + 1}</span>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 px-2"
+                        onClick={() => removeConsumer(i)}>
+                        <Trash2 size={13} />
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nama Konsumen *</Label>
+                      <Input className="h-8 text-xs" placeholder="mis. Tim Analitik"
+                        {...register(`metadata.consumer.${i}.name`)} />
+                      {errors.metadata?.consumer?.[i]?.name && <p className="text-xs text-destructive">{errors.metadata.consumer[i]?.name?.message}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Kegunaan <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                      <Textarea className="text-xs" rows={2} placeholder="mis. menggabungkan dataset dengan data transaksi untuk analisis riwayat pembelian"
+                        {...register(`metadata.consumer.${i}.use_case`)} />
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>

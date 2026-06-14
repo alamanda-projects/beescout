@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ArrowLeft, CheckCircle2, XCircle, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
-import type { ModelColumn, Stakeholder } from '@/types/contract'
+import type { ModelColumn, Stakeholder, Consumer } from '@/types/contract'
 import { getStakeholderRoleLabel } from '@/types/contract'
 import * as jsYaml from 'js-yaml'
 
@@ -150,6 +150,27 @@ export default function AdminContractDetailPage() {
                           <TableCell className="text-muted-foreground">{s.email ?? '-'}</TableCell>
                           <TableCell className="text-muted-foreground">{formatDate(s.date_in)}</TableCell>
                           <TableCell className="text-muted-foreground">{s.date_out ? formatDate(s.date_out) : <span className="text-emerald-600 text-xs">aktif</span>}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+
+            {metadata?.consumer && metadata.consumer.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3"><CardTitle className="text-base">Konsumen (Dokumentasi)</CardTitle></CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow><TableHead>Nama</TableHead><TableHead>Kegunaan</TableHead></TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {metadata.consumer.map((c: Consumer, i: number) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell className="text-muted-foreground">{c.use_case ?? '-'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
