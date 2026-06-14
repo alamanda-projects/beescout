@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { requiredEmailField, requiredString, requiredInt } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString, requiredInt, cronField } from '@/lib/zod-helpers'
 import { useRouter } from 'next/navigation'
 import { addContract, generateContractNumber, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
 import { getMe } from '@/lib/api/auth'
@@ -56,8 +56,8 @@ const schema = z.object({
       availability_unit: z.enum(['h', 'd'], { required_error: 'Unit wajib dipilih' }),
       frequency: requiredInt('Interval frekuensi wajib diisi', 0),
       frequency_unit: z.enum(['m', 'h', 'd'], { required_error: 'Unit wajib dipilih' }),
-      frequency_cron: z.string().optional(),
-      retention: z.string().optional(),
+      frequency_cron: cronField(),
+      retention: z.string().min(1, 'Retensi data wajib diisi'),
     }),
     // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib
     // agar kontrak tidak yatim. Enforcement juga di backend (POST /add &
@@ -351,7 +351,7 @@ export default function NewContractPage() {
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
 
   useEffect(() => {
-    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: false })
+    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: form.formState.isSubmitted })
   }, [retentionValue, retentionUnit])
 
   const generateCN = async () => {
@@ -371,7 +371,7 @@ export default function NewContractPage() {
     const fieldsPerStep: (keyof FormData | string)[][] = [
       ['standard_version', 'contract_number', 'metadata.version', 'metadata.type', 'metadata.name', 'metadata.owner', 'metadata.effective_date', 'metadata.expiry_date', 'metadata.description.purpose', 'metadata.description.usage'],
       // #102 PR-B slice 5: SLA spec-YES wajib — validasi di step ini sebelum lanjut.
-      ['metadata.sla.availability_start', 'metadata.sla.availability_end', 'metadata.sla.availability_unit', 'metadata.sla.frequency', 'metadata.sla.frequency_unit'],
+      ['metadata.sla.availability_start', 'metadata.sla.availability_end', 'metadata.sla.availability_unit', 'metadata.sla.frequency', 'metadata.sla.frequency_unit', 'metadata.sla.retention', 'metadata.sla.frequency_cron'],
       [], [], [],
     ]
     const valid = await form.trigger((fieldsPerStep[step] ?? []) as any)
@@ -663,12 +663,14 @@ export default function NewContractPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {errors.metadata?.sla?.retention && <p className="text-xs text-destructive">{errors.metadata.sla.retention.message}</p>}
                   </div>
                 </div>
                 {/* Cron opsional */}
                 <div className="space-y-1.5">
                   <Label>Jadwal Cron <span className="text-slate-400 text-xs">(opsional)</span></Label>
                   <Input placeholder="Contoh: 0 6 * * *" {...register('metadata.sla.frequency_cron')} />
+                  {errors.metadata?.sla?.frequency_cron && <p className="text-xs text-destructive">{errors.metadata.sla.frequency_cron.message}</p>}
                 </div>
               </CardContent>
             </Card>
