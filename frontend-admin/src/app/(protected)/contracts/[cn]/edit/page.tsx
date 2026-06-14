@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { requiredEmailField, requiredString, requiredInt, cronField } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString, requiredInt, cronField, enumField } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic, getDomainsBasic } from '@/lib/api/admin'
@@ -24,7 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, ArrowLeft, Save, Info } from 'lucide-react'
-import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
+import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, STAKEHOLDER_ROLE_VALUES, LEGACY_STAKEHOLDER_ROLES, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
 import { isBusinessUser } from '@/types/user'
 import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
 
@@ -61,7 +61,7 @@ const schema = z.object({
     // stakeholder via edit". Backend juga validate di PUT /update.
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
-      role: z.string().min(1, 'Peran wajib diisi'),
+      role: enumField(STAKEHOLDER_ROLE_VALUES, { legacy: LEGACY_STAKEHOLDER_ROLES, emptyMsg: 'Peran wajib diisi', invalidMsg: 'Peran tidak valid' }),
       email: requiredEmailField(),
       username: z.string().optional(),    // ADR-0004
       // #114 T1.3 — date_in wajib di spec; pre-fill akan auto-stamp today

@@ -106,3 +106,31 @@ export const cronField = (msg = 'Format cron tidak valid (contoh: 0 6 * * *)') =
     { message: msg },
   )
 }
+
+/**
+ * Enum legacy-tolerant (#114). Menerima nilai dari `values` (kanonik) ATAU
+ * dari `legacy` (nilai lama yang sudah tersimpan sebelum enum diperketat).
+ * Nilai liar di luar keduanya ditolak.
+ *
+ * Pola ini menutup gap "field enum disimpan sebagai free string" tanpa
+ * memblok edit kontrak pra-migrasi: input baru tetap dibatasi dropdown ke
+ * nilai kanonik, sedangkan nilai legacy hanya lolos validasi (tidak
+ * ditawarkan di UI). Lihat anti-pattern di skill resolve-issue & audit doc.
+ *
+ * - `required` (default true): kosong → error `emptyMsg`.
+ * - `required: false`: kosong → lolos (untuk field enum opsional).
+ */
+export const enumField = (
+  values: readonly string[],
+  opts: { legacy?: readonly string[]; required?: boolean; emptyMsg?: string; invalidMsg?: string } = {},
+) => {
+  const { legacy = [], required = true, emptyMsg = 'Wajib dipilih', invalidMsg = 'Nilai tidak valid' } = opts
+  const allowed = new Set<string>([...values, ...legacy])
+  return z.string().superRefine((v, ctx) => {
+    if (v == null || v === '') {
+      if (required) ctx.addIssue({ code: z.ZodIssueCode.custom, message: emptyMsg })
+      return
+    }
+    if (!allowed.has(v)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: invalidMsg })
+  })
+}

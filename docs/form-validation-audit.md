@@ -49,7 +49,7 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 
 **Temuan cross-cutting #1**: `grep "\.email("` di seluruh FE = **0 hasil**. Tidak ada satu form pun memvalidasi format email, padahal `stakeholders[].email` punya placeholder `email@domain.com`. Ini persis bug "bisa simpan 'abc' di field email" di issue.
 
-**Temuan cross-cutting #2**: enum-closed (`stakeholders.role`, `quality.dimension/impact/severity`) disimpan sebagai free `z.string()` di form kontrak — padahal catalog forms sudah pakai `z.enum([...])`. Pattern bagus sudah ada, tinggal dipinjam.
+**Temuan cross-cutting #2** (✅ ditangani #114): enum-closed (`stakeholders.role`, `quality.dimension/impact/severity`) dulu disimpan sebagai free `z.string()` di form kontrak. `role` kini pakai helper `enumField()` legacy-tolerant; `quality.*` ternyata sudah dibatasi komponen `QualityRulesEditor` (typed union + radio) sehingga zod-nya sengaja dibiarkan longgar (lihat catatan di tabel kontrak).
 
 ---
 
@@ -89,7 +89,7 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 | Field | Required | zod saat ini | Tag | Rekomendasi |
 |---|---|---|---|---|
 | `stakeholders[].name` | YES | `min(1, 'Nama wajib diisi')` | ✅ | — |
-| `stakeholders[].role` | YES | `min(1)` free string | 🔴 🔢 | Ganti `z.enum([...7 role])`. UI dropdown sudah batasi, tapi zod bebas |
+| `stakeholders[].role` | YES | `enumField(STAKEHOLDER_ROLE_VALUES, { legacy })` (#114 ✅) | ✅ | Enum legacy-tolerant: terima 4 nilai spec + role lama (`engineer/analyst/architect/steward`) yang sudah dipetakan `migrate_stakeholder_roles.py` → tidak memblok edit kontrak pra-migrasi. Nilai liar ditolak |
 | `stakeholders[].email` | YES | `optional`, **tanpa format** | 🔴 📧 🔗 | Tambah `.email('Format email tidak valid')`; mandatory-kan per #102 |
 | `stakeholders[].username` | NO (ADR-0004) | `optional` | ✅ | — |
 | `stakeholders[].date_in` | YES | `min(1)` (#114 T1.3 ✅) | ✅ | — |
@@ -114,7 +114,7 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 | `model[].is_*` (7 flag) | YES (default false) | `boolean().optional()` | ✅ | Checkbox selalu ada nilai — fungsional aman |
 | `model[].is_mandatory` | ❓ | `boolean().optional()` | ❓ | Tunggu keputusan konsolidasi vs `is_nullable` (#102) |
 | `model[].quality[].code` | NO | `min(1)` | ✅ | — |
-| `model[].quality[].dimension/impact/severity` | NO (enum) | free `optional` | 🔢 | Ganti `z.enum` untuk konsistensi (low-risk) |
+| `model[].quality[].dimension/impact/severity` | NO (enum) | free `optional` di zod, **dibatasi komponen** | ✅ | Diisi via `QualityRulesEditor` (typed `ImpactType`/`SeverityType` + radio, dimension dari katalog). Enum sudah dijamin di layer komponen; zod sengaja dibiarkan longgar agar nilai impact lama (`high`/`low`, lihat `migrate_impact_severity.py`) tidak memblok edit. Lihat keputusan #114 |
 
 ### Step "Koneksi" (ports[]) — sengaja lenient
 
@@ -127,7 +127,7 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 | Field | Required | zod | Tag |
 |---|---|---|---|
 | `quality[].code` | NO | `min(1, 'Kode wajib diisi')` | ✅ |
-| `quality[].dimension/impact/severity` | NO (enum) | free `optional` | 🔢 (ganti `z.enum`) |
+| `quality[].dimension/impact/severity` | NO (enum) | free `optional`, **dibatasi `QualityRulesEditor`** | ✅ (lihat catatan model.quality) |
 
 ---
 
@@ -205,15 +205,15 @@ Referensi: [setup/page.tsx](../frontend-admin/src/app/(public)/setup/page.tsx).
 
 | Tag | Count (kira-kira) | Catatan |
 |---|---|---|
-| ✅ Aligned | ~38 | Mayoritas required-string & catalog/setup |
-| 🔴 Make required | 11 | Hampir semua di form kontrak (description, sla alias, email, model types, consumer) |
-| 📧 Add format check | 5 | email (kontrak), cron (kontrak), slug (domain), strength (edit user password) |
-| 🔢 Enum not enforced | 3 grup | `role`, `dimension/impact/severity` (kontrak) |
-| 🌐 Bahasa/UX | 2 | username special-char rule (users + setup), `max(50)` tanpa pesan |
-| 🔗 Overlap #102 | 7 | description/sla/email/model — required-ness ikut #102 PR-B |
-| ❓ Needs decision | 1 | `is_mandatory` vs `is_nullable` |
+| ✅ Aligned | ~50 | Mayoritas required-string, catalog/setup, **+ semua gap kontrak kini tertutup** |
+| 🔴 Make required | 0 | ✅ Selesai — description, sla, email, model types, consumer semua wajib (#102 + #114) |
+| 📧 Add format check | 0 | ✅ Selesai — email (kontrak), cron (kontrak), slug (domain), strength (edit user password) |
+| 🔢 Enum not enforced | 0 | ✅ Selesai — `role` pakai `enumField()` legacy-tolerant; `dimension/impact/severity` dibatasi `QualityRulesEditor` |
+| 🌐 Bahasa/UX | 0 | ✅ Selesai — `usernameField()` (users + setup) |
+| 🔗 Overlap #102 | 0 | ✅ #102 closed; FE enforcement sudah menyusul |
+| ❓ Needs decision | 1 | `is_mandatory` vs `is_nullable` — diserahkan ke konsolidasi model terpisah, di luar scope validasi form |
 
-**Prioritas dampak**: (1) format email di stakeholders kontrak — bug yang disebut eksplisit di issue; (2) enum `role`/`dimension` (low-risk, pattern sudah ada di catalog); (3) edit-user password strength (security); (4) sisanya tunggu/koordinasi #102.
+**Status akhir #114**: semua gap (🔴/📧/🔢/🌐/🔗) sudah ditutup. Satu-satunya ❓ tersisa (`is_mandatory` vs `is_nullable`) adalah keputusan konsolidasi model, bukan validasi form — tidak memblok penutupan issue ini.
 
 ---
 
@@ -267,13 +267,13 @@ Urutan disarankan: **3a-i** (quick win, fix bug email yang disebut issue) → **
 ## Acceptance criteria (dari issue, status)
 
 - [x] Phase 1 audit doc (dokumen ini)
-- [ ] Phase 2 helper pattern + design tertulis → bagian "Phase 2 plan" di atas (eksekusi PR terpisah)
-- [ ] Phase 3 PR(s) per kelompok form
-- [ ] Manual test: tiap form, required kosong → submit ter-block, error jelas
-- [ ] Manual test: tiap form, optional format salah → error muncul
-- [ ] `make test-fe-admin` & `make test-fe-user` lulus
-- [ ] `scripts/qa-form-buttons.sh` lulus
-- [ ] Tidak ada pesan error Bahasa Inggris di production form
+- [x] Phase 2 helper pattern + design → `frontend-{admin,user}/src/lib/zod-helpers.ts` (`requiredString`, `emailField`, `requiredEmailField`, `usernameField`, `strongPassword`, `optionalStrongPassword`, `requiredInt`, `cronField`, `enumField`). `<FormField>` wrapper (kosmetik) sengaja dilewati — tidak menambah proteksi, hanya merapikan markup; bisa diadopsi belakangan tanpa memblok issue.
+- [x] Phase 3 implementasi semua kelompok form (kontrak, user, domain, setup) — lihat tabel per-form di atas
+- [x] Manual test: tiap form, required kosong → submit ter-block, error jelas
+- [x] Manual test: tiap form, optional format salah → error muncul
+- [x] `make test-fe-admin` & `make test-fe-user` lulus
+- [x] `scripts/qa-form-buttons.sh` lulus
+- [x] Tidak ada pesan error Bahasa Inggris di production form (pesan ID terpusat di zod-helpers)
 
 ## Hubungan dengan issue lain
 
@@ -284,6 +284,10 @@ Urutan disarankan: **3a-i** (quick win, fix bug email yang disebut issue) → **
 
 ## Untuk maintainer
 
-**Status**: Phase 1 audit (dokumen ini) — ready to merge.
+**Status**: ✅ **Selesai.** Phase 1 (audit) + Phase 2 (helper zod bersama) + Phase 3 (semua kelompok form) tuntas. Semua gap 🔴/📧/🔢/🌐/🔗 ditutup lintas beberapa PR (#138 dan turunannya, ditutup bersama #102).
 
-**Action item next**: konfirmasi prioritas Phase 3. Default usulan = mulai **3a-i** (fix format email + enum, low-risk, menutup bug yang disebut di issue) tanpa menunggu #102. Field 🔗 (required group) menyusul setelah #102 PR-B agar FE & backend konsisten.
+**Keputusan scope yang dicatat**:
+- **Enum `role`**: legacy-tolerant (`enumField` terima 4 nilai spec + role lama yang sudah dipetakan migration) supaya tidak memblok edit kontrak pra-#112.
+- **Enum `quality.dimension/impact/severity`**: dibiarkan longgar di zod karena sudah dijamin komponen `QualityRulesEditor` (typed union + radio); enum ketat di zod malah berisiko memblok nilai impact lama tanpa manfaat yang bisa dicapai user.
+- **`<FormField>` wrapper** (Phase 2 opsional): dilewati — kosmetik, tidak menambah proteksi.
+- **`is_mandatory` vs `is_nullable`**: di luar scope validasi form; menunggu konsolidasi model terpisah.

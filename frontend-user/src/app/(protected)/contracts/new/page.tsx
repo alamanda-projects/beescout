@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { requiredEmailField, requiredString, requiredInt, cronField } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString, requiredInt, cronField, enumField } from '@/lib/zod-helpers'
 import { useRouter } from 'next/navigation'
 import { addContract, generateContractNumber, getUsersBasic } from '@/lib/api/contracts'
 import { getDomainsBasic } from '@/lib/api/domains'
@@ -25,7 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, RefreshCw, ChevronRight, ChevronLeft, Check, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CONTRACT_TYPE_LABELS, CONTRACT_TYPES, CONSUMPTION_MODES, RETENTION_UNITS, STAKEHOLDER_ROLE_GROUPS } from '@/types/contract'
+import { CONTRACT_TYPE_LABELS, CONTRACT_TYPES, CONSUMPTION_MODES, RETENTION_UNITS, STAKEHOLDER_ROLE_GROUPS, STAKEHOLDER_ROLE_VALUES, LEGACY_STAKEHOLDER_ROLES } from '@/types/contract'
 import { isBusinessUser } from '@/types/user'
 import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
 
@@ -62,7 +62,7 @@ const schema = z.object({
     // #114 T1.3 — date_in wajib (spec YES), date_out opsional (spec NO)
     stakeholders: z.array(z.object({
       name: z.string().min(1, 'Nama wajib diisi'),
-      role: z.string().min(1, 'Peran wajib diisi'),
+      role: enumField(STAKEHOLDER_ROLE_VALUES, { legacy: LEGACY_STAKEHOLDER_ROLES, emptyMsg: 'Peran wajib diisi', invalidMsg: 'Peran tidak valid' }),
       email: requiredEmailField(),
       username: z.string().optional(),    // ADR-0004
       date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
