@@ -25,19 +25,25 @@ export const createRule = async (
   return res.data
 }
 
-export const validateYaml = async (file: File): Promise<YamlValidationResult> => {
+export const validateYaml = async (
+  file: File,
+  format: 'beescout' | 'odcs' = 'beescout',
+): Promise<YamlValidationResult> => {
   const form = new FormData()
   form.append('file', file)
   const res = await apiClient.post('/contracts/validate-yaml', form, {
+    params: { format },
     headers: { 'Content-Type': 'multipart/form-data' },
   })
   return res.data
 }
 
-export const importYaml = async (file: File) => {
+// format='odcs' → konversi ODCS→BeeScout dulu di backend (#100).
+export const importYaml = async (file: File, format: 'beescout' | 'odcs' = 'beescout') => {
   const form = new FormData()
   form.append('file', file)
   const res = await apiClient.post('/contracts/import-yaml', form, {
+    params: { format },
     headers: { 'Content-Type': 'multipart/form-data' },
   })
   return res.data

@@ -104,7 +104,9 @@ def beescout_to_odcs(contract: dict) -> str:
             "properties": properties,
         })]
 
-    # team.members[] — dari stakeholders[].
+    # team.members[] — dari stakeholders[]. `username` diisi username-atau-email
+    # (interop ODCS), tapi nilai asli BeeScout (email + username) ikut disimpan di
+    # member.customProperties supaya round-trip lossless.
     members = [
         _clean({
             "name": s.get("name"),
@@ -112,6 +114,10 @@ def beescout_to_odcs(contract: dict) -> str:
             "role": s.get("role"),
             "dateIn": s.get("date_in"),
             "dateOut": s.get("date_out"),
+            "customProperties": _custom_props([
+                ("email", s.get("email")),
+                ("beescout_username", s.get("username")),
+            ]),
         })
         for s in (meta.get("stakeholders") or [])
     ]
@@ -142,6 +148,10 @@ def beescout_to_odcs(contract: dict) -> str:
     top_custom = _custom_props([
         ("standard_version", contract.get("standard_version")),
         ("contract_number", contract.get("contract_number")),
+        # owner & type tidak punya slot ODCS yang lossless → simpan di sini juga
+        # supaya import (#100) bisa merekonstruksi tanpa kehilangan.
+        ("owner", meta.get("owner")),
+        ("metadata_type", meta.get("type")),
         ("consumption_mode", meta.get("consumption_mode")),
         ("frequency_cron", sla.get("frequency_cron")),
         ("prev_contract", meta.get("prev_contract")),
@@ -173,3 +183,154 @@ def beescout_to_odcs(contract: dict) -> str:
     )
     body = yaml.safe_dump(odcs, sort_keys=False, allow_unicode=True, default_flow_style=False)
     return header + body
+
+
+# ─── Import: ODCS → BeeScout (#100) ──────────────────────────────────────────
+
+# Default standard_version untuk ODCS yang tidak membawa customProperties dari
+# BeeScout (mis. kontrak ODCS eksternal). Sengaja konservatif.
+DEFAULT_STANDARD_VERSION = "0.0.0"
+
+# Field top-level ODCS yang tidak punya padanan BeeScout → di-drop saat import.
+_ODCS_ONLY_TOPLEVEL = ("tenant", "domain", "status", "support", "price", "dataProduct")
+
+
+def _cp_to_dict(custom_properties) -> dict:
+    """customProperties ODCS (list {property,value}) → dict {property: value}."""
+    out = {}
+    for cp in (custom_properties or []):
+        if isinstance(cp, dict) and cp.get("property") is not None:
+            out[cp["property"]] = cp.get("value")
+    return out
+
+
+def _quality_odcs_to_beescout(q: dict) -> dict:
+    args = q.get("arguments") or {}
+    custom_properties = [{"property": k, "value": v} for k, v in args.items()]
+    return _clean({
+        "code": q.get("id") or q.get("metric"),
+        "description": q.get("description"),
+        "dimension": q.get("dimension"),
+        "impact": q.get("businessImpact"),   # businessImpact → impact (ADR-0003)
+        "severity": q.get("severity"),
+        "custom_properties": custom_properties,
+    })
+
+
+def _column_odcs_to_beescout(prop: dict) -> dict:
+    cp = _cp_to_dict(prop.get("customProperties"))
+    required = prop.get("required")
+    return _clean({
+        "column": prop.get("name"),
+        "business_name": prop.get("businessName"),
+        "logical_type": prop.get("logicalType"),
+        "physical_type": prop.get("physicalType"),
+        "description": prop.get("description"),
+        "is_primary": prop.get("primaryKey"),
+        # required → is_nullable (inversi balik). None → biarkan kosong.
+        "is_nullable": (not required) if required is not None else None,
+        "is_partition": prop.get("partitioned"),
+        "is_pii": True if prop.get("classification") == "confidential" else None,
+        "sample_value": prop.get("examples"),
+        "tags": prop.get("tags"),
+        "quality": [_quality_odcs_to_beescout(q) for q in (prop.get("quality") or [])],
+        # flag BeeScout-specific yang disimpan saat export.
+        "is_clustered": cp.get("is_clustered"),
+        "is_audit": cp.get("is_audit"),
+        "is_mandatory": cp.get("is_mandatory"),
+    })
+
+
+def odcs_to_beescout(odcs: dict) -> tuple[dict, list[str]]:
+    """Konversi dict ODCS v3 → (kontrak BeeScout dict, list warning).
+
+    Mengembalikan dict (bukan Pydantic) — caller (endpoint import) yang
+    memvalidasi via model `All`. Field BeeScout-specific yang sebelumnya
+    disimpan di customProperties (hasil export BeeScout) direkonstruksi penuh
+    sehingga round-trip lossless. ODCS eksternal yang tidak punya field wajib
+    BeeScout akan lolos converter tapi gagal validasi Pydantic di endpoint (422).
+    """
+    warnings: list[str] = []
+    cp = _cp_to_dict(odcs.get("customProperties"))
+    sla_props = _cp_to_dict(odcs.get("serviceLevelAgreements"))
+
+    schemas = odcs.get("schema") or []
+    if len(schemas) > 1:
+        warnings.append(
+            "ODCS memiliki >1 objek schema; hanya objek pertama yang di-flatten "
+            "ke model[] BeeScout (BeeScout flat, bukan hierarkis)."
+        )
+    first_schema = schemas[0] if schemas else {}
+
+    # stakeholders[] dari team.members[] — utamakan nilai asli di customProperties.
+    stakeholders = []
+    for m in ((odcs.get("team") or {}).get("members") or []):
+        mcp = _cp_to_dict(m.get("customProperties"))
+        username = mcp.get("beescout_username")
+        email = mcp.get("email")
+        # ODCS eksternal: username bisa berisi email. Fallback bila CP kosong.
+        if email is None and isinstance(m.get("username"), str) and "@" in m["username"]:
+            email = m["username"]
+        if username is None and m.get("username") and m["username"] != email:
+            username = m["username"]
+        stakeholders.append(_clean({
+            "name": m.get("name"),
+            "role": m.get("role"),
+            "email": email,
+            "username": username,
+            "date_in": m.get("dateIn"),
+            "date_out": m.get("dateOut"),
+        }))
+
+    metadata = _clean({
+        "version": odcs.get("version"),
+        "type": cp.get("metadata_type") or first_schema.get("physicalType"),
+        "name": odcs.get("name"),
+        "owner": cp.get("owner"),
+        "consumption_mode": cp.get("consumption_mode"),
+        "effective_date": sla_props.get("effectiveDate"),
+        "expiry_date": sla_props.get("expiryDate"),
+        "description": {
+            "purpose": (odcs.get("description") or {}).get("purpose"),
+            "usage": (odcs.get("description") or {}).get("usage"),
+        },
+        "sla": {
+            "availability_start": sla_props.get("availabilityStart"),
+            "availability_end": sla_props.get("availabilityEnd"),
+            "availability_unit": sla_props.get("availabilityUnit"),
+            "frequency": sla_props.get("frequency"),
+            "frequency_unit": sla_props.get("frequencyUnit"),
+            "retention": sla_props.get("retention"),
+            "retention_unit": sla_props.get("retentionUnit"),
+            "frequency_cron": cp.get("frequency_cron"),
+        },
+        "stakeholders": stakeholders,
+        "consumer": cp.get("consumer") or [],
+        "quality": [_quality_odcs_to_beescout(q) for q in (odcs.get("quality") or [])],
+        "contract_reference": [
+            _clean({"number": ad.get("url"), "type": ad.get("type")})
+            for ad in (odcs.get("authoritativeDefinitions") or [])
+            if isinstance(ad, dict)
+        ],
+        "prev_contract": cp.get("prev_contract"),
+    })
+
+    contract = _clean({
+        "standard_version": cp.get("standard_version") or DEFAULT_STANDARD_VERSION,
+        "contract_number": cp.get("contract_number") or odcs.get("id"),
+        "metadata": metadata,
+        "model": [_column_odcs_to_beescout(p) for p in (first_schema.get("properties") or [])],
+        "ports": cp.get("ports") or [],
+        "examples": cp.get("examples"),
+    })
+
+    # Warning untuk field ODCS yang sengaja di-drop (tak ada padanan BeeScout).
+    for k in _ODCS_ONLY_TOPLEVEL:
+        if odcs.get(k) not in _EMPTY:
+            warnings.append(f"Field ODCS '{k}' tidak punya padanan BeeScout — di-drop.")
+    if not cp.get("standard_version"):
+        warnings.append(
+            f"standard_version tidak ada di ODCS — diisi default '{DEFAULT_STANDARD_VERSION}'."
+        )
+
+    return contract, warnings

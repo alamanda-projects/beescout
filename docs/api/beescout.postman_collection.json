@@ -1150,9 +1150,17 @@
               "path": [
                 "contracts",
                 "validate-yaml"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
               ]
             },
-            "description": "Validasi file YAML data contract sebelum diimport.\nHanya root dan admin.",
+            "description": "Validasi file YAML data contract sebelum diimport.\nHanya root dan admin.\n\n`format=odcs` (#100): YAML dikonversi ODCS→BeeScout dulu via\n`odcs_to_beescout`, lalu divalidasi dengan aturan yang sama. Warning\nkonversi (field di-drop / default) digabung ke `warnings` response.",
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -1179,9 +1187,17 @@
               "path": [
                 "contracts",
                 "import-yaml"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
               ]
             },
-            "description": "Import data contract dari file YAML.\nHanya root dan admin.",
+            "description": "Import data contract dari file YAML.\nHanya root dan admin.\n\n`format=odcs` (#100): YAML dikonversi ODCS→BeeScout dulu, lalu lewat\njalur enforcement & insert yang sama dengan import BeeScout native.",
             "body": {
               "mode": "formdata",
               "formdata": [

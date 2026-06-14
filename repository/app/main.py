@@ -19,7 +19,7 @@ from app.core.connection import database, col_usr, col_dgr, col_apr, col_dom
 from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate
 from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
-from app.core.odcs_converter import beescout_to_odcs
+from app.core.odcs_converter import beescout_to_odcs, odcs_to_beescout
 from app.core.hasher import Hasher
 from app.core.addon_loader import (
     load_catalog_rules_addon,
@@ -1723,11 +1723,16 @@ async def delete_rule(code: str, user=Depends(require_admin)):
 @app.post("/contracts/validate-yaml", tags=["contracts"])
 async def validate_yaml_import(
     file: UploadFile = File(...),
+    format: str = "beescout",
     user=Depends(require_admin),
 ):
     """
     Validasi file YAML data contract sebelum diimport.
     Hanya root dan admin.
+
+    `format=odcs` (#100): YAML dikonversi ODCS→BeeScout dulu via
+    `odcs_to_beescout`, lalu divalidasi dengan aturan yang sama. Warning
+    konversi (field di-drop / default) digabung ke `warnings` response.
     """
     content = await file.read()
 
@@ -1749,10 +1754,15 @@ async def validate_yaml_import(
                 "errors": [{"message": "File YAML harus berupa objek/mapping di level teratas."}],
                 "suggestions": []}
 
+    # #100: konversi ODCS → BeeScout sebelum validasi. Sisanya jalur sama.
+    odcs_warnings = []
+    if format == "odcs":
+        data, odcs_warnings = odcs_to_beescout(data)
+
     # ── Layer 2: BeeScout schema (lihat data-contract/docs/README.md;
     #           komparasi vs ODCS di data-contract/docs/comparison-odcs.md).
     errors = []
-    warnings = []
+    warnings = [{"field": "format", "message": w} for w in odcs_warnings]
 
     for field in ["standard_version", "metadata"]:
         if field not in data:
@@ -1939,11 +1949,15 @@ async def validate_yaml_import(
 @app.post("/contracts/import-yaml", tags=["contracts"], status_code=201)
 async def import_yaml_contract(
     file: UploadFile = File(...),
+    format: str = "beescout",
     user=Depends(require_admin),
 ):
     """
     Import data contract dari file YAML.
     Hanya root dan admin.
+
+    `format=odcs` (#100): YAML dikonversi ODCS→BeeScout dulu, lalu lewat
+    jalur enforcement & insert yang sama dengan import BeeScout native.
     """
     content = await file.read()
 
@@ -1954,6 +1968,10 @@ async def import_yaml_contract(
 
     if not isinstance(data, dict):
         raise HTTPException(status_code=422, detail="File YAML tidak valid.")
+
+    # #100: konversi ODCS → BeeScout sebelum enforcement/insert.
+    if format == "odcs":
+        data, _ = odcs_to_beescout(data)
 
     # Write-time enforcement (#102 Phase 3): mirrors /datacontract/add checks
     # agar YAML import tidak bisa bypass validasi yang berlaku di write-path biasa.

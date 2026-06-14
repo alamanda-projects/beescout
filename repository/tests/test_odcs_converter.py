@@ -1,16 +1,18 @@
-"""Tests untuk converter ODCS — #101 (export half).
+"""Tests untuk converter ODCS — #101 (export) + #100 (import + round-trip).
 
-Memverifikasi `beescout_to_odcs`: pemetaan field overlap ke ODCS v3 +
-preservasi field BeeScout-specific di customProperties (non-lossy), sesuai
-data-contract/docs/comparison-odcs.md.
+Memverifikasi:
+- `beescout_to_odcs`: pemetaan field overlap ke ODCS v3 + preservasi field
+  BeeScout-specific di customProperties (non-lossy).
+- `odcs_to_beescout`: rekonstruksi BeeScout dari ODCS + warning untuk field
+  yang di-drop / default.
+- Round-trip BeeScout→ODCS→BeeScout = identik (modulo nilai kosong).
 
-Round-trip test (ODCS↔BeeScout) menyusul di #100 saat importer ditambahkan
-ke modul yang sama.
+Mengikuti data-contract/docs/comparison-odcs.md.
 """
 
 import yaml
 
-from app.core.odcs_converter import beescout_to_odcs
+from app.core.odcs_converter import beescout_to_odcs, odcs_to_beescout, _clean
 
 
 def _sample_contract() -> dict:
@@ -180,3 +182,81 @@ def test_minimal_contract_does_not_crash():
 def test_output_has_header_comment():
     out = beescout_to_odcs(_sample_contract())
     assert out.startswith("# Data contract di-export dari BeeScout ke format ODCS v3.")
+
+
+# ─── Import (ODCS → BeeScout) ────────────────────────────────────────────────
+
+def test_round_trip_beescout_odcs_beescout():
+    """Export lalu import harus mengembalikan kontrak yang identik (lossless)."""
+    original = _sample_contract()
+    odcs_dict = yaml.safe_load(beescout_to_odcs(original))
+    rebuilt, warnings = odcs_to_beescout(odcs_dict)
+    assert rebuilt == _clean(original)
+    # round-trip kontrak hasil export sendiri → tidak ada warning drop
+    assert warnings == []
+
+
+def test_import_minimal_odcs_external():
+    odcs = {
+        "apiVersion": "v3.0.0",
+        "kind": "DataContract",
+        "id": "ext-1",
+        "name": "External Contract",
+        "version": "2.0.0",
+    }
+    bs, warnings = odcs_to_beescout(odcs)
+    assert bs["contract_number"] == "ext-1"
+    assert bs["metadata"]["name"] == "External Contract"
+    assert bs["metadata"]["version"] == "2.0.0"
+    # standard_version tidak ada → default + warning
+    assert bs["standard_version"] == "0.0.0"
+    assert any("standard_version" in w for w in warnings)
+
+
+def test_import_drops_odcs_specific_with_warning():
+    odcs = {
+        "id": "x", "name": "X",
+        "tenant": "acme", "status": "production", "price": {"amount": 10},
+        "customProperties": [{"property": "standard_version", "value": "0.5.0"}],
+    }
+    _, warnings = odcs_to_beescout(odcs)
+    assert any("tenant" in w for w in warnings)
+    assert any("status" in w for w in warnings)
+    assert any("price" in w for w in warnings)
+
+
+def test_import_external_username_holds_email():
+    """ODCS eksternal: username berisi email → email BeeScout ter-isi."""
+    odcs = {
+        "id": "x", "name": "X",
+        "team": {"members": [{"name": "Jane", "role": "consumer", "username": "jane@corp.com"}]},
+    }
+    bs, _ = odcs_to_beescout(odcs)
+    s = bs["metadata"]["stakeholders"][0]
+    assert s["email"] == "jane@corp.com"
+
+
+def test_import_required_inversion():
+    odcs = {
+        "id": "x", "name": "X",
+        "schema": [{"name": "t", "properties": [
+            {"name": "col_a", "required": True},
+            {"name": "col_b", "required": False},
+        ]}],
+    }
+    cols = {c["column"]: c for c in odcs_to_beescout(odcs)[0]["model"]}
+    assert cols["col_a"]["is_nullable"] is False
+    assert cols["col_b"]["is_nullable"] is True
+
+
+def test_import_multi_schema_warns_and_flattens_first():
+    odcs = {
+        "id": "x", "name": "X",
+        "schema": [
+            {"name": "t1", "properties": [{"name": "a"}]},
+            {"name": "t2", "properties": [{"name": "b"}]},
+        ],
+    }
+    bs, warnings = odcs_to_beescout(odcs)
+    assert [c["column"] for c in bs["model"]] == ["a"]
+    assert any("schema" in w.lower() for w in warnings)
