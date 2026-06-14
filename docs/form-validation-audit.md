@@ -99,8 +99,8 @@ Tiga aturan konsistensi yang ingin dicapai (ringkasan dari issue):
 
 | Field | Required | zod saat ini | Tag | Rekomendasi |
 |---|---|---|---|---|
-| `consumer[].name` | YES (kalau entry ada) | `z.string()` (tanpa `min(1)`) | ⏸️ | **Sengaja dibiarkan** (#114 3a): wizard tidak punya UI untuk menambah/mengedit `consumer[]` (documentary, ADR-0007). `min(1)` jadi no-op di form baru & **jebakan legacy-block** di edit (di-round-trip dari data, tak bisa diperbaiki via UI). Tinjau ulang bila UI consumer di-expose |
-| `consumer[].use_case` | YES | `optional` | ⏸️ | Sama — tak ada UI; biarkan sampai consumer di-expose |
+| `consumer[].name` | YES (kalau entry ada) | `requiredString` (#114 3a ✅) | ✅ | UI consumer kini di-expose di step Pemangku (4 file) + tampil di halaman detail. Baris kosong dibuang saat submit |
+| `consumer[].use_case` | NO (documentary) | `optional` | ✅ | Textarea opsional di UI consumer baru |
 
 ### Step "Struktur Data" (model[])
 

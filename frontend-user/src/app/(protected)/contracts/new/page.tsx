@@ -73,6 +73,12 @@ const schema = z.object({
         (arr) => arr.some((s) => s.role === 'consumer' || s.role === 'producer'),
         { message: 'Minimal 1 pemangku kepentingan harus berperan sebagai consumer atau producer agar tim terkait dapat melihat kontrak' }
       ),
+    // ADR-0007 (#94): consumer[] documentary (siapa pakai data & untuk apa).
+    // BUKAN access-control — visibilitas derive dari stakeholders di backend.
+    consumer: z.array(z.object({
+      name: requiredString('Nama konsumen wajib diisi'),
+      use_case: z.string().optional(),
+    })).optional(),
     quality: z.array(z.object({
       code: z.string().min(1, 'Kode wajib diisi'),
       dimension: z.string().optional(),
@@ -187,6 +193,7 @@ function ContractReview({ data, retentionValue, retentionUnit }: {
   retentionUnit: string
 }) {
   const stakeholders = data.metadata?.stakeholders ?? []
+  const consumers = data.metadata?.consumer ?? []
   const model = data.model ?? []
   const ports = data.ports ?? []
   const dsQuality = data.metadata?.quality ?? []
@@ -230,6 +237,17 @@ function ContractReview({ data, retentionValue, retentionUnit }: {
             {s.role && <span className="text-muted-foreground"> · {s.role}</span>}
             {s.email && <span className="text-muted-foreground"> · {s.email}</span>}
             {s.username && <span className="text-indigo-600"> · @{s.username}</span>}
+          </div>
+        ))}
+      </ReviewSection>
+
+      <ReviewSection title={`Konsumen (${consumers.filter(c => c.name?.trim()).length})`}>
+        {consumers.filter(c => c.name?.trim()).length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">Belum ada konsumen terdokumentasi.</p>
+        ) : consumers.filter(c => c.name?.trim()).map((c, i) => (
+          <div key={i} className="text-sm">
+            <span className="font-medium">{c.name}</span>
+            {c.use_case && <span className="text-muted-foreground"> · {c.use_case}</span>}
           </div>
         ))}
       </ReviewSection>
@@ -316,6 +334,7 @@ export default function NewContractPage() {
         description: { purpose: '', usage: '' },
         sla: { availability_start: undefined as any, availability_end: undefined as any, availability_unit: 'h' as 'h' | 'd', frequency: undefined as any, frequency_unit: 'h' as 'm' | 'h' | 'd', frequency_cron: '', retention: '' },
         stakeholders: [],
+        consumer: [],
         quality: [],
       },
       model: [],
@@ -326,6 +345,7 @@ export default function NewContractPage() {
   const { watch, register, formState: { errors }, setValue } = form
 
   const { fields: stakeholders, append: addStakeholder, remove: removeStakeholder } = useFieldArray({ control: form.control, name: 'metadata.stakeholders' })
+  const { fields: consumers, append: addConsumer, remove: removeConsumer } = useFieldArray({ control: form.control, name: 'metadata.consumer' })
   const { fields: columns, append: addColumn, remove: removeColumn } = useFieldArray({ control: form.control, name: 'model' })
   const { fields: ports, append: addPort, remove: removePort } = useFieldArray({ control: form.control, name: 'ports' })
 
@@ -382,6 +402,7 @@ export default function NewContractPage() {
         metadata: {
           ...data.metadata,
           stakeholders: data.metadata.stakeholders?.filter(s => s.name) ?? [],
+          consumer: (data.metadata.consumer ?? []).filter(c => c.name?.trim()),
           quality: (data.metadata.quality ?? [])
             .filter(q => q.code)
             .map(q => ({ ...q, custom_properties: (q.custom_properties ?? []).filter(p => p.property) })),
@@ -654,6 +675,7 @@ export default function NewContractPage() {
 
         {/* ── Step 2: Pemangku Kepentingan ─────────────────────────── */}
         {step === 2 && (
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -762,6 +784,51 @@ export default function NewContractPage() {
                 })}
               </CardContent>
             </Card>
+
+            {/* Konsumen — documentary (ADR-0007): catatan siapa memakai data &
+                untuk apa. BUKAN access-control (itu dari stakeholders). */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Konsumen (Dokumentasi)</CardTitle>
+                    <CardDescription>Catatan siapa memakai data ini &amp; untuk apa — opsional, tidak memengaruhi akses kontrak.</CardDescription>
+                  </div>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => addConsumer({ name: '', use_case: '' })}>
+                    <Plus size={14} className="mr-1" />Tambah
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {consumers.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">Belum ada konsumen terdokumentasi. Opsional — klik &quot;Tambah&quot; untuk mencatat pemakai data.</p>
+                )}
+                {consumers.map((field, i) => (
+                  <div key={field.id} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Konsumen #{i + 1}</span>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 px-2"
+                        onClick={() => removeConsumer(i)}>
+                        <Trash2 size={13} />
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nama Konsumen *</Label>
+                      <Input className="h-8 text-xs" placeholder="mis. Tim Analitik"
+                        {...register(`metadata.consumer.${i}.name`)} />
+                      {errors.metadata?.consumer?.[i]?.name && <p className="text-xs text-destructive">{errors.metadata.consumer[i]?.name?.message}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Kegunaan <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                      <Textarea className="text-xs" rows={2} placeholder="mis. menggabungkan dataset dengan data transaksi untuk analisis riwayat pembelian"
+                        {...register(`metadata.consumer.${i}.use_case`)} />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* ── Step 3: Model / Struktur Data ────────────────────────── */}
