@@ -73,7 +73,11 @@ const schema = z.object({
       // date_out NO (untuk track kapan keluar). #114 T1.3.
       date_in: z.string().min(1, 'Tanggal mulai wajib diisi'),
       date_out: z.string().optional(),
-    }))
+    }).refine(
+      // #114: tanggal berakhir stakeholder tidak boleh sebelum tanggal mulai.
+      (s) => !s.date_out || s.date_out >= s.date_in,
+      { message: 'Tanggal berakhir harus sama atau setelah tanggal mulai', path: ['date_out'] },
+    ))
       .min(1, 'Minimal 1 pemangku kepentingan wajib ditambahkan')
       .refine(
         (arr) => arr.some((s) => s.role === 'consumer' || s.role === 'producer'),
@@ -801,6 +805,7 @@ export default function NewContractPage() {
                       <div className="space-y-1">
                         <Label className="text-xs">Tanggal Berakhir <span className="text-muted-foreground font-normal">(opsional)</span></Label>
                         <Input type="date" className="h-8 text-xs" {...register(`metadata.stakeholders.${i}.date_out`)} />
+                        {errors.metadata?.stakeholders?.[i]?.date_out && <p className="text-xs text-destructive">{errors.metadata.stakeholders[i]?.date_out?.message}</p>}
                       </div>
                     </div>
                   </div>
