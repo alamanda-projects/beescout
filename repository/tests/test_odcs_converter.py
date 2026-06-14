@@ -249,6 +249,16 @@ def test_import_required_inversion():
     assert cols["col_b"]["is_nullable"] is True
 
 
+def test_imported_contract_validates_against_all_model():
+    """Regresi: hasil import harus lolos model `All` (ports/examples Optional)
+    agar tidak 500 saat dibaca via /datacontract/filter."""
+    from app.model.all import All
+    bs, _ = odcs_to_beescout(yaml.safe_load(beescout_to_odcs(_sample_contract())))
+    model = All(**bs)  # tidak boleh raise meski examples kosong
+    # examples tidak ada di sample → Optional, tidak memicu 500 saat dibaca
+    assert model.examples is None
+
+
 def test_import_multi_schema_warns_and_flattens_first():
     odcs = {
         "id": "x", "name": "X",
