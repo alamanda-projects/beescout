@@ -596,6 +596,40 @@
           "response": []
         },
         {
+          "name": "GET /datacontract/{contract_number}/export — Export Datacontract",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/datacontract/:contract_number/export",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "datacontract",
+                ":contract_number",
+                "export"
+              ],
+              "variable": [
+                {
+                  "key": "contract_number",
+                  "value": ""
+                }
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Export satu kontrak ke format interop. Saat ini hanya ODCS v3 (#101).\n\nAkses identik dengan GET /datacontract/filter?contract_number= (scope penuh\nconsumer/producer). Mengembalikan YAML sebagai attachment."
+          },
+          "response": []
+        },
+        {
           "name": "GET /datacontract/mine — Get My Contracts",
           "request": {
             "method": "GET",

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { getContractByNumber } from '@/lib/api/contracts'
+import { getContractByNumber, exportContractOdcs } from '@/lib/api/contracts'
 import { getMe } from '@/lib/api/auth'
 import { ImportYamlButton } from '@/components/quality/ImportYamlModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowLeft, CheckCircle2, XCircle, Pencil } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Pencil, Download } from 'lucide-react'
+import { toast } from 'sonner'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 import type { ModelColumn, Stakeholder, Consumer } from '@/types/contract'
@@ -352,7 +353,19 @@ export default function ContractDetailPage() {
         {/* ── YAML tab ──────────────────────────────────────────────── */}
         <TabsContent value="raw">
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-base">YAML</CardTitle></CardHeader>
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">YAML</CardTitle>
+              <Button type="button" size="sm" variant="outline"
+                onClick={async () => {
+                  try {
+                    await exportContractOdcs(contract.contract_number)
+                  } catch {
+                    toast.error('Gagal export ODCS.')
+                  }
+                }}>
+                <Download size={14} className="mr-1" />Export ODCS
+              </Button>
+            </CardHeader>
             <CardContent>
               <pre className="text-xs bg-slate-50 border rounded-lg p-4 overflow-auto max-h-[600px] text-slate-700">
                 {(() => {
