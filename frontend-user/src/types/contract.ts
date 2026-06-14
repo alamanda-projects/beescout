@@ -186,6 +186,17 @@ export const STAKEHOLDER_ROLE_GROUPS: StakeholderRoleGroup[] = [
 
 export const STAKEHOLDER_ROLES: StakeholderRoleItem[] = STAKEHOLDER_ROLE_GROUPS.flatMap(g => g.items)
 
+/** Nilai role kanonik BeeScout (4 nilai spec, #112). Sumber untuk enum FE. */
+export const STAKEHOLDER_ROLE_VALUES = STAKEHOLDER_ROLES.map(r => r.value)
+
+/**
+ * Role lama (pra-#112) yang sudah dipetakan ke 4 nilai spec lewat
+ * scripts/migrate_stakeholder_roles.py. Ditoleransi oleh enum FE supaya
+ * kontrak yang belum di-migrasi tetap bisa di-edit (#114, legacy-tolerant) —
+ * tidak ditawarkan di dropdown, hanya lolos validasi bila sudah tersimpan.
+ */
+export const LEGACY_STAKEHOLDER_ROLES = ['engineer', 'analyst', 'architect', 'steward'] as const
+
 export function getStakeholderRoleLabel(value: string): string {
   return STAKEHOLDER_ROLES.find(r => r.value === value)?.label ?? value
 }
