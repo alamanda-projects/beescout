@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { requiredEmailField, requiredString, requiredInt } from '@/lib/zod-helpers'
+import { requiredEmailField, requiredString, requiredInt, cronField } from '@/lib/zod-helpers'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getContractByNumber, updateContract, getUsersBasic } from '@/lib/api/contracts'
@@ -54,8 +54,8 @@ const schema = z.object({
       availability_unit: z.enum(['h', 'd'], { required_error: 'Unit wajib dipilih' }),
       frequency: requiredInt('Interval frekuensi wajib diisi', 0),
       frequency_unit: z.enum(['m', 'h', 'd'], { required_error: 'Unit wajib dipilih' }),
-      frequency_cron: z.string().optional(),
-      retention: z.string().optional(),
+      frequency_cron: cronField(),
+      retention: z.string().min(1, 'Retensi data wajib diisi'),
     }),
     // ADR-0007: minimal 1 stakeholder dengan role consumer/producer wajib.
     // #114 T1.3 — date_in wajib (spec YES), date_out opsional. Pre-fill
@@ -241,7 +241,7 @@ export default function EditContractPage() {
   const [retentionUnit, setRetentionUnit] = useState<string>('tahun')
 
   useEffect(() => {
-    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: false })
+    setValue('metadata.sla.retention', retentionValue ? `${retentionValue} ${retentionUnit}` : '', { shouldValidate: form.formState.isSubmitted })
   }, [retentionValue, retentionUnit])
 
   const onSubmit = async (data: FormData) => {
@@ -560,11 +560,13 @@ export default function EditContractPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {errors.metadata?.sla?.retention && <p className="text-xs text-destructive">{errors.metadata.sla.retention.message}</p>}
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Jadwal Cron <span className="text-slate-400 text-xs">(opsional)</span></Label>
                   <Input placeholder="Contoh: 0 6 * * *" {...register('metadata.sla.frequency_cron')} />
+                  {errors.metadata?.sla?.frequency_cron && <p className="text-xs text-destructive">{errors.metadata.sla.frequency_cron.message}</p>}
                 </div>
               </CardContent>
             </Card>
