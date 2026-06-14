@@ -43,3 +43,13 @@ model:
 ## 💡 Tips Import
 - Gunakan endpoint `/validate-yaml` terlebih dahulu untuk mendapatkan feedback instan tanpa risiko duplikasi data.
 - Jika `contract_number` tidak disertakan, sistem akan meng-generate nomor unik secara otomatis.
+
+## 📤 Export ke ODCS (#101)
+
+Kontrak BeeScout bisa diekspor ke format **ODCS v3** (Open Data Contract Standard) untuk dibagikan ke tim/tooling luar.
+
+- **Endpoint**: `GET /datacontract/{contract_number}/export?format=odcs` → mengembalikan YAML (`Content-Disposition: attachment`, nama file `{cn}.odcs.yaml`). Akses sama dengan melihat kontrak.
+- **UI**: tombol **Export ODCS** di tab **YAML** halaman detail kontrak (admin & user).
+- **Pemetaan**: mengikuti [comparison-odcs.md](../data-contract/docs/comparison-odcs.md). Field overlap dipetakan ke padanan ODCS (`schema/properties`, `team/members`, `serviceLevelAgreements`, `quality`, `authoritativeDefinitions`).
+- **Non-lossy**: field BeeScout-specific (`consumer[]`, `consumption_mode`, `frequency_cron`, `ports[]`, `is_clustered`/`is_audit`, `examples`) **tidak di-drop** — disimpan di `customProperties` ODCS, dengan catatan di header file.
+- Konverter ada di [`repository/app/core/odcs_converter.py`](../repository/app/core/odcs_converter.py) (`beescout_to_odcs`). Importer ODCS→BeeScout (#100) akan ditambahkan ke modul yang sama; round-trip test menyusul di sana.

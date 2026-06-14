@@ -7,7 +7,7 @@
 
 from fastapi import FastAPI, HTTPException, Depends, Request, Body, UploadFile, File
 from pymongo.errors import DuplicateKeyError
-from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
+from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -19,6 +19,7 @@ from app.core.connection import database, col_usr, col_dgr, col_apr, col_dom
 from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate
 from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
+from app.core.odcs_converter import beescout_to_odcs
 from app.core.hasher import Hasher
 from app.core.addon_loader import (
     load_catalog_rules_addon,
@@ -1287,6 +1288,43 @@ async def get_datacontract(current_user: dict = Depends(token_verification)):
     # re-validate di sini akan 500 untuk satu doc rusak → seluruh list gagal.
     # Cukup return raw dicts; FE handle missing field dengan ??.
     return docs or []
+
+
+@app.get("/datacontract/{contract_number}/export", tags=["datacontract"])
+async def export_datacontract(
+    contract_number: str,
+    format: str = "odcs",
+    current_user: dict = Depends(token_verification),
+):
+    """Export satu kontrak ke format interop. Saat ini hanya ODCS v3 (#101).
+
+    Akses identik dengan GET /datacontract/filter?contract_number= (scope penuh
+    consumer/producer). Mengembalikan YAML sebagai attachment.
+    """
+    if format != "odcs":
+        raise HTTPException(
+            status_code=400, detail="Format tidak didukung. Gunakan format=odcs."
+        )
+    await access_verification_filter(
+        current_user.get("usr"),
+        current_user.get("lvl"),
+        current_user.get("sts"),
+        grplvlall,
+        current_user.get("tim"),
+        current_user.get("cln"),
+        contract_number,
+    )
+    doc = await dccollection.find_one({"contract_number": contract_number}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Kontrak tidak ditemukan.")
+    yaml_str = beescout_to_odcs(doc)
+    return Response(
+        content=yaml_str,
+        media_type="application/yaml",
+        headers={
+            "Content-Disposition": f'attachment; filename="{contract_number}.odcs.yaml"'
+        },
+    )
 
 
 @app.get("/datacontract/mine", tags=["datacontract"])

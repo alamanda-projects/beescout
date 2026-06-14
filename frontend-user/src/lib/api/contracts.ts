@@ -14,6 +14,23 @@ export async function getContracts(contractNumber?: string): Promise<Contract[]>
   }
 }
 
+// Export kontrak ke ODCS YAML (#101). Unduh via blob — endpoint mengembalikan
+// Content-Disposition attachment; cookie auth ikut karena withCredentials.
+export async function exportContractOdcs(cn: string): Promise<void> {
+  const res = await apiClient.get(`/datacontract/${encodeURIComponent(cn)}/export`, {
+    params: { format: 'odcs' },
+    responseType: 'blob',
+  })
+  const url = URL.createObjectURL(res.data as Blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${cn}.odcs.yaml`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
 export async function getContractByNumber(contractNumber: string): Promise<Contract | null> {
   try {
     const res = await apiClient.get('/datacontract/filter', {
