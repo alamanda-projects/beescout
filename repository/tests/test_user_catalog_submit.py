@@ -91,7 +91,7 @@ async def test_admin_submit_rule_inserts_directly(client, auth_as, catalog_mock)
 
 @pytest.mark.asyncio
 async def test_user_submit_rule_creates_approval(client, auth_as, catalog_mock):
-    auth_as("indah", lvl="user")
+    auth_as("indah", lvl="business_user")
     ac, mocks = client
 
     catalog_mock.find_one = AsyncMock(return_value=None)        # code belum ada
@@ -123,7 +123,7 @@ async def test_user_submit_rule_creates_approval(client, auth_as, catalog_mock):
 
 @pytest.mark.asyncio
 async def test_submit_returns_409_when_code_exists(client, auth_as, catalog_mock):
-    auth_as("indah", lvl="user")
+    auth_as("indah", lvl="business_user")
     ac, _ = client
 
     catalog_mock.find_one = AsyncMock(return_value={"code": "min_length"})
@@ -134,7 +134,7 @@ async def test_submit_returns_409_when_code_exists(client, auth_as, catalog_mock
 
 @pytest.mark.asyncio
 async def test_user_submit_409_when_duplicate_pending(client, auth_as, catalog_mock):
-    auth_as("indah", lvl="user")
+    auth_as("indah", lvl="business_user")
     ac, mocks = client
 
     catalog_mock.find_one = AsyncMock(return_value=None)
@@ -152,7 +152,7 @@ async def test_user_submit_409_when_duplicate_pending(client, auth_as, catalog_m
 
 @pytest.mark.asyncio
 async def test_user_submit_503_when_no_steward(client, auth_as, catalog_mock):
-    auth_as("indah", lvl="user")
+    auth_as("indah", lvl="business_user")
     ac, mocks = client
 
     catalog_mock.find_one = AsyncMock(return_value=None)

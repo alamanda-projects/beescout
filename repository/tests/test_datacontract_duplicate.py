@@ -41,7 +41,7 @@ def auth_bypass(client):
     mocks["dgr"].reset_mock()
 
     async def fake_user():
-        return {"usr": "tester", "lvl": "user", "sts": True}
+        return {"usr": "tester", "lvl": "business_user", "sts": True}
 
     async def fake_access(*args, **kwargs):
         return None

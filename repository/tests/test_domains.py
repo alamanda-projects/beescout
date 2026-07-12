@@ -85,7 +85,7 @@ async def test_create_domain_requires_label(client, override_token):
 @pytest.mark.asyncio
 async def test_create_domain_forbidden_for_non_admin(client, override_token):
     ac, _ = client
-    override_token("user")
+    override_token("business_user")
     res = await ac.post("/domain/create", json={"name": "penjualan", "label": "Penjualan"})
     assert res.status_code == 403
 
@@ -120,7 +120,7 @@ async def test_domains_basic_accessible_to_all_roles(client, override_token):
         {"name": "penjualan", "label": "Penjualan"},
         {"name": "marketing", "label": "Marketing"},
     ]))
-    override_token("user")
+    override_token("business_user")
     res = await ac.get("/domain/basic")
     assert res.status_code == 200, res.text
     body = res.json()
@@ -239,7 +239,7 @@ VALID_USER = {
     "username": "dimas",
     "name": "Mas Dimas",
     "password": "Str0ng!Pass",
-    "group_access": "user",
+    "group_access": "business_user",
     "data_domain": "penjualan",
     "is_active": True,
 }
@@ -271,7 +271,7 @@ async def test_user_create_accepts_registered_domain(client, override_token):
 
 @pytest.mark.asyncio
 async def test_user_create_accepts_business_user_role(client, override_token):
-    """#75 PR-A: nilai role baru `business_user` diterima sejajar `user`."""
+    """#75/#91: `business_user` adalah satu-satunya nilai business role valid."""
     ac, mocks = client
     mocks["usr"].find_one.return_value = None
     mocks["usr"].insert_one.return_value = None
