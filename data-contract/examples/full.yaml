@@ -32,7 +32,12 @@ metadata:
       date_in: 2023-09-16T16:07:54+07:00
       date_out: null
   quality:
-    - code: count_check
+    # on_failure (#151 / ADR-0008): tindakan engine saat rule gagal.
+    # Level dataset: abort | warn | quiet (skip hanya untuk rule kolom).
+    # Field OPSIONAL — tanpa on_failure engine memakai fallback dari
+    # severity: high -> abort, selainnya warn. Contoh di bawah sengaja
+    # menampilkan keempat kombinasi: eksplisit abort/warn/quiet + fallback.
+    - code: count_check # tanpa on_failure -> fallback severity medium = warn
       description: ensure the dataset is in accordance with the agreed volume range
       dimension: completeness
       impact: operational
@@ -42,7 +47,7 @@ metadata:
           value: is_nullable=false
         - property: field_condition
           value: is_audit=true
-    - code: distinct_check
+    - code: distinct_check # tanpa on_failure -> fallback severity medium = warn
       description: ensure there is no duplicate data
       dimension: completeness
       impact: operational
@@ -59,6 +64,9 @@ metadata:
       dimension: completeness
       impact: operational
       severity: medium
+      # eksplisit menang atas fallback: severity medium normalnya warn,
+      # tapi kebocoran PII disepakati menghentikan pipeline.
+      on_failure: abort
       custom_properties:
         - property: field_name
           value: name
@@ -67,7 +75,7 @@ metadata:
       dimension: timeliness
       impact: operational
       severity: medium
-      on_failure: warn # abort|warn|quiet (dataset) — absen = auto dari severity (#151)
+      on_failure: warn # lanjut dengan peringatan — data basi tidak menghentikan proses
       custom_properties:
         - property: max_age
           value: "24"
@@ -80,6 +88,7 @@ metadata:
       dimension: completeness
       impact: operational
       severity: low
+      on_failure: quiet # diam — cukup dicatat, tidak perlu alarm
       custom_properties:
         - property: min_rows
           value: "1000"
@@ -115,17 +124,23 @@ model:
     is_mandatory: true
     description: User identifier column, this column is required and must be unique value
     quality:
+      # on_failure level kolom (#151 / ADR-0008): abort | warn | skip | quiet.
+      # skip (buang baris bermasalah) HANYA valid di sini — tidak di dataset.
       - code: null_check
         description: ensure that the column rows are complete according to the expected number of rows
         dimension: completeness
         impact: operational
-        severity: medium
+        severity: high
+        # kolom kunci: baris tanpa uid berarti data korup — hentikan proses.
+        # (severity high juga akan fallback ke abort; ditulis eksplisit
+        # supaya kesepakatan terbaca tanpa perlu tahu aturan fallback.)
+        on_failure: abort
         custom_properties:
           - property: compare_to
             value: total dataset row
           - property: comparison_type
             value: equal to
-      - code: format_check
+      - code: format_check # tanpa on_failure -> fallback severity medium = warn
         description: ensure the value does not exceed the agreed nomenclature limits
         dimension: validity
         impact: operational
@@ -138,7 +153,7 @@ model:
         dimension: validity
         impact: operational
         severity: medium
-        on_failure: skip # abort|warn|skip|quiet (kolom) — skip = buang baris bermasalah (#151)
+        on_failure: skip # buang baris yang tidak cocok pola, sisanya lanjut diproses
         custom_properties:
           - property: pattern
             value: ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
