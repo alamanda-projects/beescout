@@ -107,11 +107,11 @@ Empat persona di bawah dipilih karena mencerminkan **rentang tanggung jawab dan 
 
 ---
 
-## 4. Mbak Indah — User / Business Analyst
+## 4. Mbak Indah — Business User / Business Analyst
 
 | Atribut | Detail |
 |---|---|
-| **Role di sistem** | `user` |
+| **Role di sistem** | `business_user` (dulu `user` — di-rename #75/#91) |
 | **Akses** | User Frontend — mode `biz` |
 | **Latar belakang** | Business Analyst / Reporting, latar belakang bisnis (bukan IT) |
 | **Tingkat teknis** | Rendah-Menengah (pakai Excel/SQL dasar, tidak coding) |

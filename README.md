@@ -246,7 +246,7 @@ FastAPI REST API dengan MongoDB. Menangani autentikasi JWT, RBAC, dan seluruh op
 
 ### Frontend User — `frontend-user/`
 
-Aplikasi Next.js 15 untuk pengguna dengan role **`user`** dan **`developer`**.
+Aplikasi Next.js 15 untuk pengguna dengan role **`business_user`** dan **`developer`**.
 
 ```mermaid
 flowchart LR

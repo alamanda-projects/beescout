@@ -160,7 +160,7 @@ Backend akan otomatis membuat akun root pada startup pertama kali. Idempoten —
 
 ## 5. Fitur Frontend — User App (`app.localhost`)
 
-Aplikasi untuk pengguna dengan role `user` dan `developer`.
+Aplikasi untuk pengguna dengan role `business_user` dan `developer`.
 
 ### Halaman Login
 - Form login dengan validasi Zod

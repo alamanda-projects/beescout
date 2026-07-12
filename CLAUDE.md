@@ -67,9 +67,11 @@ Use the plan mode (Claude Code) or write a plan file to `.github/` / comment on 
 | `root` | Admin | All contracts | Plus user management of non-root |
 | `admin` | Admin | All contracts | Acts as steward |
 | `developer` | User | Contracts where user's team is a consumer/producer **stakeholder** | Technical lens (`eng` mode); plus generate SA keys |
-| `user` | User | Contracts where user's team is a consumer/producer **stakeholder** | Business lens (`biz` mode) |
+| `business_user` | User | Contracts where user's team is a consumer/producer **stakeholder** | Business lens (`biz` mode) |
 
-> **Important**: `developer` and `user` share the **same scope** — both see contracts where their team (user's `data_domain`) is derived from a `metadata.stakeholders[]` entry with `role` ∈ (`consumer`, `producer`) and a linked `username`. A team is the unit, containing both technical and business members. They differ in mindset/UI mode, not in access. Cross-team visibility is the steward's (`admin`) responsibility. See [docs/personas.md](docs/personas.md).
+> **Role values**: the legacy `user` role was renamed to `business_user` (#75; alias removed in #91). Old data is migrated via `make migrate-role-business-user APPLY=1`.
+>
+> **Important**: `developer` and `business_user` share the **same scope** — both see contracts where their team (user's `data_domain`) is derived from a `metadata.stakeholders[]` entry with `role` ∈ (`consumer`, `producer`) and a linked `username`. A team is the unit, containing both technical and business members. They differ in mindset/UI mode, not in access. Cross-team visibility is the steward's (`admin`) responsibility. See [docs/personas.md](docs/personas.md).
 >
 > **Access derives from stakeholders, not `metadata.consumer[]`** (ADR-0007, #94). The single source of truth is `derive_team_scope()` in [`verificator.py`](repository/app/core/verificator.py): it maps `stakeholders[role IN (consumer,producer)].username → user.data_domain`. `metadata.consumer[]` is **documentary only** (`use_case` — who uses the data for what) and is **never** read for access-control. Producer teams get symmetric visibility for free. A contract with no consumer/producer stakeholder bearing an active `username` is visible only to `admin`/`root`.
 >
