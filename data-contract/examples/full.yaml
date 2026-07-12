@@ -1,4 +1,4 @@
-standard_version: 0.0.0
+standard_version: 0.1.0
 contract_number: 3oxinjpVbBefh # data contract identifier, required for identification
 
 metadata:
@@ -62,6 +62,26 @@ metadata:
       custom_properties:
         - property: field_name
           value: name
+    - code: freshness_check # lihat data-contract/docs/quality-rules.md (#150)
+      description: ensure the data is not older than the agreed maximum age
+      dimension: timeliness
+      impact: operational
+      severity: medium
+      custom_properties:
+        - property: max_age
+          value: "24"
+        - property: age_unit
+          value: jam
+        - property: timestamp_column
+          value: updated_at
+    - code: row_count_range_check
+      description: ensure the dataset volume stays within the agreed range
+      dimension: completeness
+      impact: operational
+      severity: low
+      custom_properties:
+        - property: min_rows
+          value: "1000"
   sla:
     availability_start: 6
     availability_end: 18
@@ -112,6 +132,14 @@ model:
         custom_properties:
           - property: length
             value: 36
+      - code: pattern_check # lihat data-contract/docs/quality-rules.md (#150)
+        description: ensure the value matches the UUID v4 pattern
+        dimension: validity
+        impact: operational
+        severity: medium
+        custom_properties:
+          - property: pattern
+            value: ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     sample_value:
       - 4d60b9fe-3311-4edb-986a-5f93c79c61ac
       - 386acf0e-5ed2-48d4-99b5-af5683207bd2

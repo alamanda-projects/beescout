@@ -160,5 +160,199 @@
     ],
     "is_builtin": true,
     "is_active": true
+  },
+  {
+    "code": "pattern_check",
+    "label": "Sesuai Pola (Regex)",
+    "description": "Nilai harus cocok dengan pola regular expression yang disepakati",
+    "layer": "column",
+    "dimension": "validity",
+    "sentence_template": "Pastikan kolom {column} cocok dengan pola {pattern}",
+    "params": [
+      {
+        "key": "pattern",
+        "label": "Pola regex",
+        "type": "text",
+        "required": true,
+        "hint": "Contoh: ^[^@]+@[^@]+\\.[^@]+$ untuk email"
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "enum_check",
+    "label": "Nilai Dari Daftar",
+    "description": "Nilai hanya boleh berasal dari daftar yang disepakati",
+    "layer": "column",
+    "dimension": "validity",
+    "sentence_template": "Pastikan kolom {column} hanya berisi salah satu dari {allowed_values}",
+    "params": [
+      {
+        "key": "allowed_values",
+        "label": "Daftar nilai yang diizinkan",
+        "type": "text",
+        "required": true,
+        "hint": "Pisahkan dengan koma, contoh: active, pending, inactive"
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "range_check",
+    "label": "Rentang Angka Valid",
+    "description": "Nilai angka harus berada dalam rentang yang disepakati",
+    "layer": "column",
+    "dimension": "accuracy",
+    "sentence_template": "Pastikan angka pada kolom {column} antara {min_value} hingga {max_value}",
+    "params": [
+      {
+        "key": "min_value",
+        "label": "Nilai minimal",
+        "type": "number",
+        "required": false,
+        "hint": "Kosongkan bila tak ada batas bawah"
+      },
+      {
+        "key": "max_value",
+        "label": "Nilai maksimal",
+        "type": "number",
+        "required": false,
+        "hint": "Kosongkan bila tak ada batas atas"
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "length_range_check",
+    "label": "Rentang Panjang Sesuai",
+    "description": "Panjang nilai harus berada dalam rentang yang disepakati",
+    "layer": "column",
+    "dimension": "validity",
+    "sentence_template": "Pastikan panjang kolom {column} antara {min_length} hingga {max_length} karakter",
+    "params": [
+      {
+        "key": "min_length",
+        "label": "Panjang minimal",
+        "type": "number",
+        "required": false,
+        "min_value": 0,
+        "max_value": 65535
+      },
+      {
+        "key": "max_length",
+        "label": "Panjang maksimal",
+        "type": "number",
+        "required": false,
+        "min_value": 1,
+        "max_value": 65535
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "unique_check",
+    "label": "Nilai Unik Per Kolom",
+    "description": "Setiap nilai pada kolom ini harus unik (tidak boleh berulang)",
+    "layer": "column",
+    "dimension": "uniqueness",
+    "sentence_template": "Pastikan kolom {column} bernilai unik",
+    "params": [],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "row_count_range_check",
+    "label": "Jumlah Baris Dalam Rentang",
+    "description": "Jumlah baris dataset harus berada dalam rentang yang disepakati",
+    "layer": "dataset",
+    "dimension": "completeness",
+    "sentence_template": "Pastikan jumlah baris antara {min_rows} hingga {max_rows}",
+    "params": [
+      {
+        "key": "min_rows",
+        "label": "Jumlah baris minimal",
+        "type": "number",
+        "required": false,
+        "min_value": 0,
+        "hint": "Kosongkan bila tak ada batas bawah"
+      },
+      {
+        "key": "max_rows",
+        "label": "Jumlah baris maksimal",
+        "type": "number",
+        "required": false,
+        "min_value": 1,
+        "hint": "Kosongkan bila tak ada batas atas"
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "freshness_check",
+    "label": "Data Selalu Segar",
+    "description": "Data terbaru tidak boleh lebih tua dari umur maksimal yang disepakati",
+    "layer": "dataset",
+    "dimension": "timeliness",
+    "sentence_template": "Pastikan data tidak lebih tua dari {max_age} {age_unit}",
+    "params": [
+      {
+        "key": "max_age",
+        "label": "Umur maksimal data",
+        "type": "number",
+        "required": true,
+        "min_value": 1
+      },
+      {
+        "key": "age_unit",
+        "label": "Satuan umur",
+        "type": "select",
+        "required": true,
+        "options": [
+          { "value": "jam", "label": "Jam" },
+          { "value": "hari", "label": "Hari" },
+          { "value": "pekan", "label": "Pekan" }
+        ]
+      },
+      {
+        "key": "timestamp_column",
+        "label": "Kolom timestamp acuan",
+        "type": "text",
+        "required": false,
+        "hint": "Contoh: updated_at (kosongkan bila memakai metadata pipeline)"
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
+  },
+  {
+    "code": "custom_sql_check",
+    "label": "Pemeriksaan SQL Kustom",
+    "description": "Deklarasi query SQL kustom yang dijalankan engine kualitas eksternal",
+    "layer": "dataset",
+    "dimension": "consistency",
+    "sentence_template": "Pastikan hasil query {query} sesuai harapan",
+    "params": [
+      {
+        "key": "query",
+        "label": "Query SQL",
+        "type": "text",
+        "required": true,
+        "hint": "Contoh: SELECT COUNT(*) FROM t WHERE amount < 0 — diharapkan 0"
+      },
+      {
+        "key": "expectation",
+        "label": "Hasil yang diharapkan",
+        "type": "text",
+        "required": false,
+        "hint": "Contoh: = 0"
+      }
+    ],
+    "is_builtin": true,
+    "is_active": true
   }
 ]

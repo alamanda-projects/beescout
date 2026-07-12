@@ -2,7 +2,10 @@
 
 export type ParamType   = 'text' | 'number' | 'select' | 'multi' | 'date'
 export type LayerType   = 'dataset' | 'column' | 'both'
-export type DimensionType = 'completeness' | 'validity' | 'accuracy' | 'security'
+// #150: selaras dengan data-contract/docs/quality-rules.md (DAMA-style + security)
+export type DimensionType =
+  | 'completeness' | 'validity' | 'accuracy' | 'security'
+  | 'uniqueness' | 'timeliness' | 'consistency'
 export type ImpactType   = 'operational' | 'financial' | 'regulatory' | 'reputational'
 export type SeverityType = 'low' | 'medium' | 'high'
 
@@ -98,6 +101,9 @@ export const DIMENSION_LABELS: Record<DimensionType, string> = {
   validity:     'Keabsahan',
   accuracy:     'Akurasi',
   security:     'Keamanan',
+  uniqueness:   'Keunikan',
+  timeliness:   'Ketepatan Waktu',
+  consistency:  'Konsistensi',
 }
 
 export const IMPACT_TYPE_LABELS: Record<ImpactType, string> = {

@@ -11,7 +11,11 @@ from typing import List, Optional, Literal
 
 PARAM_TYPES = Literal["text", "number", "select", "multi", "date"]
 LAYER_TYPES  = Literal["dataset", "column", "both"]
-DIMENSION_TYPES = Literal["completeness", "validity", "accuracy", "security"]
+# #150: selaras dengan data-contract/docs/quality-rules.md (DAMA-style + security)
+DIMENSION_TYPES = Literal[
+    "completeness", "validity", "accuracy", "security",
+    "uniqueness", "timeliness", "consistency",
+]
 IMPACT_TYPES = Literal["operational", "high", "low"]
 
 

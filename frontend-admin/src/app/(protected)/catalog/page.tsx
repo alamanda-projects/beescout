@@ -27,6 +27,9 @@ const DIM_BADGE: Record<string, string> = {
   validity:     'bg-blue-50 text-blue-700 border-blue-200',
   accuracy:     'bg-amber-50 text-amber-700 border-amber-200',
   security:     'bg-red-50 text-red-700 border-red-200',
+  uniqueness:   'bg-purple-50 text-purple-700 border-purple-200',
+  timeliness:   'bg-sky-50 text-sky-700 border-sky-200',
+  consistency:  'bg-indigo-50 text-indigo-700 border-indigo-200',
 }
 
 const LAYER_BADGE: Record<string, string> = {
