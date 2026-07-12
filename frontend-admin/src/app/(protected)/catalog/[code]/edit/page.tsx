@@ -41,7 +41,7 @@ const schema = z.object({
   label:             z.string().min(1, 'Wajib diisi'),
   description:       z.string().optional(),
   layer:             z.enum(['dataset', 'column', 'both']),
-  dimension:         z.enum(['completeness', 'validity', 'accuracy', 'security']),
+  dimension:         z.enum(['completeness', 'validity', 'accuracy', 'security', 'uniqueness', 'timeliness', 'consistency']),
   sentence_template: z.string().min(1, 'Wajib diisi').includes('{', { message: 'Template harus mengandung {placeholder}' }),
   params:            z.array(paramSchema),
 })

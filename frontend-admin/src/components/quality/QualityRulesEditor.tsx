@@ -55,6 +55,9 @@ const DIMENSION_BADGE: Record<string, string> = {
   validity:     'bg-blue-50 text-blue-700 border-blue-200',
   accuracy:     'bg-amber-50 text-amber-700 border-amber-200',
   security:     'bg-red-50 text-red-700 border-red-200',
+  uniqueness:   'bg-purple-50 text-purple-700 border-purple-200',
+  timeliness:   'bg-sky-50 text-sky-700 border-sky-200',
+  consistency:  'bg-indigo-50 text-indigo-700 border-indigo-200',
 }
 
 function buildRuleFromModule(
@@ -204,12 +207,14 @@ function SentenceRuleBuilder({
           <span key={p.key} className="flex items-center gap-1.5">
             {p.type === 'number' && (
               <>
-                <span className="text-zinc-600">sebanyak</span>
+                {/* "sebanyak … karakter" hanya untuk length (format_check); param angka lain pakai label katalog (#150) */}
+                <span className="text-zinc-600">{p.key === 'length' ? 'sebanyak' : p.label.toLowerCase()}</span>
                 <input
                   type="number"
                   value={paramValues[p.key] ?? ''}
                   onChange={e => setParamValues(prev => ({ ...prev, [p.key]: e.target.value }))}
                   placeholder={p.hint ?? '0'}
+                  title={p.hint}
                   className={cn(
                     'w-20 rounded border px-2 py-1 text-xs',
                     validationErrors[p.key]
@@ -217,7 +222,25 @@ function SentenceRuleBuilder({
                       : 'border-amber-300 bg-amber-50 font-semibold text-amber-800',
                   )}
                 />
-                <span className="text-zinc-600">karakter</span>
+                {p.key === 'length' && <span className="text-zinc-600">karakter</span>}
+              </>
+            )}
+            {p.type === 'text' && (
+              <>
+                <span className="text-zinc-600">{p.label.toLowerCase()}</span>
+                <input
+                  type="text"
+                  value={paramValues[p.key] ?? ''}
+                  onChange={e => setParamValues(prev => ({ ...prev, [p.key]: e.target.value }))}
+                  placeholder={p.hint}
+                  title={p.hint}
+                  className={cn(
+                    'w-56 rounded border px-2 py-1 text-xs font-mono',
+                    validationErrors[p.key]
+                      ? 'border-red-400 bg-red-50 text-red-700'
+                      : 'border-amber-300 bg-amber-50 font-semibold text-amber-800',
+                  )}
+                />
               </>
             )}
             {(p.type === 'select' || (p.type === 'multi' && selectedModule.code !== 'distinct_check' && selectedModule.code !== 'pii_check')) && (

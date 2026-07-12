@@ -182,7 +182,7 @@ model:                    # column definitions
         dimension: validity
 ```
 
-**Quality dimensions** (closed enum): `completeness`, `validity`, `accuracy`
+**Quality dimensions** (closed enum): `completeness`, `validity`, `accuracy`, `security`, `uniqueness`, `timeliness`, `consistency` — full rule vocabulary lives in [data-contract/docs/quality-rules.md](data-contract/docs/quality-rules.md), machine-readable twin in `repository/app/addons/catalog_rules/default.json` (keep both in sync; new builtins reach existing installs via `POST /catalog/seed?sync_missing=true`, root only)
 
 **Stakeholder roles** (closed enum): `owner`, `consumer`, `steward`, `producer`, `engineer`, `analyst`, `architect`
 

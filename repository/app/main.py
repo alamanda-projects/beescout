@@ -12,11 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from typing import Dict
+from typing import Dict, get_args
 from app.model.users import UserCreate, SetupRequest
 from app.model.domains import DomainCreate, DomainUpdate
 from app.core.connection import database, col_usr, col_dgr, col_apr, col_dom
-from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate
+from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate, DIMENSION_TYPES
 from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
 from app.core.odcs_converter import beescout_to_odcs, odcs_to_beescout
@@ -1571,12 +1571,25 @@ async def get_datacontract_dbtschema_filter(
 # # # ======================= Bagian ini untuk manajemen katalog aturan kualitas
 
 @app.post("/catalog/seed", tags=["catalog"], include_in_schema=False)
-async def seed_builtin_rules(user=Depends(require_root)):
-    """Isi katalog dengan modul bawaan. Hanya bisa dipanggil oleh root."""
+async def seed_builtin_rules(sync_missing: bool = False, user=Depends(require_root)):
+    """Isi katalog dengan modul bawaan. Hanya bisa dipanggil oleh root.
+
+    #150: `?sync_missing=true` menambahkan modul builtin yang belum ada di
+    katalog (instalasi lama tidak pernah menerima builtin baru karena seed
+    hanya jalan saat koleksi kosong). Idempoten; modul yang sudah ada —
+    builtin maupun custom — tidak pernah disentuh/di-overwrite.
+    """
+    catalog_rules = load_catalog_rules_addon()
+    if sync_missing:
+        existing_codes = await catalogcollection.distinct("code")
+        missing = [r for r in catalog_rules if r["code"] not in existing_codes]
+        if missing:
+            await catalogcollection.insert_many(missing)
+        return {"message": f"{len(missing)} modul bawaan baru ditambahkan.",
+                "added": [r["code"] for r in missing]}
     existing = await catalogcollection.count_documents({})
     if existing > 0:
         raise HTTPException(status_code=409, detail="Katalog sudah memiliki data.")
-    catalog_rules = load_catalog_rules_addon()
     await catalogcollection.insert_many(catalog_rules)
     return {"message": f"{len(catalog_rules)} modul bawaan berhasil ditambahkan."}
 
@@ -1875,7 +1888,8 @@ async def validate_yaml_import(
                     "suggestion": f"Isi field {_sla_unit}: availability_unit: 'h' atau 'd'; frequency_unit: 'm', 'h', atau 'd'.",
                 })
 
-        valid_dims = {"completeness", "validity", "accuracy", "security"}
+        # #150: satu sumber kebenaran — enum dimensi di model/rule_catalog.py
+        valid_dims = set(get_args(DIMENSION_TYPES))
         for i, q in enumerate(metadata.get("quality") or []):
             if q.get("dimension") and q["dimension"] not in valid_dims:
                 errors.append({
