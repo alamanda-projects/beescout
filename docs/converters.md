@@ -9,6 +9,7 @@ Sejak #154 converter distandarkan sebagai **add-on kode**: satu modul per format
 | format_id | Label | Export | Import | Sejak |
 |---|---|---|---|---|
 | `odcs` | ODCS v3 (Open Data Contract Standard) | ✅ | ✅ | #100/#101 |
+| `sling` | Sling YAML (data quality) | ✅ | — (export-only) | #155 |
 
 Daftar runtime: `GET /converters`.
 
