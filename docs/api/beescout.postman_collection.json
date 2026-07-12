@@ -625,7 +625,7 @@
                 }
               ]
             },
-            "description": "Export satu kontrak ke format interop. Saat ini hanya ODCS v3 (#101).\n\nAkses identik dengan GET /datacontract/filter?contract_number= (scope penuh\nconsumer/producer). Mengembalikan YAML sebagai attachment."
+            "description": "Export satu kontrak ke format interop (#101, digeneralisasi #154).\n\nFormat tersedia dari registry converter add-on — lihat GET /converters.\nAkses identik dengan GET /datacontract/filter?contract_number= (scope penuh\nconsumer/producer). Mengembalikan file sebagai attachment."
           },
           "response": []
         },
@@ -1138,6 +1138,24 @@
       "description": "Validasi & import kontrak format YAML BeeScout standard.",
       "item": [
         {
+          "name": "GET /converters — List Converters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/converters",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "converters"
+              ]
+            },
+            "description": "Daftar converter format eksternal yang tersedia (#154).\n\nTiap entri: format_id (dipakai di query param `format=`), label,\nfile_extension, can_export, can_import. Format native `beescout`\ntidak ikut terdaftar — ia bukan converter (tanpa konversi)."
+          },
+          "response": []
+        },
+        {
           "name": "POST /contracts/validate-yaml — Validate Yaml Import",
           "request": {
             "method": "POST",
@@ -1160,7 +1178,7 @@
                 }
               ]
             },
-            "description": "Validasi file YAML data contract sebelum diimport.\nHanya root dan admin.\n\n`format=odcs` (#100): YAML dikonversi ODCS→BeeScout dulu via\n`odcs_to_beescout`, lalu divalidasi dengan aturan yang sama. Warning\nkonversi (field di-drop / default) digabung ke `warnings` response.",
+            "description": "Validasi file YAML data contract sebelum diimport.\nHanya root dan admin.\n\n`format=<id>` (#100, digeneralisasi #154): YAML dikonversi <format>→BeeScout\ndulu via converter registry, lalu divalidasi dengan aturan yang sama.\nWarning konversi (field di-drop / default) digabung ke `warnings` response.\n`format=beescout` (default) = tanpa konversi.",
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -1197,7 +1215,7 @@
                 }
               ]
             },
-            "description": "Import data contract dari file YAML.\nHanya root dan admin.\n\n`format=odcs` (#100): YAML dikonversi ODCS→BeeScout dulu, lalu lewat\njalur enforcement & insert yang sama dengan import BeeScout native.",
+            "description": "Import data contract dari file YAML.\nHanya root dan admin.\n\n`format=<id>` (#100, digeneralisasi #154): YAML dikonversi <format>→BeeScout\ndulu via converter registry, lalu lewat jalur enforcement & insert yang sama\ndengan import BeeScout native (`format=beescout`, default).",
             "body": {
               "mode": "formdata",
               "formdata": [
