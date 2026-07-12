@@ -8,6 +8,8 @@ export type DimensionType =
   | 'uniqueness' | 'timeliness' | 'consistency'
 export type ImpactType   = 'operational' | 'financial' | 'regulatory' | 'reputational'
 export type SeverityType = 'low' | 'medium' | 'high'
+// #151 / ADR-0008: tindakan engine saat rule gagal; 'skip' hanya layer kolom.
+export type OnFailureType = 'abort' | 'warn' | 'skip' | 'quiet'
 
 export interface RuleParamOption {
   value: string
@@ -58,8 +60,9 @@ export interface QualityRule {
   code: string
   description?: string
   dimension?: string
-  impact?: string    // operational | financial | regulatory | reputational
-  severity?: string  // low | medium | high
+  impact?: string     // operational | financial | regulatory | reputational
+  severity?: string   // low | medium | high
+  on_failure?: string // abort | warn | skip | quiet — absen = auto dari severity (#151)
   custom_properties?: QualityCustomProp[]
 }
 
@@ -132,6 +135,14 @@ export const IMPACT_BIZ_LABELS: Record<string, string> = {
   financial:    'Finansial',
   regulatory:   'Regulasi',
   reputational: 'Reputasi',
+}
+
+// #151: label on_failure. BIZ dipakai sentence builder, plain dipakai eng mode.
+export const ON_FAILURE_BIZ_LABELS: Record<OnFailureType, string> = {
+  abort: 'Hentikan proses',
+  warn:  'Beri peringatan',
+  skip:  'Lewati baris bermasalah',
+  quiet: 'Diam (catat saja)',
 }
 
 export const LAYER_LABELS: Record<LayerType, string> = {

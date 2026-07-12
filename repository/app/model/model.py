@@ -26,6 +26,9 @@ class ModelQuality(BaseModel):
     dimension: Optional[str] = None
     impact: Optional[str] = None    # operational | financial | regulatory | reputational
     severity: Optional[str] = None  # low | medium | high
+    # #151 / ADR-0008: tindakan engine saat rule gagal — abort | warn | skip |
+    # quiet (level kolom boleh skip). Absen → fallback severity. Lenient read.
+    on_failure: Optional[str] = None
     custom_properties: Optional[List[ModelQualityCustom]] = None  # -> merujuk ke class ModelQualityCustom
 
 

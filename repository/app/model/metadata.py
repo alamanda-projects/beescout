@@ -49,6 +49,10 @@ class MetadataQuality(BaseModel):
     dimension: Optional[str] = None
     impact: Optional[str] = None    # operational | financial | regulatory | reputational
     severity: Optional[str] = None  # low | medium | high
+    # #151 / ADR-0008: tindakan engine saat rule gagal — abort | warn | quiet
+    # (skip hanya bermakna di rule kolom). Absen → engine fallback dari
+    # severity (high→abort, selainnya warn). Lenient read; enum di write-path.
+    on_failure: Optional[str] = None
     custom_properties: Optional[
         List[MetadataQualityCustom]
     ] = None  # -> merujuk ke class MetadataQualityCustom
