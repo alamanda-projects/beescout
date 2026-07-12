@@ -16,7 +16,9 @@ DIMENSION_TYPES = Literal[
     "completeness", "validity", "accuracy", "security",
     "uniqueness", "timeliness", "consistency",
 ]
-IMPACT_TYPES = Literal["operational", "high", "low"]
+# #153: IMPACT_TYPES lama ("operational|high|low") dihapus — dead code yang
+# bertentangan dengan ADR-0003. Enum impact kanonik (operational|financial|
+# regulatory|reputational) hidup di komentar model kontrak & FE ImpactType.
 
 
 class RuleParamOption(BaseModel):
