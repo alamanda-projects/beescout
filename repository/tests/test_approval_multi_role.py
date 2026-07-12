@@ -200,7 +200,7 @@ def auth_as(client):
 @pytest.mark.asyncio
 async def test_vote_applies_changes_when_all_roles_approve(client, auth_as):
     """ADR-0005: setelah vote terakhir per peran (owner+producer+consumer), apply."""
-    auth_as("indah", lvl="user")
+    auth_as("indah", lvl="business_user")
     ac, mocks = client
 
     existing_record = {
@@ -267,7 +267,7 @@ async def test_vote_still_pending_when_one_role_not_yet_voted(client, auth_as):
 @pytest.mark.asyncio
 async def test_vote_compat_with_adr_0004_steward_key(client, auth_as):
     """Approval in-flight format ADR-0004 (kunci `steward`) tetap bisa diselesaikan."""
-    auth_as("indah", lvl="user")
+    auth_as("indah", lvl="business_user")
     ac, mocks = client
 
     existing = {

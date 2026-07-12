@@ -232,6 +232,10 @@ migrate-approval-roles:
 migrate-impact-severity:
 	$(call _run_script,migrate_impact_severity)
 
+# Rename group_access 'user' → 'business_user' (#91, PR-B dari #75).
+migrate-role-business-user:
+	$(call _run_script,rename_role_user_to_business_user)
+
 # Dedup kontrak duplikat (DuplicateKeyError fix di unique contract_number index).
 dedupe-contracts:
 	$(call _run_script,dedupe_contracts)

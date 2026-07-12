@@ -320,7 +320,7 @@ export default function NewContractPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGenCN, setIsGenCN] = useState(false)
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: getMe })
-  const userRole = user?.group_access ?? 'user'
+  const userRole = user?.group_access ?? 'business_user'
   // Direktori user utk dropdown stakeholder (ADR-0004).
   const { data: userOptions = [] } = useQuery({ queryKey: ['users-basic'], queryFn: getUsersBasic })
   // Katalog domain untuk dropdown Pemilik (#73).

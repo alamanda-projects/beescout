@@ -25,7 +25,7 @@ def auth_bypass(client):
     from app.core.verificator import token_verification, access_verification
 
     async def fake_user():
-        return {"usr": "anyone", "lvl": "user", "sts": True}
+        return {"usr": "anyone", "lvl": "business_user", "sts": True}
     async def fake_access(*args, **kwargs):
         return None
 

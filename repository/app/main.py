@@ -605,6 +605,13 @@ async def create_user(
         raise HTTPException(status_code=412, detail=usr_412_name)
     if not user_form.group_access:
         raise HTTPException(status_code=412, detail=usr_412_level)
+    # #91: alias legacy `user` ditolak — value resmi `business_user`.
+    if user_form.group_access == "user":
+        raise HTTPException(
+            status_code=422,
+            detail="Peran 'user' sudah tidak berlaku — gunakan 'business_user'. "
+                   "Data lama dimigrasi via `make migrate-role-business-user` (#91).",
+        )
     if not user_form.data_domain:
         raise HTTPException(status_code=412, detail=usr_412_team)
     # if not user_form.is_active:
@@ -808,6 +815,14 @@ async def update_user(username: str, payload: dict = Body(...), current_user: di
 
     if "group_access" in update_data and update_data["group_access"] in grplvlroot:
         raise HTTPException(status_code=403, detail="Tidak dapat mengubah peran menjadi root.")
+
+    # #91: alias legacy `user` ditolak — value resmi `business_user`.
+    if update_data.get("group_access") == "user":
+        raise HTTPException(
+            status_code=422,
+            detail="Peran 'user' sudah tidak berlaku — gunakan 'business_user'. "
+                   "Data lama dimigrasi via `make migrate-role-business-user` (#91).",
+        )
 
     if "data_domain" in update_data:
         await validate_data_domain(update_data["data_domain"])

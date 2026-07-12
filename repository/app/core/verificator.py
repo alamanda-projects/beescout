@@ -29,10 +29,10 @@ usr_401_cnvc = config("USR_401_CNVC")
 grplvlroot = ["root"]
 grplvladmin = ["root", "admin"]
 grplvldev = ["root", "admin", "developer"]
-grplvlall = ["root", "admin", "user", "business_user", "developer"]
-# `user` masih diterima sebagai alias `business_user` selama window migrasi
-# (#75 PR-A, dual-accept). Phase berikutnya (PR-B / #91) menjalankan
-# migration + menghapus alias supaya value resmi tinggal `business_user`.
+grplvlall = ["root", "admin", "business_user", "developer"]
+# #91 (PR-B dari #75): alias legacy `user` sudah dihapus — value resmi
+# tinggal `business_user`. Data lama dimigrasi via
+# scripts/rename_role_user_to_business_user.py (make migrate-role-business-user).
 
 
 async def user_verification(
