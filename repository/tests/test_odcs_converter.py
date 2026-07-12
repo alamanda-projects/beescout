@@ -12,7 +12,8 @@ Mengikuti data-contract/docs/comparison-odcs.md.
 
 import yaml
 
-from app.core.odcs_converter import beescout_to_odcs, odcs_to_beescout, _clean
+# #154: converter ODCS pindah ke add-on converters.
+from app.addons.converters.odcs import beescout_to_odcs, odcs_to_beescout, _clean
 
 
 def _sample_contract() -> dict:

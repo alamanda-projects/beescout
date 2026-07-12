@@ -334,3 +334,17 @@ def odcs_to_beescout(odcs: dict) -> tuple[dict, list[str]]:
         )
 
     return contract, warnings
+
+
+# ─── Registrasi add-on (#154) ────────────────────────────────────────────────
+
+from app.addons.converters.base import Converter
+
+CONVERTER = Converter(
+    format_id="odcs",
+    label="ODCS v3 (Open Data Contract Standard)",
+    file_extension="odcs.yaml",
+    media_type="application/yaml",
+    export_fn=beescout_to_odcs,
+    import_fn=odcs_to_beescout,
+)
