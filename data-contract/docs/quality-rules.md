@@ -245,9 +245,24 @@ Setiap entri `quality[]` (dataset maupun kolom) membawa:
 | `dimension` | Salah satu dari 7 dimensi di atas |
 | `impact` | Jenis dampak: `operational` \| `financial` \| `regulatory` \| `reputational` |
 | `severity` | Tingkat: `low` \| `medium` \| `high` |
+| `on_failure` | Opsional — tindakan engine saat rule gagal, lihat bawah (#151 / [ADR-0008](../../docs/adr/0008-quality-on-failure.md)) |
 | `custom_properties` | Parameter aturan (pasangan `property`/`value`) |
 
-> Semantik tindakan saat aturan gagal (`on_failure: abort | warn | skip | quiet`, ala Sling) direncanakan menyusul — lihat issue [#151](https://github.com/alamanda-projects/beescout/issues/151).
+## Semantik Kegagalan (`on_failure`)
+
+Adopsi pola Sling: kontrak mendeklarasikan apa yang harus engine lakukan saat sebuah rule gagal. `severity` menyatakan *seberapa penting bagi bisnis*; `on_failure` menyatakan *tindakan mesin* — dua sumbu berbeda (filosofi yang sama dengan pemisahan impact/severity di ADR-0003).
+
+| Nilai | Makna | Layer valid |
+|---|---|---|
+| `abort` | Hentikan pipeline/proses | dataset & kolom |
+| `warn` | Lanjut, dengan peringatan | dataset & kolom |
+| `skip` | Buang record/baris bermasalah, lanjut | **hanya kolom** — rule dataset tidak punya record untuk di-skip |
+| `quiet` | Diam — catat saja | dataset & kolom |
+
+- **Opsional.** Bila absen, engine memakai fallback dari `severity`: `high → abort`, selainnya `warn`. Kontrak lama tetap bermakna penuh tanpa migrasi.
+- Write-path menolak nilai di luar enum, dan menolak `skip` pada `metadata.quality[]` (422).
+- Eksekusi tetap tanggung jawab engine eksternal — BeeScout hanya menyimpan deklarasinya.
+- ODCS tidak punya padanan field ini — saat export disimpan sebagai argument `beescout_on_failure` (lihat [comparison-odcs.md](./comparison-odcs.md)); converter Sling memetakannya langsung ke `on_failure` hook.
 
 ## Modul Kustom
 

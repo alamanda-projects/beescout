@@ -80,6 +80,7 @@
 | `metadata.quality[].description` | `quality[].description` (di `customProperties`?) | Overlap | — |
 | `metadata.quality[].dimension` | `quality[].dimension` | Overlap (enum berbeda) | BeeScout: `[completeness, validity, accuracy]` (lihat CLAUDE.md); ODCS: 7 dimensi (accuracy, completeness, conformity, consistency, coverage, timeliness, uniqueness) |
 | `metadata.quality[].impact` | `quality[].businessImpact` | Overlap (nama beda) | BeeScout: enum `[operational, financial, regulatory, reputational]` (lihat [ADR-0003](../../docs/adr/0003-impact-severity-split.md)); ODCS: bebas |
+| `metadata.quality[].on_failure` | — (tidak ada) | **Divergensi BeeScout** | Tindakan engine saat rule gagal `[abort, warn, skip, quiet]` (ADR-0008, #151). Saat export ODCS disimpan sebagai argument `beescout_on_failure` agar round-trip lossless |
 | `metadata.quality[].severity` | `quality[].severity` | Overlap | BeeScout: `[low, medium, high]`; ODCS: bebas |
 | `metadata.quality[].custom_properties[]` | `quality[].arguments` (object) | Overlap (struktur beda) | BeeScout: list of {property, value}; ODCS: object dict |
 | — | `quality[].type` (`library`/`text`/`sql`/`custom`) | ODCS-specific | BeeScout tidak punya rule type discriminator |

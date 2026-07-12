@@ -85,12 +85,19 @@ const schema = z.object({
       name: requiredString('Nama konsumen wajib diisi'),
       use_case: z.string().optional(),
     })).optional(),
+    // #151 + fix data-loss: custom_properties & on_failure ikut dideklarasikan —
+    // zod men-strip key yang tidak ada di schema saat submit.
     quality: z.array(z.object({
       code: z.string().min(1, 'Kode wajib diisi'),
       dimension: z.string().optional(),
       description: z.string().optional(),
       impact: z.string().optional(),
       severity: z.string().optional(),
+      on_failure: z.string().optional(),
+      custom_properties: z.array(z.object({
+        property: z.string(),
+        value: z.string(),
+      })).optional(),
     })).optional(),
   }).refine(
     // #114: tanggal berakhir tidak boleh sebelum tanggal mulai (ISO → bandingkan string).
@@ -110,6 +117,20 @@ const schema = z.object({
     is_pii: z.boolean().optional(),
     is_audit: z.boolean().optional(),
     is_mandatory: z.boolean().optional(),
+    // #151 + fix data-loss: tanpa deklarasi ini zod men-strip model[].quality
+    // saat submit — aturan kolom hilang setiap kali kontrak di-edit.
+    quality: z.array(z.object({
+      code: z.string().min(1),
+      dimension: z.string().optional(),
+      description: z.string().optional(),
+      impact: z.string().optional(),
+      severity: z.string().optional(),
+      on_failure: z.string().optional(),
+      custom_properties: z.array(z.object({
+        property: z.string(),
+        value: z.string(),
+      })).optional(),
+    })).optional(),
   })).optional(),
   // Koneksi opsional — field lenient supaya baris kosong tidak memblokir
   // submit; dibersihkan di onSubmit.
@@ -224,12 +245,19 @@ export default function EditContractPage() {
           name: c.name ?? '',
           use_case: c.use_case ?? '',
         })),
+        // #151 + fix data-loss: custom_properties & on_failure ikut di-prefill —
+        // tanpa ini nilai lama hilang saat kontrak disimpan ulang.
         quality: ((m as any).quality ?? []).map((q: any) => ({
           code: q.code ?? '',
           dimension: q.dimension ?? 'completeness',
           description: q.description ?? '',
           impact: q.impact ?? '',
           severity: q.severity ?? '',
+          on_failure: q.on_failure ?? undefined,
+          custom_properties: (q.custom_properties ?? []).map((cp: any) => ({
+            property: cp.property ?? '',
+            value: String(cp.value ?? ''),
+          })),
         })),
       },
       model: (contract.model ?? []).map((col: any) => ({
@@ -245,6 +273,20 @@ export default function EditContractPage() {
         is_pii: !!col.is_pii,
         is_audit: !!col.is_audit,
         is_mandatory: !!col.is_mandatory,
+        // #151 + fix data-loss: quality kolom ikut di-prefill (sebelumnya
+        // hilang dari form → terhapus saat submit).
+        quality: ((col.quality ?? []) as any[]).map((q: any) => ({
+          code: q.code ?? '',
+          dimension: q.dimension ?? 'completeness',
+          description: q.description ?? '',
+          impact: q.impact ?? '',
+          severity: q.severity ?? '',
+          on_failure: q.on_failure ?? undefined,
+          custom_properties: (q.custom_properties ?? []).map((cp: any) => ({
+            property: cp.property ?? '',
+            value: String(cp.value ?? ''),
+          })),
+        })),
       })),
       ports: (contract.ports ?? []).map((p: any) => ({
         object: p.object ?? '',

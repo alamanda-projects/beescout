@@ -53,6 +53,10 @@ def _map_quality(q: dict) -> dict:
     for cp in (q.get("custom_properties") or []):
         if isinstance(cp, dict) and cp.get("property"):
             arguments[cp["property"]] = cp.get("value")
+    # #151: ODCS v3 tidak punya slot on_failure — simpan sebagai argument
+    # ber-prefix beescout_ agar round-trip lossless (lihat comparison-odcs.md).
+    if q.get("on_failure"):
+        arguments["beescout_on_failure"] = q["on_failure"]
     return _clean({
         "id": q.get("code"),
         "description": q.get("description"),
@@ -205,7 +209,9 @@ def _cp_to_dict(custom_properties) -> dict:
 
 
 def _quality_odcs_to_beescout(q: dict) -> dict:
-    args = q.get("arguments") or {}
+    args = dict(q.get("arguments") or {})
+    # #151: rekonstruksi on_failure dari argument beescout_ (lihat _map_quality).
+    on_failure = args.pop("beescout_on_failure", None)
     custom_properties = [{"property": k, "value": v} for k, v in args.items()]
     return _clean({
         "code": q.get("id") or q.get("metric"),
@@ -213,6 +219,7 @@ def _quality_odcs_to_beescout(q: dict) -> dict:
         "dimension": q.get("dimension"),
         "impact": q.get("businessImpact"),   # businessImpact → impact (ADR-0003)
         "severity": q.get("severity"),
+        "on_failure": on_failure,
         "custom_properties": custom_properties,
     })
 

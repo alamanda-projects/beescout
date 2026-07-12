@@ -1,4 +1,4 @@
-standard_version: 0.1.0
+standard_version: 0.2.0
 contract_number: 3oxinjpVbBefh # data contract identifier, required for identification
 
 metadata:
@@ -67,6 +67,7 @@ metadata:
       dimension: timeliness
       impact: operational
       severity: medium
+      on_failure: warn # abort|warn|quiet (dataset) — absen = auto dari severity (#151)
       custom_properties:
         - property: max_age
           value: "24"
@@ -137,6 +138,7 @@ model:
         dimension: validity
         impact: operational
         severity: medium
+        on_failure: skip # abort|warn|skip|quiet (kolom) — skip = buang baris bermasalah (#151)
         custom_properties:
           - property: pattern
             value: ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$

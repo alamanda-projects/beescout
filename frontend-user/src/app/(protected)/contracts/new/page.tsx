@@ -89,6 +89,7 @@ const schema = z.object({
       description: z.string().optional(),
       impact: z.string().optional(),
       severity: z.string().optional(),
+      on_failure: z.string().optional(), // #151
       custom_properties: z.array(z.object({
         property: z.string(),
         value: z.string(),
@@ -118,6 +119,7 @@ const schema = z.object({
       description: z.string().optional(),
       impact: z.string().optional(),
       severity: z.string().optional(),
+      on_failure: z.string().optional(), // #151
       custom_properties: z.array(z.object({
         property: z.string(),
         value: z.string(),

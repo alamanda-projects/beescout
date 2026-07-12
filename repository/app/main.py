@@ -80,6 +80,39 @@ def _warn_consumer_without_stakeholders(data) -> None:
             getattr(data, "contract_number", "<unknown>"),
         )
 
+# #151 / ADR-0008: enum on_failure per layer. `skip` (buang record bermasalah)
+# hanya bermakna di rule kolom — rule dataset tidak punya record untuk di-skip.
+ON_FAILURE_DATASET = ("abort", "warn", "quiet")
+ON_FAILURE_COLUMN = ("abort", "warn", "skip", "quiet")
+
+
+def _validate_quality_on_failure(data) -> None:
+    """Write-path enforcement on_failure (#151). Pydantic tetap Optional[str]
+    (read lenient); dipanggil dari /datacontract/add & /update. Raise 422."""
+    for i, q in enumerate(getattr(data.metadata, "quality", None) or []):
+        of = getattr(q, "on_failure", None)
+        if of and of not in ON_FAILURE_DATASET:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"metadata.quality[{i}].on_failure '{of}' tidak valid — "
+                    f"level dataset: {' | '.join(ON_FAILURE_DATASET)} "
+                    "(skip hanya untuk rule kolom, #151)."
+                ),
+            )
+    for i, col in enumerate(getattr(data, "model", None) or []):
+        for j, q in enumerate(getattr(col, "quality", None) or []):
+            of = getattr(q, "on_failure", None)
+            if of and of not in ON_FAILURE_COLUMN:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"model[{i}].quality[{j}].on_failure '{of}' tidak valid — "
+                        f"gunakan: {' | '.join(ON_FAILURE_COLUMN)} (#151)."
+                    ),
+                )
+
+
 # Origins allowed to make cross-origin requests (comma-separated in env)
 _raw_origins = config("ALLOWED_ORIGINS", default="http://localhost:3000,http://localhost:3001")
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
@@ -1073,6 +1106,7 @@ async def insert_datacontract(
                 ),
             )
 
+    _validate_quality_on_failure(data)  # #151
     _warn_consumer_without_stakeholders(data)
 
     # Write-time spec enforcement (ADR-0007): minimal 1 stakeholder dengan
@@ -1194,6 +1228,7 @@ async def update_datacontract(
                 ),
             )
 
+    _validate_quality_on_failure(data)  # #151
     _warn_consumer_without_stakeholders(data)
 
     # Write-time spec enforcement (ADR-0007): sama dgn /add — mencegah
@@ -1940,6 +1975,14 @@ async def validate_yaml_import(
                     "message": f"Dimensi '{q['dimension']}' tidak valid.",
                     "suggestion": f"Gunakan salah satu: {', '.join(sorted(valid_dims))}",
                 })
+            # #151: on_failure level dataset — skip tidak bermakna di sini.
+            if q.get("on_failure") and q["on_failure"] not in ON_FAILURE_DATASET:
+                errors.append({
+                    "field": f"metadata.quality[{i}].on_failure",
+                    "message": f"on_failure '{q['on_failure']}' tidak valid untuk rule dataset.",
+                    "suggestion": f"Gunakan salah satu: {' | '.join(ON_FAILURE_DATASET)} "
+                                  "(skip hanya untuk rule kolom).",
+                })
 
     for i, col in enumerate(data.get("model") or []):
         if not col.get("column"):
@@ -1971,6 +2014,13 @@ async def validate_yaml_import(
                 errors.append({
                     "field": f"model[{i}].quality[{j}].dimension",
                     "message": "Field 'dimension' wajib ada di setiap aturan kualitas kolom.",
+                })
+            # #151: on_failure level kolom — semua nilai enum boleh (termasuk skip).
+            if q.get("on_failure") and q["on_failure"] not in ON_FAILURE_COLUMN:
+                errors.append({
+                    "field": f"model[{i}].quality[{j}].on_failure",
+                    "message": f"on_failure '{q['on_failure']}' tidak valid.",
+                    "suggestion": f"Gunakan salah satu: {' | '.join(ON_FAILURE_COLUMN)}.",
                 })
 
     if errors:
@@ -2090,6 +2140,29 @@ async def import_yaml_contract(
             status_code=422,
             detail=f"Field SLA wajib diisi: {', '.join(_sla_imp_missing)} (#102).",
         )
+
+    # #151: enum on_failure — mirrors /add (skip hanya di rule kolom).
+    for i, q in enumerate(_meta_imp.get("quality") or []):
+        of = (q or {}).get("on_failure")
+        if of and of not in ON_FAILURE_DATASET:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"metadata.quality[{i}].on_failure '{of}' tidak valid — "
+                    f"level dataset: {' | '.join(ON_FAILURE_DATASET)} (#151)."
+                ),
+            )
+    for i, col in enumerate(data.get("model") or []):
+        for j, q in enumerate((col or {}).get("quality") or []):
+            of = (q or {}).get("on_failure")
+            if of and of not in ON_FAILURE_COLUMN:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"model[{i}].quality[{j}].on_failure '{of}' tidak valid — "
+                        f"gunakan: {' | '.join(ON_FAILURE_COLUMN)} (#151)."
+                    ),
+                )
 
     # ADR-0007: minimal 1 stakeholder dengan role consumer/producer.
     # YAML import jalur sendiri (bypass Pydantic), jadi cek manual via dict access.

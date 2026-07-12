@@ -30,8 +30,9 @@ import { Plus, Trash2, Code2, User2, ChevronDown, ChevronRight, AlertCircle } fr
 import { cn } from '@/lib/utils'
 import {
   DIMENSION_LABELS, IMPACT_TYPE_LABELS, SEVERITY_LABELS, SEVERITY_BIZ_LABELS, LAYER_LABELS,
-  IMPACT_BIZ_LABELS,
+  IMPACT_BIZ_LABELS, ON_FAILURE_BIZ_LABELS,
   type RuleCatalogItem, type QualityRule, type QualityCustomProp, type ImpactType, type SeverityType,
+  type OnFailureType,
 } from '@/types/rule_catalog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -60,11 +61,14 @@ const DIMENSION_BADGE: Record<string, string> = {
   consistency:  'bg-indigo-50 text-indigo-700 border-indigo-200',
 }
 
+// #151: nilai '' = "Otomatis" — field on_failure tidak ditulis; engine
+// fallback dari severity (high → abort, selainnya warn). ADR-0008.
 function buildRuleFromModule(
   module: RuleCatalogItem,
   paramValues: Record<string, string>,
   impact: ImpactType,
   severity: SeverityType,
+  onFailure: OnFailureType | '',
   description?: string,
 ): QualityRule {
   return {
@@ -73,11 +77,16 @@ function buildRuleFromModule(
     dimension: module.dimension,
     impact,
     severity,
+    ...(onFailure ? { on_failure: onFailure } : {}),
     custom_properties: module.params
       .filter(p => paramValues[p.key])
       .map(p => ({ property: p.key, value: paramValues[p.key] })),
   }
 }
+
+// 'skip' hanya bermakna di rule kolom (#151 / ADR-0008).
+const onFailureOptions = (layer: 'dataset' | 'column'): OnFailureType[] =>
+  layer === 'column' ? ['abort', 'warn', 'skip', 'quiet'] : ['abort', 'warn', 'quiet']
 
 // ─── Mode switcher ────────────────────────────────────────────────────────────
 
@@ -137,6 +146,7 @@ function SentenceRuleBuilder({
   const [paramValues, setParamValues] = useState<Record<string, string>>({})
   const [impact, setImpact] = useState<ImpactType>('operational')
   const [severity, setSeverity] = useState<SeverityType>('medium')
+  const [onFailure, setOnFailure] = useState<OnFailureType | ''>('')
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const selectedModule = layerModules.find(m => m.code === selectedCode)
@@ -173,7 +183,7 @@ function SentenceRuleBuilder({
     const finalValues = selectedModule.code === 'pii_check'
       ? { ...paramValues, field_name: piiColumns.join(', ') }
       : paramValues
-    const rule = buildRuleFromModule(selectedModule, finalValues, impact, severity)
+    const rule = buildRuleFromModule(selectedModule, finalValues, impact, severity, onFailure)
     onAdd(rule)
     setParamValues({})
     setValidationErrors({})
@@ -360,6 +370,21 @@ function SentenceRuleBuilder({
             ))}
           </div>
         </div>
+        {/* #151: tindakan saat rule gagal — Otomatis = ikut Tingkat (high→hentikan) */}
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-500 shrink-0">Saat gagal:</span>
+          <select
+            value={onFailure}
+            onChange={e => setOnFailure(e.target.value as OnFailureType | '')}
+            title="Tindakan engine kualitas saat aturan ini gagal"
+            className="rounded border border-zinc-200 px-2 py-1 text-xs text-zinc-700 focus:outline-none focus:border-amber-400"
+          >
+            <option value="">Otomatis (ikut Tingkat)</option>
+            {onFailureOptions(layer).map(v => (
+              <option key={v} value={v}>{ON_FAILURE_BIZ_LABELS[v]}</option>
+            ))}
+          </select>
+        </div>
         <Button size="sm" className="ml-auto h-7 gap-1 bg-amber-500 hover:bg-amber-600 text-white" onClick={handleAdd}>
           <Plus size={12} /> Tambahkan
         </Button>
@@ -372,15 +397,18 @@ function SentenceRuleBuilder({
 
 function EngRuleForm({
   modules,
+  layer,
   onAdd,
 }: {
   modules: RuleCatalogItem[]
+  layer: 'dataset' | 'column'
   onAdd: (rule: QualityRule) => void
 }) {
   const [code, setCode] = useState(modules[0]?.code ?? '')
   const [dimension, setDimension] = useState<string>('completeness')
   const [impact, setImpact] = useState<string>('operational')
   const [severity, setSeverity] = useState<string>('medium')
+  const [onFailure, setOnFailure] = useState<string>('')
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<QualityCustomProp[]>([{ property: '', value: '' }])
 
@@ -402,6 +430,7 @@ function EngRuleForm({
       dimension,
       impact,
       severity: severity || undefined,
+      on_failure: onFailure || undefined,   // '' = auto dari severity (#151)
       custom_properties: props.filter(p => p.property.trim()),
     })
     setDescription('')
@@ -472,6 +501,20 @@ function EngRuleForm({
             ))}
           </select>
         </div>
+      </div>
+      {/* on_failure (#151) — skip hanya tersedia di layer column */}
+      <div>
+        <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">on_failure</div>
+        <select
+          value={onFailure}
+          onChange={e => setOnFailure(e.target.value)}
+          className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-sky-500"
+        >
+          <option value="">(auto — severity high→abort, else warn)</option>
+          {onFailureOptions(layer).map(v => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </select>
       </div>
       {/* custom_properties */}
       <div>
@@ -571,6 +614,11 @@ function RuleList({
                       {SEVERITY_BIZ_LABELS[r.severity as SeverityType] ?? r.severity}
                     </span>
                   )}
+                  {r.on_failure && (
+                    <span className="inline-flex items-center rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700">
+                      {ON_FAILURE_BIZ_LABELS[r.on_failure as OnFailureType] ?? r.on_failure}
+                    </span>
+                  )}
                 </div>
               </>
             ) : (
@@ -584,6 +632,12 @@ function RuleList({
                   <>
                     <span className="text-zinc-600 mx-1">·</span>
                     <span className="text-purple-400">{r.severity}</span>
+                  </>
+                )}
+                {r.on_failure && (
+                  <>
+                    <span className="text-zinc-600 mx-1">·</span>
+                    <span className="text-rose-400">{r.on_failure}</span>
                   </>
                 )}
                 {r.custom_properties?.map((p, j) => (
@@ -709,7 +763,7 @@ export default function QualityRulesEditor({
           <CardContent className="flex flex-col gap-4">
             {mode === 'biz'
               ? <SentenceRuleBuilder modules={dsModules} layer="dataset" columns={columns} onAdd={addDatasetRule} />
-              : <EngRuleForm modules={dsModules} onAdd={addDatasetRule} />}
+              : <EngRuleForm modules={dsModules} layer="dataset" onAdd={addDatasetRule} />}
             <Separator />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
@@ -752,7 +806,7 @@ export default function QualityRulesEditor({
                     <Separator />
                     {mode === 'biz'
                       ? <SentenceRuleBuilder modules={colModules} layer="column" columnName={col.column} onAdd={r => addColumnRule(col.column, r)} />
-                      : <EngRuleForm modules={colModules} onAdd={r => addColumnRule(col.column, r)} />}
+                      : <EngRuleForm modules={colModules} layer="column" onAdd={r => addColumnRule(col.column, r)} />}
                     <Separator />
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
