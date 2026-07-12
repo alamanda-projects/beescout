@@ -40,7 +40,7 @@ type UserMode = 'biz' | 'eng'
 
 interface Props {
   contractNumber: string
-  columns: { column: string; business_name?: string }[]
+  columns: { column: string; business_name?: string; is_pii?: boolean }[]
   datasetRules: QualityRule[]
   columnRules: Record<string, QualityRule[]>
   onSave: (datasetRules: QualityRule[], columnRules: Record<string, QualityRule[]>) => void
@@ -118,11 +118,13 @@ function SentenceRuleBuilder({
   modules,
   layer,
   columnName,
+  columns = [],
   onAdd,
 }: {
   modules: RuleCatalogItem[]
   layer: 'dataset' | 'column'
   columnName?: string
+  columns?: { column: string; business_name?: string; is_pii?: boolean }[]
   onAdd: (rule: QualityRule) => void
 }) {
   const layerModules = modules.filter(
@@ -135,12 +137,15 @@ function SentenceRuleBuilder({
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const selectedModule = layerModules.find(m => m.code === selectedCode)
+  const piiColumns = columns.filter(c => c.is_pii).map(c => c.column)
 
   const validateParams = useCallback(() => {
     if (!selectedModule) return false
     const errs: Record<string, string> = {}
     for (const p of selectedModule.params) {
       if (!p.required) continue
+      // pii_check.field_name terdeteksi otomatis dari is_pii — tidak perlu input manual (#148)
+      if (selectedModule.code === 'pii_check' && p.key === 'field_name') continue
       const val = paramValues[p.key]
       if (!val || val.trim() === '') {
         errs[p.key] = 'Wajib diisi'
@@ -162,7 +167,10 @@ function SentenceRuleBuilder({
   const handleAdd = () => {
     if (!selectedModule) return
     if (!validateParams()) return
-    const rule = buildRuleFromModule(selectedModule, paramValues, impact, severity)
+    const finalValues = selectedModule.code === 'pii_check'
+      ? { ...paramValues, field_name: piiColumns.join(', ') }
+      : paramValues
+    const rule = buildRuleFromModule(selectedModule, finalValues, impact, severity)
     onAdd(rule)
     setParamValues({})
     setValidationErrors({})
@@ -212,7 +220,7 @@ function SentenceRuleBuilder({
                 <span className="text-zinc-600">karakter</span>
               </>
             )}
-            {(p.type === 'select' || p.type === 'multi') && (
+            {(p.type === 'select' || (p.type === 'multi' && selectedModule.code !== 'distinct_check' && selectedModule.code !== 'pii_check')) && (
               <select
                 value={paramValues[p.key] ?? ''}
                 onChange={e => setParamValues(prev => ({ ...prev, [p.key]: e.target.value }))}
@@ -228,6 +236,41 @@ function SentenceRuleBuilder({
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
+            )}
+            {p.type === 'multi' && selectedModule.code === 'distinct_check' && (
+              <select
+                multiple
+                title={p.hint}
+                value={paramValues[p.key] ? paramValues[p.key].split(', ') : []}
+                onChange={e => {
+                  const selected = Array.from(e.target.selectedOptions, o => o.value)
+                  setParamValues(prev => ({ ...prev, [p.key]: selected.join(', ') }))
+                }}
+                size={Math.min(columns.length, 4) || 1}
+                className={cn(
+                  'min-w-[10rem] rounded border-[1.5px] px-2 py-1 text-xs font-semibold focus:outline-none',
+                  validationErrors[p.key]
+                    ? 'border-red-400 bg-red-50 text-red-700'
+                    : 'border-amber-400 bg-amber-100 text-amber-800',
+                )}
+              >
+                {columns.map(c => (
+                  <option key={c.column} value={c.column}>{c.business_name ?? c.column}</option>
+                ))}
+              </select>
+            )}
+            {p.type === 'multi' && selectedModule.code === 'pii_check' && (
+              <span
+                title={p.hint}
+                className={cn(
+                  'rounded border-[1.5px] px-2 py-1 text-xs font-semibold',
+                  piiColumns.length > 0
+                    ? 'border-amber-400 bg-amber-100 text-amber-800'
+                    : 'border-zinc-300 bg-zinc-100 text-zinc-500',
+                )}
+              >
+                {piiColumns.length > 0 ? piiColumns.join(', ') : 'tidak ada kolom PII'}
+              </span>
             )}
             {p.type === 'date' && (
               <>
@@ -642,7 +685,7 @@ export default function QualityRulesEditor({
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {mode === 'biz'
-              ? <SentenceRuleBuilder modules={dsModules} layer="dataset" onAdd={addDatasetRule} />
+              ? <SentenceRuleBuilder modules={dsModules} layer="dataset" columns={columns} onAdd={addDatasetRule} />
               : <EngRuleForm modules={dsModules} onAdd={addDatasetRule} />}
             <Separator />
             <div>
