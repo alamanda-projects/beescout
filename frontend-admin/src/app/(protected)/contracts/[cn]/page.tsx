@@ -16,7 +16,7 @@ import { ArrowLeft, CheckCircle2, XCircle, Pencil, Download } from 'lucide-react
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
-import type { ModelColumn, Stakeholder, Consumer } from '@/types/contract'
+import type { ModelColumn, Stakeholder, Consumer, ColumnSemantic } from '@/types/contract'
 import { getStakeholderRoleLabel } from '@/types/contract'
 import * as jsYaml from 'js-yaml'
 
@@ -24,6 +24,36 @@ function BoolCell({ value }: { value?: boolean }) {
   return value
     ? <CheckCircle2 size={15} className="text-emerald-500" />
     : <XCircle size={15} className="text-slate-300" />
+}
+
+/**
+ * Makna bisnis kolom (#162 / ADR-0009). `entity` + `concept` ditampilkan
+ * sebagai satu identitas (Customer.Identifier) karena itulah bentuk yang
+ * dipakai untuk mencocokkan kolom lintas kontrak.
+ */
+function SemanticCell({ semantic }: { semantic?: ColumnSemantic }) {
+  const identity = [semantic?.entity, semantic?.concept].filter(Boolean).join('.')
+  if (!identity && !semantic?.classification) {
+    return <span className="text-xs text-muted-foreground">-</span>
+  }
+  return (
+    <div className="space-y-1">
+      {identity && (
+        <div className="flex items-center gap-1">
+          <code className="text-xs font-mono text-slate-700">{identity}</code>
+          {semantic?.canonical && (
+            <Badge variant="secondary" className="text-[10px] font-normal">acuan</Badge>
+          )}
+        </div>
+      )}
+      {semantic?.classification && (
+        <Badge variant="outline" className="text-[10px] font-normal">{semantic.classification}</Badge>
+      )}
+      {semantic?.glossary && (
+        <p className="text-[10px] text-muted-foreground font-mono">{semantic.glossary}</p>
+      )}
+    </div>
+  )
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
@@ -193,6 +223,7 @@ export default function AdminContractDetailPage() {
                     <TableRow>
                       <TableHead>Kolom</TableHead>
                       <TableHead>Nama Bisnis</TableHead>
+                      <TableHead>Makna Bisnis</TableHead>
                       <TableHead>Tipe</TableHead>
                       <TableHead className="text-center">PK</TableHead>
                       <TableHead className="text-center">Nullable</TableHead>
@@ -209,6 +240,9 @@ export default function AdminContractDetailPage() {
                       <TableRow key={col.column}>
                         <TableCell><code className="text-xs font-mono">{col.column}</code></TableCell>
                         <TableCell className="text-sm">{col.business_name ?? '-'}</TableCell>
+                        {/* #162 / ADR-0009 — makna bisnis kolom. Kontrak lama tanpa
+                            blok semantic menampilkan '-' seperti field opsional lain. */}
+                        <TableCell><SemanticCell semantic={col.semantic} /></TableCell>
                         <TableCell><Badge variant="outline" className="text-xs font-mono">{col.logical_type ?? '-'}</Badge></TableCell>
                         <TableCell className="text-center"><BoolCell value={col.is_primary} /></TableCell>
                         <TableCell className="text-center"><BoolCell value={col.is_nullable} /></TableCell>

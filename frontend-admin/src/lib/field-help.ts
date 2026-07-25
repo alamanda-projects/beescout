@@ -64,3 +64,41 @@ export const DATA_TYPE_HELP = {
       'Tipe Data Teknis — tipe SQL/storage yang dipakai sistem (mis. VARCHAR(255), DATE, DECIMAL). Lihat docs/glossary.md (section "Mapping Tipe Bisnis ↔ Teknis") untuk daftar pemetaan.',
   },
 } as const
+
+/**
+ * Blok `semantic` per kolom (#162 / ADR-0009) — makna bisnis yang terbaca mesin.
+ *
+ * Melengkapi Deskripsi (untuk manusia), bukan menggantikannya. Seluruh field
+ * opsional. Sinkron dengan docs/glossary.md seksi H.
+ */
+export const SEMANTIC_HELP: Record<string, FieldHelp> = {
+  entity: {
+    description:
+      'Entitas Bisnis — objek bisnis yang diwakili kolom ini (mis. Customer, Product, Invoice). Digabung dengan Konsep untuk mengenali kolom yang sama di kontrak lain.',
+  },
+  concept: {
+    description:
+      'Konsep — makna kolom di dalam entitas (mis. Identifier, FullName). "Customer" + "Identifier" berarti kolom ini adalah identitas pelanggan, apa pun nama teknisnya.',
+  },
+  canonical: {
+    description:
+      'Acuan Utama — tandai bila kolom ini adalah representasi baku dari konsep tersebut. Bersifat catatan; sistem belum memaksakan hanya ada satu.',
+  },
+  glossary: {
+    description:
+      'Referensi Glosarium — kode rujukan ke glosarium bisnis organisasi (mis. CUSTOMER.ID). Tidak dicek ke sistem luar.',
+  },
+  classification: {
+    description:
+      'Klasifikasi Data — tingkat kerahasiaan kolom. Tidak menggantikan tanda Data PII; bila keduanya bertentangan, kontrak tetap tersimpan tapi muncul peringatan.',
+  },
+}
+
+/** Pilihan `semantic.classification` — cermin enum backend (#162). */
+export const SEMANTIC_CLASSIFICATIONS = [
+  { value: 'public', label: 'Public — boleh diakses siapa saja' },
+  { value: 'internal', label: 'Internal — hanya untuk internal organisasi' },
+  { value: 'confidential', label: 'Confidential — terbatas, perlu izin khusus' },
+  { value: 'sensitive', label: 'Sensitive — berdampak besar bila bocor' },
+  { value: 'pii', label: 'PII — data pribadi yang dilindungi' },
+] as const

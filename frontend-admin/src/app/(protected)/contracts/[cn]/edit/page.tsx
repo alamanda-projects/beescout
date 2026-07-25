@@ -26,7 +26,8 @@ import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, ArrowLeft, Save, Info } from 'lucide-react'
 import { CONTRACT_TYPES, CONSUMPTION_MODES, STAKEHOLDER_ROLE_GROUPS, STAKEHOLDER_ROLE_VALUES, LEGACY_STAKEHOLDER_ROLES, RETENTION_UNITS, QUALITY_DIMENSIONS } from '@/types/contract'
 import { isBusinessUser } from '@/types/user'
-import { COLUMN_FLAG_HELP, DATA_TYPE_HELP } from '@/lib/field-help'
+import { COLUMN_FLAG_HELP, DATA_TYPE_HELP, SEMANTIC_HELP, SEMANTIC_CLASSIFICATIONS } from '@/lib/field-help'
+import { normalizeSemantic } from '@/lib/semantic'
 
 const schema = z.object({
   standard_version: z.string().min(1, 'Wajib diisi'),
@@ -117,6 +118,15 @@ const schema = z.object({
     is_pii: z.boolean().optional(),
     is_audit: z.boolean().optional(),
     is_mandatory: z.boolean().optional(),
+    // #162 / ADR-0009 — blok semantic opsional. Wajib ada di skema zod:
+    // field yang tidak terdaftar di sini akan dibuang diam-diam saat submit.
+    semantic: z.object({
+      entity: z.string().optional(),
+      concept: z.string().optional(),
+      canonical: z.boolean().optional(),
+      glossary: z.string().optional(),
+      classification: z.string().optional(),
+    }).optional(),
     // #151 + fix data-loss: tanpa deklarasi ini zod men-strip model[].quality
     // saat submit — aturan kolom hilang setiap kali kontrak di-edit.
     quality: z.array(z.object({
@@ -273,6 +283,17 @@ export default function EditContractPage() {
         is_pii: !!col.is_pii,
         is_audit: !!col.is_audit,
         is_mandatory: !!col.is_mandatory,
+        // #162: blok semantic ikut di-prefill. Tanpa ini, membuka form edit
+        // lalu menyimpan akan menghapus makna bisnis yang sudah diisi.
+        semantic: col.semantic
+          ? {
+              entity: col.semantic.entity ?? '',
+              concept: col.semantic.concept ?? '',
+              canonical: !!col.semantic.canonical,
+              glossary: col.semantic.glossary ?? '',
+              classification: col.semantic.classification ?? '',
+            }
+          : undefined,
         // #151 + fix data-loss: quality kolom ikut di-prefill (sebelumnya
         // hilang dari form → terhapus saat submit).
         quality: ((col.quality ?? []) as any[]).map((q: any) => ({
@@ -339,7 +360,9 @@ export default function EditContractPage() {
           },
           sla: slaPayload,
         },
-        model: data.model?.filter(c => c.column) ?? [],
+        model: data.model
+          ?.filter(c => c.column)
+          .map(c => ({ ...c, semantic: normalizeSemantic((c as any).semantic) })) ?? [],  // #162
         // Backend (PortsProperties) memakai field `property`, bukan `name`.
         ports: (data.ports ?? [])
           .filter(p => p.object)
@@ -915,6 +938,102 @@ export default function EditContractPage() {
                       ))}
                     </div>
                   </TooltipProvider>
+                  {/* #162 / ADR-0009 — Makna Bisnis: opsional, tertutup by default agar
+                      form kolom tidak makin panjang untuk yang tidak memakainya. */}
+                  <details className="rounded-md border bg-white">
+                    <summary className="cursor-pointer select-none px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-900">
+                      Makna Bisnis <span className="font-normal text-muted-foreground">(opsional)</span>
+                      {(watch(`model.${i}.semantic.entity`) || watch(`model.${i}.semantic.concept`)) && (
+                        <Badge variant="secondary" className="ml-2 text-[10px] font-normal">
+                          {[watch(`model.${i}.semantic.entity`), watch(`model.${i}.semantic.concept`)]
+                            .filter(Boolean)
+                            .join('.')}
+                        </Badge>
+                      )}
+                    </summary>
+                    <TooltipProvider delayDuration={150}>
+                      <div className="space-y-3 border-t px-3 py-3">
+                        <p className="text-[10px] text-muted-foreground">
+                          Membantu sistem mengenali kolom yang mewakili konsep bisnis sama di kontrak berbeda.
+                          Deskripsi di atas tetap untuk dibaca manusia — bagian ini untuk dibaca mesin.
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                          {([
+                            { key: 'entity', label: 'Entitas Bisnis', placeholder: 'Contoh: Customer, Product' },
+                            { key: 'concept', label: 'Konsep', placeholder: 'Contoh: Identifier, FullName' },
+                            { key: 'glossary', label: 'Referensi Glosarium', placeholder: 'Contoh: CUSTOMER.ID' },
+                          ] as const).map(({ key, label, placeholder }) => (
+                            <div key={key} className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                <Label className="text-xs">{label}</Label>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button type="button" aria-label={`Penjelasan ${label}`}
+                                      className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                      <Info className="h-3.5 w-3.5" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs">{SEMANTIC_HELP[key]?.description}</TooltipContent>
+                                </Tooltip>
+                              </div>
+                              <Input placeholder={placeholder} className="h-8 text-xs"
+                                {...register(`model.${i}.semantic.${key}`)} />
+                            </div>
+                          ))}
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <Label className="text-xs">Klasifikasi Data</Label>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button" aria-label="Penjelasan Klasifikasi Data"
+                                    className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                    <Info className="h-3.5 w-3.5" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">{SEMANTIC_HELP.classification?.description}</TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <Select
+                              value={watch(`model.${i}.semantic.classification`) || ''}
+                              onValueChange={(v) => setValue(`model.${i}.semantic.classification`, v)}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Belum ditentukan" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SEMANTIC_CLASSIFICATIONS.map(opt => (
+                                  <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {watch(`model.${i}.semantic.classification`) && (
+                              <button type="button" className="text-[10px] text-muted-foreground underline hover:text-slate-700"
+                                onClick={() => setValue(`model.${i}.semantic.classification`, '')}>
+                                Bersihkan pilihan
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`${field.id}-canonical`}
+                            checked={!!watch(`model.${i}.semantic.canonical`)}
+                            onCheckedChange={(v) => setValue(`model.${i}.semantic.canonical`, !!v)}
+                          />
+                          <Label htmlFor={`${field.id}-canonical`} className="text-xs font-normal cursor-pointer">Acuan Utama</Label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button type="button" aria-label="Penjelasan Acuan Utama"
+                                className="text-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded">
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">{SEMANTIC_HELP.canonical?.description}</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </TooltipProvider>
+                  </details>
                 </div>
               ))}
             </CardContent>
