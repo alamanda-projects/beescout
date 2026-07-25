@@ -1,4 +1,4 @@
-standard_version: 0.2.0
+standard_version: 0.3.0
 contract_number: 3oxinjpVbBefh # data contract identifier, required for identification
 
 metadata:
@@ -157,6 +157,15 @@ model:
         custom_properties:
           - property: pattern
             value: ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    # semantic (#162 / ADR-0009): metadata bisnis machine-readable — opsional,
+    # melengkapi description (untuk manusia), bukan menggantikannya.
+    # entity + concept = identitas konsep yang bisa dicocokkan lintas kontrak.
+    semantic:
+      entity: Customer
+      concept: Identifier
+      canonical: true # dokumentatif — belum ada registry yang menegakkannya
+      glossary: CUSTOMER.ID # tidak divalidasi ke layanan glosarium di fase ini
+      classification: pii # public | internal | confidential | sensitive | pii
     sample_value:
       - 4d60b9fe-3311-4edb-986a-5f93c79c61ac
       - 386acf0e-5ed2-48d4-99b5-af5683207bd2
@@ -194,6 +203,12 @@ model:
         custom_properties:
           - property: contains only
             value: alphabet
+    # Kolom lain di entitas yang sama — bukan representasi kanonik konsepnya.
+    semantic:
+      entity: Customer
+      concept: FullName
+      canonical: false
+      classification: pii
     sample_value:
       - Fulan Bin Fulan
       - Agus

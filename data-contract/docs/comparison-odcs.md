@@ -119,9 +119,14 @@
 | `is_nullable` | `required` (inverted!) | Overlap (semantik invert) | BeeScout: nullable=true; ODCS: required=false |
 | `is_partition` | `partitioned` | Overlap | — |
 | `is_clustered` | — | BeeScout-specific | ODCS tidak punya clustering flag |
-| `is_pii` | `classification` (sebagian) | Overlap (lemah) | BeeScout: boolean PII; ODCS: enum `[confidential, restricted, public]` |
+| `is_pii` | `classification` (sebagian) | Overlap (lemah) | BeeScout: boolean PII; ODCS: enum `[confidential, restricted, public]`. Sejak #162 slot ini diisi `semantic.classification` bila ada — lihat baris di bawah |
 | `is_audit` | — | BeeScout-specific | Flag audit kolom |
 | `is_mandatory` | `required` | Overlap (mungkin duplikatif dengan is_nullable) | Redundansi internal BeeScout |
+| `semantic.classification` | `classification` | Overlap | Enum BeeScout lebih luas `[public, internal, confidential, sensitive, pii]`. **Derivasi satu arah** ([ADR-0009](../../docs/adr/0009-column-semantic-metadata.md), #162): export pakai `semantic.classification` bila ada, selainnya turunkan dari `is_pii`; import mengisi keduanya |
+| `semantic.entity` | — (tidak ada) | **Divergensi BeeScout** | Entitas bisnis kolom. Export → `customProperties.semantic_entity` |
+| `semantic.concept` | — (tidak ada) | **Divergensi BeeScout** | Makna kolom di dalam entitas. Export → `customProperties.semantic_concept` |
+| `semantic.canonical` | — (tidak ada) | **Divergensi BeeScout** | Penanda representasi kanonik. Export → `customProperties.semantic_canonical` |
+| `semantic.glossary` | `authoritativeDefinitions` (sebagian) | Overlap (lemah) | ODCS memakai URL berjenis; BeeScout memakai identifier bebas. Export → `customProperties.semantic_glossary` agar round-trip lossless |
 | `sample_value[]` | `examples[]` | Overlap | — |
 | `tags[]` | `tags[]` | Overlap | — |
 | `quality[]` | `quality[]` (property-level) | Overlap | Strukturnya mirip metadata.quality |

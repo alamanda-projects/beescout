@@ -11,7 +11,8 @@ from typing import List, Optional, Union
 # # # ----------------------- Model Hierarchy
 # # # Model
 # # #  |- ModelQuality
-# # #     |- ModelQualityCustom
+# # #  |  |- ModelQualityCustom
+# # #  |- ModelSemantic
 # # # ----------------------- Model Hierarchy
 
 
@@ -30,6 +31,32 @@ class ModelQuality(BaseModel):
     # quiet (level kolom boleh skip). Absen → fallback severity. Lenient read.
     on_failure: Optional[str] = None
     custom_properties: Optional[List[ModelQualityCustom]] = None  # -> merujuk ke class ModelQualityCustom
+
+
+# #162 / ADR-0009: enum klasifikasi semantik. Didefinisikan di sini (bukan di
+# main.py) supaya converter add-on bisa ikut memakainya tanpa circular import —
+# pola yang sama dengan DIMENSION_TYPES di rule_catalog.py.
+SEMANTIC_CLASSIFICATIONS = ("public", "internal", "confidential", "sensitive", "pii")
+# Nilai yang menyiratkan data pribadi — dasar derivasi satu arah ke `is_pii`.
+PII_CLASSIFICATIONS = ("pii", "sensitive")
+
+
+class ModelSemantic(BaseModel):
+    """#162 / ADR-0009: metadata bisnis machine-readable per kolom.
+
+    Melengkapi `description` (free-text untuk manusia), tidak menggantikannya.
+    Seluruh properti opsional — kontrak tanpa blok `semantic` tetap valid
+    tanpa migration. `entity` + `concept` membentuk identitas konsep
+    (mis. "Customer.Identifier") yang bisa dicocokkan lintas kontrak.
+    """
+    entity: Optional[str] = None       # entitas bisnis, mis. Customer
+    concept: Optional[str] = None      # makna di dalam entitas, mis. Identifier
+    canonical: Optional[bool] = None   # dokumentatif — tanpa registry, tidak ditegakkan
+    glossary: Optional[str] = None     # referensi glosarium, tidak divalidasi di fase ini
+    # public | internal | confidential | sensitive | pii — strict-write/lenient-read
+    # (pola ADR-0008): enum ditegakkan di write-path main.py, di sini tetap
+    # Optional[str] agar dokumen lama bernilai asing tidak bikin read path 500.
+    classification: Optional[str] = None
 
 
 class Model(BaseModel):
@@ -52,6 +79,9 @@ class Model(BaseModel):
     is_mandatory: Optional[bool] = None
     description: Optional[str] = None
     quality: Optional[List[ModelQuality]] = None
+    # #162 / ADR-0009 — blok opsional, additive. `semantic.classification`
+    # tidak menggantikan `is_pii`; lihat aturan derivasi di converter ODCS.
+    semantic: Optional[ModelSemantic] = None
     sample_value: Optional[List[str]] = None
     tags: Optional[List[str]] = None
 

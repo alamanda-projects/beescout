@@ -227,6 +227,11 @@ Bagian ini menunjukkan _"schema"_ atau model data dari dataset, bagian ini akan 
 | model.quality.on_failure                 | NO       | Tindakan engine saat rule gagal [*abort, warn, skip, quiet*] — absen = fallback dari `severity`. [ADR-0008](../../docs/adr/0008-quality-on-failure.md) (#151) |
 | model.quality.custom_properties.property | NO       | Properti tambahan yang diperlukan untuk eksekusi aturan                                              |
 | model.quality.custom_properties.value    | NO       | Nilai untuk properti tambahan                                                                        |
+| model.semantic.entity                    | NO       | Entitas bisnis yang diwakili kolom [cth. Customer, Product, Invoice] — [ADR-0009](../../docs/adr/0009-column-semantic-metadata.md) (#162) |
+| model.semantic.concept                   | NO       | Makna kolom di dalam entitas [cth. Identifier]. Bersama `entity` membentuk "Customer.Identifier"     |
+| model.semantic.canonical                 | NO       | Apakah kolom ini representasi kanonik konsep tsb [true, false]. Dokumentatif — belum ditegakkan sistem |
+| model.semantic.glossary                  | NO       | Referensi identifier glosarium bisnis [cth. CUSTOMER.ID]. Tidak divalidasi ke layanan eksternal      |
+| model.semantic.classification            | NO       | Klasifikasi bisnis data [*public, internal, confidential, sensitive, pii*] — tidak menggantikan `is_pii`, lihat ADR-0009 |
 | model.sample_value                       | NO       | Contoh dataset                                                                                       |
 | model.tags                               | NO       | Tag                                                                                                  |
 
@@ -263,6 +268,12 @@ model:
         custom_properties:
           - property: length
             value: 36
+    semantic:
+      entity: Customer
+      concept: Identifier
+      canonical: true
+      glossary: CUSTOMER.ID
+      classification: pii
     sample_value:
       - 4d60b9fe-3311-4edb-986a-5f93c79c61ac
       - 386acf0e-5ed2-48d4-99b5-af5683207bd2
@@ -270,6 +281,19 @@ model:
       - tag1
       - tag2
 ```
+
+#### Blok `semantic` — makna bisnis yang terbaca mesin
+
+Metadata kolom lain (`business_name`, `description`) ditujukan untuk **manusia**. Akibatnya BeeScout tidak bisa tahu bahwa `uid` di satu kontrak dan `customer_no` di kontrak lain sebenarnya konsep yang sama.
+
+Blok `semantic` (opsional, [ADR-0009](../../docs/adr/0009-column-semantic-metadata.md)) menambahkan makna terstruktur di samping `description` — bukan menggantikannya. `entity` + `concept` membentuk identitas konsep (`Customer.Identifier`) yang bisa dicocokkan lintas kontrak.
+
+Dua hal yang perlu diingat:
+
+- **`classification` tidak menggantikan `is_pii`.** `is_pii` tetap wajib. Bila keduanya diisi bertentangan, kontrak tetap tersimpan tapi memunculkan peringatan — kamu yang memutuskan mana yang benar. Saat export ke ODCS, `semantic.classification` yang dipakai bila ada; selainnya diturunkan dari `is_pii`.
+- **`canonical` belum ditegakkan sistem.** Tanpa registry konsep, BeeScout tidak bisa memastikan hanya ada satu kolom kanonik per `(entity, concept)`. Field ini merekam niat, bukan jaminan.
+
+Nilai `classification` yang valid: `public`, `internal`, `confidential`, `sensitive`, `pii`. Nilai di luar daftar ini ditolak saat simpan/import (422), tapi dokumen lama yang terlanjur berisi nilai lain tetap bisa dibaca.
 
 ### Ports Section
 
