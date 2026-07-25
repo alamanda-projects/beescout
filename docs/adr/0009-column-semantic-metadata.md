@@ -70,10 +70,23 @@ Resolusi:
 |---|---|
 | **Model internal** | `is_pii` tetap wajib dan tidak berubah maknanya (flag teknis boolean). `semantic.classification` opsional, lebih kaya, dan **tidak menggantikannya**. |
 | **Export ODCS** | Pakai `semantic.classification` bila ada; selainnya turunkan dari `is_pii` (perilaku sekarang, tidak berubah untuk kontrak lama). |
-| **Import ODCS** | `classification` → `semantic.classification`; `is_pii = true` bila nilainya `pii` atau `sensitive`. |
+| **Import ODCS** | `classification` → `semantic.classification`; `is_pii = true` bila nilainya `pii`, `sensitive`, atau `confidential`. |
 | **Kontradiksi** | `is_pii: false` + `classification: pii` (atau sebaliknya) = **warning**, bukan error. Kontrak tetap tersimpan; pengguna yang memutuskan. |
 
 Properti semantik lain (`entity`, `concept`, `canonical`, `glossary`) tidak punya padanan ODCS — disimpan sebagai `customProperties` agar round-trip lossless, tercatat sebagai divergensi di [comparison-odcs.md](../../data-contract/docs/comparison-odcs.md).
+
+**`confidential` adalah nilai derivasi yang direservasi.** Sejak #101, export menulis `classification: confidential` untuk menyatakan `is_pii: true`. Akibatnya nilai itu ambigu saat import: bisa berasal dari `semantic.classification` yang diisi pengguna, bisa pula artefak derivasi. Tanpa pembeda, kontrak lama yang tidak punya blok `semantic` akan **menumbuhkan** satu setelah round-trip — melanggar invarian lossless yang dijaga `test_round_trip_beescout_odcs_beescout`.
+
+Pembedanya adalah marker `customProperties.semantic_classification`, ditulis **hanya** saat `semantic.classification` diisi eksplisit:
+
+| Dokumen | `classification` native | Marker | Hasil import |
+|---|---|---|---|
+| BeeScout, punya semantic | nilai eksplisit | ada | `semantic.classification` = marker |
+| BeeScout, tanpa semantic (`is_pii: true`) | `confidential` | tidak ada | tidak ada blok `semantic`; `is_pii: true` |
+| ODCS pihak lain | mis. `internal` | tidak ada | `semantic.classification` = nilai native |
+| ODCS pihak lain | `confidential` | tidak ada | tidak ada blok `semantic`; `is_pii: true` |
+
+Baris terakhir adalah harga yang dibayar: dokumen ODCS asing bernilai `confidential` tidak mendapat cermin di `semantic`. Informasinya tidak hilang — `is_pii` tetap terisi — dan pengguna bisa melengkapi blok semantic lewat form.
 
 ### Catatan: `classification` mencampur dua sumbu
 
