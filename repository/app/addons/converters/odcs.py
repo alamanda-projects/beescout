@@ -18,10 +18,16 @@ Prinsip export (`beescout_to_odcs`):
   * `stakeholders[].role: reviewer`: diteruskan apa adanya (ODCS role = free string).
   * `is_nullable` → ODCS `required` (inversi, sesuai mapping doc); `is_mandatory`
     disimpan di customProperties kolom untuk menghindari ambiguitas.
+  * `semantic` (#162 / ADR-0009): `classification` memakai slot ODCS native
+    dengan derivasi satu arah (semantic.classification menang; fallback is_pii),
+    sisanya (`entity`, `concept`, `canonical`, `glossary`) ke customProperties
+    ber-prefix `semantic_` agar round-trip lossless.
 """
 from __future__ import annotations
 
 import yaml
+
+from app.model.model import PII_CLASSIFICATIONS
 
 ODCS_API_VERSION = "v3.0.0"
 ODCS_KIND = "DataContract"
@@ -69,6 +75,14 @@ def _map_quality(q: dict) -> dict:
 
 def _map_column(col: dict) -> dict:
     nullable = col.get("is_nullable")
+    sem = col.get("semantic") or {}
+    # #162 / ADR-0009 — derivasi satu arah ke slot ODCS `classification`:
+    # pakai semantic.classification bila ada, selainnya turunkan dari is_pii
+    # (perilaku lama, tidak berubah untuk kontrak tanpa blok semantic).
+    explicit_classification = sem.get("classification")
+    classification = explicit_classification or (
+        "confidential" if col.get("is_pii") else None
+    )
     return _clean({
         "name": col.get("column"),
         "businessName": col.get("business_name"),
@@ -79,15 +93,25 @@ def _map_column(col: dict) -> dict:
         # ODCS required = inversi is_nullable (comparison-odcs.md). None → biarkan kosong.
         "required": (not nullable) if nullable is not None else None,
         "partitioned": col.get("is_partition"),
-        "classification": "confidential" if col.get("is_pii") else None,
+        "classification": classification,
         "tags": col.get("tags"),
         "examples": col.get("sample_value"),
         "quality": [_map_quality(q) for q in (col.get("quality") or [])],
         # BeeScout-specific flags — simpan agar non-lossy.
+        # #162: entity/concept/canonical/glossary tidak punya padanan ODCS v3 →
+        # customProperties ber-prefix semantic_ agar round-trip lossless.
         "customProperties": _custom_props([
             ("is_clustered", col.get("is_clustered")),
             ("is_audit", col.get("is_audit")),
             ("is_mandatory", col.get("is_mandatory")),
+            ("semantic_entity", sem.get("entity")),
+            ("semantic_concept", sem.get("concept")),
+            ("semantic_canonical", sem.get("canonical")),
+            ("semantic_glossary", sem.get("glossary")),
+            # Penanda "classification ini ditulis eksplisit, bukan hasil derivasi
+            # is_pii" — dipakai importer agar round-trip BeeScout↔BeeScout tidak
+            # menumbuhkan blok semantic pada kontrak yang tidak punya.
+            ("semantic_classification", explicit_classification),
         ]),
     })
 
@@ -227,6 +251,37 @@ def _quality_odcs_to_beescout(q: dict) -> dict:
 def _column_odcs_to_beescout(prop: dict) -> dict:
     cp = _cp_to_dict(prop.get("customProperties"))
     required = prop.get("required")
+    # #162 / ADR-0009: rekonstruksi blok semantic dari customProperties
+    # ber-prefix semantic_. Untuk `classification` ada dua sumber:
+    #   1. marker `semantic_classification` → nilai eksplisit hasil export
+    #      BeeScout, dipulihkan apa adanya (round-trip lossless).
+    #   2. tanpa marker → dokumen ODCS pihak lain. Nilainya dipakai, KECUALI
+    #      'confidential' yang merupakan nilai derivasi is_pii sejak #101 —
+    #      memulihkannya jadi semantic akan menumbuhkan blok pada kontrak lama
+    #      yang tidak punya. Info tidak hilang: is_pii tetap terisi di bawah.
+    native_classification = prop.get("classification")
+    marker = cp.get("semantic_classification")
+    if marker:
+        classification = marker
+    elif native_classification and native_classification != "confidential":
+        classification = native_classification
+    else:
+        classification = None
+    semantic = _clean({
+        "entity": cp.get("semantic_entity"),
+        "concept": cp.get("semantic_concept"),
+        "canonical": cp.get("semantic_canonical"),
+        "glossary": cp.get("semantic_glossary"),
+        "classification": classification,
+    })
+    # is_pii diturunkan dari slot native: 'pii'/'sensitive' per ADR-0009, plus
+    # 'confidential' karena itulah nilai yang ditulis export untuk is_pii=true
+    # sejak #101 — tanpa ini round-trip kontrak lama jadi lossy.
+    is_pii = (
+        True
+        if native_classification in ("confidential", *PII_CLASSIFICATIONS)
+        else None
+    )
     return _clean({
         "column": prop.get("name"),
         "business_name": prop.get("businessName"),
@@ -237,10 +292,11 @@ def _column_odcs_to_beescout(prop: dict) -> dict:
         # required → is_nullable (inversi balik). None → biarkan kosong.
         "is_nullable": (not required) if required is not None else None,
         "is_partition": prop.get("partitioned"),
-        "is_pii": True if prop.get("classification") == "confidential" else None,
+        "is_pii": is_pii,
         "sample_value": prop.get("examples"),
         "tags": prop.get("tags"),
         "quality": [_quality_odcs_to_beescout(q) for q in (prop.get("quality") or [])],
+        "semantic": semantic,
         # flag BeeScout-specific yang disimpan saat export.
         "is_clustered": cp.get("is_clustered"),
         "is_audit": cp.get("is_audit"),

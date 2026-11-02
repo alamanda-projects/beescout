@@ -28,6 +28,13 @@ model:
         custom_properties:
           - property: length
             value: 36
+    # semantic (#162 / ADR-0009) — opsional, machine-readable.
+    semantic:
+      entity: Customer
+      concept: Identifier
+      canonical: true
+      glossary: CUSTOMER.ID
+      classification: pii
     sample_value:
       - 4d60b9fe-3311-4edb-986a-5f93c79c61ac
       - 386acf0e-5ed2-48d4-99b5-af5683207bd2

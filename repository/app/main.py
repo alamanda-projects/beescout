@@ -17,6 +17,7 @@ from app.model.users import UserCreate, SetupRequest
 from app.model.domains import DomainCreate, DomainUpdate
 from app.core.connection import database, col_usr, col_dgr, col_apr, col_dom
 from app.model.rule_catalog import RuleCatalogCreate, RuleCatalogUpdate, DIMENSION_TYPES
+from app.model.model import SEMANTIC_CLASSIFICATIONS, PII_CLASSIFICATIONS
 from app.model.approval import ApprovalRecord, VoteRequest
 from app.core.display import *
 # #154: converter multi-format hidup sebagai add-on — lihat docs/converters.md.
@@ -79,6 +80,38 @@ def _warn_consumer_without_stakeholders(data) -> None:
             "kontrak ini (ADR-0007).",
             getattr(data, "contract_number", "<unknown>"),
         )
+
+def _validate_model_semantic(data) -> None:
+    """Write-path enforcement blok semantic (#162 / ADR-0009). Pydantic tetap
+    Optional[str] (read lenient); dipanggil dari /datacontract/add & /update.
+
+    Enum `classification` → 422. Kontradiksi `is_pii` vs `classification`
+    sengaja non-blocking (log warning) — kontrak tetap tersimpan, pengguna
+    yang memutuskan mana yang benar.
+    """
+    for i, col in enumerate(getattr(data, "model", None) or []):
+        sem = getattr(col, "semantic", None)
+        if sem is None:
+            continue
+        cls = getattr(sem, "classification", None)
+        if cls and cls not in SEMANTIC_CLASSIFICATIONS:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"model[{i}].semantic.classification '{cls}' tidak valid — "
+                    f"gunakan: {' | '.join(SEMANTIC_CLASSIFICATIONS)} (#162)."
+                ),
+            )
+        if cls and (cls in PII_CLASSIFICATIONS) != bool(getattr(col, "is_pii", False)):
+            logger.warning(
+                "Kontrak %s kolom '%s': is_pii=%s bertentangan dengan "
+                "semantic.classification='%s' (ADR-0009, non-blocking).",
+                getattr(data, "contract_number", "<unknown>"),
+                getattr(col, "column", f"[{i}]"),
+                getattr(col, "is_pii", False),
+                cls,
+            )
+
 
 # #151 / ADR-0008: enum on_failure per layer. `skip` (buang record bermasalah)
 # hanya bermakna di rule kolom — rule dataset tidak punya record untuk di-skip.
@@ -1107,6 +1140,7 @@ async def insert_datacontract(
             )
 
     _validate_quality_on_failure(data)  # #151
+    _validate_model_semantic(data)  # #162
     _warn_consumer_without_stakeholders(data)
 
     # Write-time spec enforcement (ADR-0007): minimal 1 stakeholder dengan
@@ -1229,6 +1263,7 @@ async def update_datacontract(
             )
 
     _validate_quality_on_failure(data)  # #151
+    _validate_model_semantic(data)  # #162
     _warn_consumer_without_stakeholders(data)
 
     # Write-time spec enforcement (ADR-0007): sama dgn /add — mencegah
@@ -2009,6 +2044,27 @@ async def validate_yaml_import(
                 "message": f"Kolom '{col_name}': field wajib 'description' tidak ditemukan atau kosong.",
                 "suggestion": "Isi deskripsi bisnis kolom — apa maknanya untuk pengguna non-teknis.",
             })
+        # #162 / ADR-0009: enum classification (mirrors write-path). Blok
+        # semantic opsional — hanya divalidasi bila ada.
+        _sem = col.get("semantic") or {}
+        _cls = _sem.get("classification")
+        if _cls and _cls not in SEMANTIC_CLASSIFICATIONS:
+            errors.append({
+                "field": f"model[{i}].semantic.classification",
+                "message": f"Klasifikasi '{_cls}' tidak valid.",
+                "suggestion": f"Gunakan salah satu: {', '.join(SEMANTIC_CLASSIFICATIONS)}.",
+            })
+        # Kontradiksi is_pii vs classification — warning, bukan error (ADR-0009).
+        if _cls and _cls in SEMANTIC_CLASSIFICATIONS:
+            if (_cls in PII_CLASSIFICATIONS) != bool(col.get("is_pii")):
+                warnings.append({
+                    "field": f"model[{i}].semantic.classification",
+                    "message": (
+                        f"Kolom '{col_name}': is_pii={bool(col.get('is_pii'))} "
+                        f"bertentangan dengan classification '{_cls}'."
+                    ),
+                    "suggestion": "Selaraskan is_pii dengan classification, atau abaikan bila memang disengaja.",
+                })
         for j, q in enumerate(col.get("quality") or []):
             if not q.get("dimension"):
                 errors.append({
@@ -2163,6 +2219,18 @@ async def import_yaml_contract(
                         f"gunakan: {' | '.join(ON_FAILURE_COLUMN)} (#151)."
                     ),
                 )
+
+    # #162: enum classification — mirrors /add. Blok semantic opsional.
+    for i, col in enumerate(data.get("model") or []):
+        _cls = ((col or {}).get("semantic") or {}).get("classification")
+        if _cls and _cls not in SEMANTIC_CLASSIFICATIONS:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"model[{i}].semantic.classification '{_cls}' tidak valid — "
+                    f"gunakan: {' | '.join(SEMANTIC_CLASSIFICATIONS)} (#162)."
+                ),
+            )
 
     # ADR-0007: minimal 1 stakeholder dengan role consumer/producer.
     # YAML import jalur sendiri (bypass Pydantic), jadi cek manual via dict access.

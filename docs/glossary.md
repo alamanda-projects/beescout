@@ -118,6 +118,20 @@
 
 ---
 
+## H. Makna Bisnis Kolom (`semantic`)
+
+> Blok opsional per kolom ([ADR-0009](adr/0009-column-semantic-metadata.md), #162) yang membuat makna bisnis **terbaca mesin** — melengkapi deskripsi yang ditujukan untuk manusia. Dua kolom bernama beda (`uid`, `customer_no`) bisa dikenali sebagai konsep yang sama lewat `entity` + `concept`.
+
+| Istilah teknis | Padanan bisnis (ID) | Penjelasan singkat | Dipakai di UI |
+|---|---|---|---|
+| Entity (`semantic.entity`) | Entitas Bisnis | Objek bisnis yang diwakili kolom — mis. Pelanggan, Produk, Faktur | Entitas Bisnis |
+| Concept (`semantic.concept`) | Konsep | Makna kolom di dalam entitas — mis. Identifier, FullName. Digabung jadi `Customer.Identifier` | Konsep |
+| Canonical (`semantic.canonical`) | Acuan Utama | Penanda bahwa kolom ini adalah representasi baku dari konsep tersebut. Sifatnya dokumentatif — sistem belum menegakkannya | Acuan Utama |
+| Glossary (`semantic.glossary`) | Referensi Glosarium | Kode rujukan ke glosarium bisnis organisasi (mis. `CUSTOMER.ID`). Tidak divalidasi ke sistem luar | Referensi Glosarium |
+| Classification (`semantic.classification`) | Klasifikasi Data | Tingkat kerahasiaan data: `public`, `internal`, `confidential`, `sensitive`, `pii`. **Tidak menggantikan** `is_pii` — bila bertentangan, muncul peringatan tapi kontrak tetap tersimpan | Klasifikasi Data |
+
+---
+
 ## Aturan saat menulis UI
 
 Saat menulis label/teks yang dilihat persona pengguna:
