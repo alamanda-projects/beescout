@@ -58,7 +58,7 @@ Ketentuan:
 - **Column-centric, bukan registry.** Metadata semantik melekat pada kolom di kontrak itu sendiri. Registry terpisah sengaja **tidak** diperkenalkan di fase ini (lihat Alternatif yang ditolak).
 - **Pola strict-write/lenient-read** (mengikuti ADR-0008): `classification` adalah enum tertutup yang ditegakkan di write-path (`/datacontract/add`, `/update`, YAML validate/import → 422); read-path menerima nilai asing dari dokumen lama apa adanya tanpa 500. `entity`, `concept`, `glossary` free-text — belum ada sumber kebenaran untuk divalidasi.
 - **`canonical` murni dokumentatif di v1.** Tanpa registry, keunikan "satu kolom kanonik per `(entity, concept)`" tidak bisa ditegakkan lintas kontrak. Field ini merekam *niat*, bukan invarian yang dijamin sistem.
-- **Standard bump minor** `0.2.0 → 0.3.0` (field opsional baru, additive).
+- **Standard bump minor** ke `0.5.0` (field opsional baru, additive). Penomoran mengikuti `data-contract/docs/README.md` (0.5.0, sejak #103); full.yaml sebelumnya `0.2.0` (ADR-0008), sehingga 0.3.0 dan 0.4.0 sengaja dilompati (#165).
 
 ### `classification` vs `is_pii` — keduanya jalan, derivasi satu arah
 
