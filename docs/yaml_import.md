@@ -25,7 +25,7 @@ Contoh lengkap dapat dilihat di [data-contract/examples/full.yaml](../data-contr
 
 Struktur minimal:
 ```yaml
-standard_version: 0.4.0
+standard_version: 0.3.0
 metadata:
   version: 1.0.0
   type: TABLE

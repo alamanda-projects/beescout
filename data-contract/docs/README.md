@@ -22,7 +22,7 @@ Dokumen ini akan menjelaskan beberapa hal penting terkait pembuatan Data Contrac
 ## Data Contract YAML Demographics
 
 ```
-standard_version: 0.5.0
+standard_version: 0.3.0
 contract_number: {{random string}}
 
 metadata:

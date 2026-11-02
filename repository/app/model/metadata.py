@@ -34,7 +34,7 @@ class MetadataSla(BaseModel):
     availability: Optional[str] = None
     cron: Optional[str] = None
     # NB: `effective_date` & `end_of_contract` dipindah ke Metadata top-level
-    # sebagai `effective_date` & `expiry_date` di standard_version 0.5.0 (#103).
+    # sebagai `effective_date` & `expiry_date` sejak #103.
     # Payload lama tetap diterima via Metadata.model_validator (auto-promote).
 
 
@@ -98,7 +98,7 @@ class Metadata(BaseModel):
     stakeholders: Optional[List[MetadataStakeholders]] = None
     quality: Optional[List[MetadataQuality]] = None
     sla: Optional[MetadataSla] = None
-    # Lifecycle kontrak (#103, standard_version 0.5.0). Optional di lapis
+    # Lifecycle kontrak (#103). Optional di lapis
     # Pydantic agar read path (mis. /datacontract/lists) tidak crash untuk
     # kontrak legacy yang tidak punya field ini sama sekali. Enforcement
     # required terjadi di tiga lapis lain: FE zod (input wizard), strict

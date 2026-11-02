@@ -115,7 +115,7 @@ Per-field tetap perlu maintainer review untuk konfirmasi mandatory vs non-mandat
 
 ### `MetadataSla`
 
-> **Update #103 (Opsi A, standard_version 0.5.0)**: `effective_date` & `end_of_contract` sudah dipindah dari `sla.*` ke top-level `metadata.*`, dan `end_of_contract` di-rename `expiry_date`. PR-A (spec doc) merged. Pydantic update untuk dua field tsb masuk ke PR-B #103 (bareng migration). Field-field SLA lain (availability/frequency/retention) tetap di-audit normal di tabel ini.
+> **Update #103 (Opsi A)**: `effective_date` & `end_of_contract` sudah dipindah dari `sla.*` ke top-level `metadata.*`, dan `end_of_contract` di-rename `expiry_date`. PR-A (spec doc) merged. Pydantic update untuk dua field tsb masuk ke PR-B #103 (bareng migration). Field-field SLA lain (availability/frequency/retention) tetap di-audit normal di tabel ini.
 
 | Field | Spec | Pydantic | Tag | Rekomendasi |
 |---|---|---|---|---|
@@ -132,7 +132,7 @@ Per-field tetap perlu maintainer review untuk konfirmasi mandatory vs non-mandat
 | `availability` | — | `Optional[str] = None` | 🐛 Cleanup | Field ini **tidak ada di spec**. Sepertinya legacy/runtime. Drop atau document. |
 | `cron` | — | `Optional[str] = None` | 🐛 Cleanup | Duplikatif dengan `frequency_cron`? Cek kode pemakaiannya. |
 
-### `Metadata` (top-level lifecycle, **baru** di standard_version 0.5.0)
+### `Metadata` (top-level lifecycle, **baru** sejak #103)
 
 | Field | Spec | Pydantic | Tag | Rekomendasi |
 |---|---|---|---|---|
@@ -307,7 +307,7 @@ Strict YAML validator di [`main.py:1510`](../repository/app/main.py#L1510) exten
 
 ## Hubungan dengan issue lain
 
-- **[#103](https://github.com/alamanda-projects/beescout/issues/103)** (periode kontrak) — Opsi A diputuskan & PR-A (spec) merged. Field naik ke top-level `metadata.{effective_date, expiry_date}` di `standard_version` 0.5.0. Pydantic add (top-level) + drop dari `MetadataSla` masuk PR-B #103.
+- **[#103](https://github.com/alamanda-projects/beescout/issues/103)** (periode kontrak) — Opsi A diputuskan & PR-A (spec) merged. Field naik ke top-level `metadata.{effective_date, expiry_date}` sejak #103. Pydantic add (top-level) + drop dari `MetadataSla` masuk PR-B #103.
 - **[#94 Phase 3](https://github.com/alamanda-projects/beescout/issues/94)** — overlap area `consumer[]` (documentary per [ADR-0007](adr/0007-consumer-producer-representation.md)). Konsumer field decision di sini harus konsisten.
 - **[#100](https://github.com/alamanda-projects/beescout/issues/100) / [#101](https://github.com/alamanda-projects/beescout/issues/101)** (konverter ODCS↔BeeScout) — converter behavior bergantung field required/optional di model BeeScout; tunggu Phase 2 PR-B selesai.
 - **[#99](https://github.com/alamanda-projects/beescout/issues/99) (mapping ODCS)** — ✅ shipped via PR #107.

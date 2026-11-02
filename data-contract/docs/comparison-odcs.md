@@ -95,14 +95,14 @@
 | `metadata.sla.frequency_cron` | — | BeeScout-specific | Standar crontab |
 | `metadata.sla.retention` + `retention_unit` | `serviceLevelAgreements[*]` retention | Overlap | — |
 
-> **Resolved (#103, standard_version 0.5.0)**: `effective_date` & `end_of_contract` dulu di `metadata.sla.*` — kini dipindah ke top-level metadata (lifecycle, bukan SLA) & `end_of_contract` di-rename ke `expiry_date` agar simetris. Mapping ke ODCS dipindah ke section [Lifecycle kontrak](#lifecycle-kontrak) di bawah.
+> **Resolved (#103)**: `effective_date` & `end_of_contract` dulu di `metadata.sla.*` — kini dipindah ke top-level metadata (lifecycle, bukan SLA) & `end_of_contract` di-rename ke `expiry_date` agar simetris. Mapping ke ODCS dipindah ke section [Lifecycle kontrak](#lifecycle-kontrak) di bawah.
 
 #### Lifecycle kontrak
 
 | BeeScout | ODCS | Kategori | Catatan |
 |---|---|---|---|
-| `metadata.effective_date` | `serviceLevelAgreements[*]` (atau `status`) | Overlap | Top-level di BeeScout sejak `standard_version` 0.5.0 (#103); ODCS biasanya menaruh di SLA list |
-| `metadata.expiry_date` | `serviceLevelAgreements[*]` | Overlap | Rename dari `end_of_contract` sejak `standard_version` 0.5.0 (#103) |
+| `metadata.effective_date` | `serviceLevelAgreements[*]` (atau `status`) | Overlap | Top-level di BeeScout sejak #103; ODCS biasanya menaruh di SLA list |
+| `metadata.expiry_date` | `serviceLevelAgreements[*]` | Overlap | Rename dari `end_of_contract` sejak #103 |
 | `metadata.prev_contract` | `authoritativeDefinitions[]` (mungkin) | Overlap (lemah) | BeeScout: identifier kontrak sebelumnya |
 | `metadata.contract_reference[]` (`{number, type}`) | `authoritativeDefinitions[]` | Overlap (struktur beda) | Lebih granular di BeeScout |
 

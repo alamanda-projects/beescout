@@ -1866,7 +1866,7 @@ async def validate_yaml_import(
                 errors.append({"field": f"metadata.{mf}",
                                 "message": f"Field wajib 'metadata.{mf}' tidak ditemukan atau kosong."})
 
-        # Lifecycle kontrak (#103, standard_version 0.5.0). Terima legacy
+        # Lifecycle kontrak (#103). Terima legacy
         # `metadata.sla.effective_date` / `metadata.sla.end_of_contract`
         # sebagai pengganti — Pydantic compat shim akan auto-promote.
         sla_for_period = metadata.get("sla") or {}
