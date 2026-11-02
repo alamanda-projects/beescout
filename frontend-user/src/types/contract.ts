@@ -61,6 +61,17 @@ export interface Metadata {
   contract_reference?: string[]
 }
 
+// #162 / ADR-0009 — makna bisnis kolom yang terbaca mesin. Opsional:
+// kontrak tanpa blok ini tetap valid.
+export interface ColumnSemantic {
+  entity?: string
+  concept?: string
+  canonical?: boolean
+  glossary?: string
+  /** public | internal | confidential | sensitive | pii */
+  classification?: string
+}
+
 export interface ModelColumn {
   column: string
   business_name?: string
@@ -75,6 +86,7 @@ export interface ModelColumn {
   is_mandatory?: boolean
   description?: string
   quality?: Quality[]
+  semantic?: ColumnSemantic
   sample_value?: string[]
   tags?: string[]
 }
